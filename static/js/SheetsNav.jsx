@@ -1,10 +1,11 @@
 const {
-  SheetTagLink,
+  SheetTopicLink,
   SheetAccessIcon,
   CategoryColorLine,
   ReaderNavigationMenuMenuButton,
   LoadingMessage,
   TwoOrThreeBox,
+  ProfilePic,
 }                = require('./Misc');
 const React      = require('react');
 const ReactDOM   = require('react-dom');
@@ -36,8 +37,8 @@ class SheetsNav extends Component {
     //Sefaria.sheets.tagList(this.loadTags, event.target.value);
   }
   render() {
-    var enTitle = this.props.tag || "Source Sheets";
-    var heTitle = this.props.tag || "דפי מקורות";
+    var enTitle = this.props.tag ? (this.props.tag == "sefaria-groups" ? null : this.props.tag) : "Source Sheets";
+    var heTitle = Sefaria.hebrewTerm(enTitle);
 
     if (this.props.tag == "My Sheets") {
       var content = (<MySheetsPage
@@ -60,7 +61,16 @@ class SheetsNav extends Component {
                         hideNavHeader={this.props.hideNavHeader}
                         multiPanel={this.props.multiPanel}
                         group={this.props.group}
-                        width={this.state.width} />);
+                        setGroupTag={this.props.setGroupTag}
+                        tag={this.props.groupTag}
+                        width={this.state.width}
+                        searchInGroup={this.props.searchInGroup}
+                        toggleLanguage={this.props.toggleLanguage}
+                        interfaceLang={this.props.interfaceLang}
+                        openProfile={this.props.openProfile}
+                      />);
+      enTitle = "Groups";
+      heTitle = Sefaria._(enTitle);
 
     } else if (this.props.tag) {
       var content = (<TagSheetsPage
@@ -87,25 +97,29 @@ class SheetsNav extends Component {
                  (<div className="readerNavTop searchOnly" key="navTop">
                     <CategoryColorLine category="Sheets" />
                     <ReaderNavigationMenuMenuButton onClick={this.props.openNav} />
-                    <div className="readerOptions"></div>
                     <h2>
                       <span className="int-en">{enTitle}</span>
                       <span className="int-he">{heTitle}</span>
                     </h2>
+                    <div className="readerOptions"></div>
                   </div>)}
               {content}
             </div>);
   }
 }
 SheetsNav.propTypes = {
-  multiPanel:      PropTypes.bool,
   tag:             PropTypes.string,
   tagSort:         PropTypes.string,
   close:           PropTypes.func.isRequired,
   openNav:         PropTypes.func.isRequired,
   setSheetTag:     PropTypes.func.isRequired,
   setSheetTagSort: PropTypes.func.isRequired,
-  hideNavHeader:   PropTypes.bool
+  toggleLanguage:  PropTypes.func.isRequired,
+  searchInGroup:   PropTypes.func,
+  hideNavHeader:   PropTypes.bool,
+  multiPanel:      PropTypes.bool,
+  interfaceLang:   PropTypes.string,
+  openProfile:     PropTypes.func.isRequired,
 };
 
 
@@ -207,7 +221,7 @@ class SheetsHomePage extends Component {
                 { this.props.multiPanel ? null :
                   (<h2>
                      <span className="int-en">Trending Tags</span>
-                    <span className="int-he">תוויות פופולריות</span>
+                    <span className="int-he">תוויות עדכניות</span>
                    </h2>)}
 
                 { this.props.multiPanel ? null : (<TwoOrThreeBox content={trendingTags} width={this.props.width} /> )}
@@ -220,7 +234,7 @@ class SheetsHomePage extends Component {
                         <div className="type-buttons">
                           {this._type_sheet_button("Most Used", "הכי בשימוש", () => this.changeSort("count"), (this.props.tagSort == "count"))}
                           {this._type_sheet_button("Alphabetical", "אלפביתי", () => this.changeSort((Sefaria.interfaceLang=="hebrew")?"alpha-hebrew":"alpha"), (this.props.tagSort == "alpha" || this.props.tagSort == "alpha-hebrew"))}
-                          {this._type_sheet_button("Trending", "פופולרי", () => this.changeSort("trending"), (this.props.tagSort == "trending"))}
+                          {this._type_sheet_button("Trending", "עדכני", () => this.changeSort("trending"), (this.props.tagSort == "trending"))}
                         </div>
                       </div>
                     </h2>
@@ -235,9 +249,7 @@ class SheetsHomePage extends Component {
                   <TwoOrThreeBox content={tagList} width={this.props.width} />
                 </div>
               </div>
-              <footer id="footer" className="static sans">
-                    <Footer />
-              </footer>
+              <Footer />
              </div>);
   }
 }
@@ -278,9 +290,7 @@ class TagSheetsPage extends Component {
                         </h1>) : null}
                         {sheets}
                       </div>
-                      <footer id="footer" className="static sans">
-                        <Footer />
-                      </footer>
+                      <Footer />
                     </div>);
   }
 }
@@ -364,9 +374,7 @@ class AllSheetsPage extends Component {
                         </h1>) : null}
                         {sheets}
                       </div>
-                      <footer id="footer" className="static sans">
-                        <Footer />
-                      </footer>
+                      <Footer />
                     </div>);
   }
 }
@@ -382,7 +390,11 @@ class PublicSheetListing extends Component {
     var url = "/sheets/" + sheet.id;
     return (<a className="sheet" href={url} key={url}>
               <div className="sheetTextInfo">
-                {sheet.ownerImageUrl ? (<img className="sheetImg" src={sheet.ownerImageUrl} alt={sheet.ownerName}/>) : null}
+                <ProfilePic
+                  name={sheet.ownerName}
+                  url={sheet.ownerImageUrl}
+                  len={40}
+                />
                 <div className="sheetAuthTitle">
                   <div className="sheetAuthor">{sheet.ownerName}</div>
                   <div className="sheetTitle">{title}</div>
@@ -403,9 +415,12 @@ class SheetTagButton extends Component {
     this.props.setSheetTag(this.props.tag);
   }
   render() {
+    var [enTag, heTag] = [this.props.tag, Sefaria.hebrewTerm(this.props.tag)];
+    var heTagOnly = Sefaria.hebrew.isHebrew(enTag);
+    var enTagOnly = !(Sefaria.hebrew.isHebrew(heTag));
     return (<a href={`/sheets/tags/${this.props.tag}`} className="navButton" onClick={this.handleTagClick}>
-              <span className="int-en">{this.props.tag} ({this.props.count})</span>
-              <span className="int-he">{Sefaria.hebrewTerm(this.props.tag)} (<span className="enInHe">{this.props.count}</span>)</span>
+              <span className={"int-en" + (heTagOnly ? " heOnly" : '')}>{enTag} ({this.props.count})</span>
+              <span className={"int-he" + (enTagOnly ? " enOnly" : '')}>{heTag} (<span className="enInHe">{this.props.count}</span>)</span>
             </a>);
   }
 }
@@ -580,10 +595,8 @@ class PrivateSheetListing extends Component {
     var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
     var url = "/sheets/" + sheet.id;
 
-    if (sheet.tags === undefined) sheet.tags = [];
-      var tagString = sheet.tags.map(function (tag) {
-          return(<SheetTagLink setSheetTag={this.props.setSheetTag} tag={tag} key={tag} />);
-    }, this);
+    if (sheet.topics === undefined) sheet.topics = [];
+    const topicString = sheet.topics.map(topic => (<SheetTopicLink setSheetTag={this.props.setSheetTag} topic={topic} key={topic.slug} />));
 
    return (<div className="sheet userSheet" href={url} key={url}>
               <div className="userSheetTitle">
@@ -592,7 +605,7 @@ class PrivateSheetListing extends Component {
                 <a className="button white mini" href={url+"?editor=1"}><span className="int-en">Edit Sheet</span><span className="int-he">ערוך</span></a>
               </div>
               <div className="userSheetInfo">
-                <span>{sheet.views} {Sefaria._('Views')}</span><span>{sheet.modified}</span><span className="tagString">{tagString}</span>
+                <span>{sheet.views} {Sefaria._('Views')}</span><span>{sheet.modified}</span><span className="tagString">{topicString}</span>
               </div>
           </div>);
   }

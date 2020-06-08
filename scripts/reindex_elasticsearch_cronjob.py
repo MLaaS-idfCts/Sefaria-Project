@@ -1,12 +1,13 @@
 from datetime import datetime
 import requests
+import traceback
 import os
 import django
 django.setup()
 from sefaria.model import *
-from sefaria.search import index_all, init_pagesheetrank_dicts
+from sefaria.search import index_all
 from sefaria.local_settings import SEFARIA_BOT_API_KEY
-from sefaria.pagesheetrank import calculate_pagerank, calculate_sheetrank
+from sefaria.pagesheetrank import update_pagesheetrank
 
 """
 Source sheets added after last_sheet_timestamp will be missing from the index process. We want to manually index all
@@ -16,15 +17,31 @@ value will need to be set to the time at which the last mongo dump was created (
 up-to-date mongo dump).
 """
 # last_sheet_timestamp = datetime.fromtimestamp(os.path.getmtime("/var/data/sefaria_public/dump/sefaria")).isoformat()
-last_sheet_timestamp = datetime.now().isoformat()
-calculate_pagerank()
-calculate_sheetrank()
-# reinit pagesheetrank after calculation
-init_pagesheetrank_dicts()
-index_all(merged=False)
-index_all(merged=True)
-r = requests.post("http://web/admin/index-sheets-by-timestamp", data={"timestamp": last_sheet_timestamp, "apikey": SEFARIA_BOT_API_KEY})
-if "error" in r.text:
-    raise Exception("Error when calling admin/index-sheets-by-timestamp API: " + r.text)
-else:
-    print "SUCCESS!", r.text
+try:
+    last_sheet_timestamp = datetime.now().isoformat()
+    update_pagesheetrank()
+    index_all(merged=False)
+    index_all(merged=True)
+    r = requests.post("http://web/admin/index-sheets-by-timestamp", data={"timestamp": last_sheet_timestamp, "apikey": SEFARIA_BOT_API_KEY})
+    if "error" in r.text:
+        raise Exception("Error when calling admin/index-sheets-by-timestamp API: " + r.text)
+    else:
+        print("SUCCESS!", r.text)
+except Exception as e:
+    tb_str = traceback.format_exc()
+    print("Caught exception")
+    post_object = {
+        "icon_emoji": ":facepalm:",
+        "username": "Reindex ElasticSearch",
+        "channel": "#engineering-discuss",
+        "attachments": [
+            {
+                "fallback": tb_str,
+                "color": "#a30200",
+                "pretext": "Cronjob Error",
+                "text": tb_str
+            }
+        ]
+    }
+    requests.post(os.environ['SLACK_URL'], json=post_object)
+    raise e

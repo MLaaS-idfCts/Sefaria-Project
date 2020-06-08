@@ -1,11 +1,14 @@
+# -*- coding: utf-8 -*-
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.conf.urls import include, url
 from django.conf.urls import handler404, handler500
 from django.contrib import admin
 from django.http import HttpResponseRedirect
+import django.contrib.auth.views as django_auth_views
 
 from emailusernames.forms import EmailAuthenticationForm
 
-from sefaria.forms import HTMLPasswordResetForm, SefariaLoginForm
+from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, SefariaLoginForm
 from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL
 
 import reader.views as reader_views
@@ -14,13 +17,7 @@ import sourcesheets.views as sheets_views
 import sefaria.gauth.views as gauth_views
 import django.contrib.auth.views as django_auth_views
 
-
-import reader.views as reader_views
-import sefaria.views as sefaria_views
-import sourcesheets.views as sheets_views
-import sefaria.gauth.views as gauth_views
-import django.contrib.auth.views as django_auth_views
-
+from sefaria.site.urls import site_urlpatterns
 
 admin.autodiscover()
 handler500 = 'reader.views.custom_server_error'
@@ -35,12 +32,12 @@ urlpatterns = [
     url(r'^texts/(?P<cats>.+)?$', reader_views.texts_category_list),
     url(r'^search/?$', reader_views.search),
     url(r'^search-autocomplete-redirecter/?$', reader_views.search_autocomplete_redirecter),
-    url(r'^sheets/?$', reader_views.sheets_list),
+    #url(r'^sheets/?$', reader_views.sheets_list),
     url(r'^sheets/tags/?$', reader_views.sheets_tags_list),
     url(r'^sheets/tags/(?P<tag>.+)$', reader_views.sheets_by_tag),
     url(r'^sheets/(?P<type>(public|private))/?$', reader_views.sheets_list),
     url(r'^groups/?$', reader_views.public_groups),
-    url(r'^groups/allz$', reader_views.groups_admin_page),
+    url(r'^groups/all$', reader_views.groups_admin_page),
     url(r'^groups/new$', reader_views.edit_group_page),
     url(r'^groups/(?P<group>[^/]+)/settings$', reader_views.edit_group_page),
     url(r'^groups/(?P<group>[^/]+)$', reader_views.group_page),
@@ -51,6 +48,10 @@ urlpatterns = [
     url(r'^my/notes/?$', reader_views.my_notes),
     url(r'^updates/?$', reader_views.updates),
     url(r'^modtools/?$', reader_views.modtools),
+    url(r'^new-home/?$', reader_views.new_home),
+    url(r'^story_editor/?$', reader_views.story_editor),
+    url(r'^torahtracker/?$', reader_views.user_stats),
+
 ]
 
 # People Pages
@@ -62,8 +63,7 @@ urlpatterns += [
 
 # Visualizations / Link Explorer
 urlpatterns += [
-    url(r'^explore(/(?P<book1>[A-Za-z-]+))?(/(?P<book2>[A-Za-z-]+))?/(?P<lang>\w\w)/?$', reader_views.explore),
-    url(r'^explore(/(?P<book1>[A-Za-z-]+))?(/(?P<book2>[A-Za-z-]+))?/?$', reader_views.explore),
+    url(r'^explore(-(?P<topCat>[\w-]+)-and-(?P<bottomCat>[\w-]+))?(/(?P<book1>[A-Za-z-,\']+))?(/(?P<book2>[A-Za-z-,\']+))?(/(?P<lang>\w\w)/?)?/?$', reader_views.explore),
     url(r'^visualize/library/(?P<lang>[enh]*)/?(?P<cats>.*)/?$', reader_views.visualize_library),
     url(r'^visualize/library/?(?P<cats>.*)/?$', reader_views.visualize_library),
     url(r'^visualize/toc$', reader_views.visualize_toc),
@@ -71,6 +71,8 @@ urlpatterns += [
     url(r'^visualize/links-through-rashi$', reader_views.visualize_links_through_rashi),
     url(r'^visualize/talmudic-relationships$', reader_views.talmudic_relationships),
     url(r'^visualize/sefer-hachinukh-mitzvot$', reader_views.sefer_hachinukh_mitzvot),
+    url(r'^visualize/timeline$', reader_views.visualize_timeline),
+    url(r'^visualize/unique-words-by-commentator', reader_views.unique_words_viz),
 ]
 
 # Source Sheet Builder
@@ -83,19 +85,25 @@ urlpatterns += [
 # Profiles & Settings
 urlpatterns += [
     url(r'^my/profile', reader_views.my_profile),
-    url(r'^profile/(?P<username>[^/]+)(/(?P<page>\d+))?$', reader_views.user_profile),
+    url(r'^profile/(?P<username>[^/]+)/?$', reader_views.user_profile),
     url(r'^contributors/(?P<username>[^/]+)(/(?P<page>\d+))?$', reader_views.profile_redirect),
     url(r'^settings/account?$', reader_views.account_settings),
     url(r'^settings/profile?$', reader_views.edit_profile),
     url(r'^interface/(?P<language>english|hebrew)$', reader_views.interface_language_redirect),
-    url(r'^api/profile$', reader_views.profile_api),
-    url(r'^api/profile/sync$', reader_views.profile_sync_api),
     url(r'^api/profile/user_history$', reader_views.profile_get_user_history),
+    url(r'^api/profile/sync$', reader_views.profile_sync_api),
+    url(r'^api/profile/upload-photo$', reader_views.profile_upload_photo),
+    url(r'^api/profile$', reader_views.profile_api),
+    url(r'settings/account/user$', reader_views.account_user_update),
+    url(r'^api/profile/(?P<slug>[^/]+)$', reader_views.profile_get_api),
+    url(r'^api/profile/(?P<slug>[^/]+)/(?P<ftype>followers|following)$', reader_views.profile_follow_api),
+    url(r'^api/user_history/saved$', reader_views.saved_history_for_ref),
     url(r'^api/interrupting-messages/read/(?P<message>.+)$', reader_views.interrupting_messages_read_api),
 ]
 
 # Topics
 urlpatterns += [
+    url(r'^topics/category/(?P<topicCategory>.+)?$', reader_views.topics_toc_page),
     url(r'^topics$', reader_views.topics_page),
     url(r'^topics/(?P<topic>.+)$', reader_views.topic_page),
 ]
@@ -103,7 +111,7 @@ urlpatterns += [
 # Calendar Redirects
 urlpatterns += [
     url(r'^parashat-hashavua$', reader_views.parashat_hashavua_redirect),
-    url(r'^daf-yomi$', reader_views.daf_yomi_redirect),
+    url(r'^todays-daf-yomi$', reader_views.daf_yomi_redirect),
 ]
 
 # Texts Add / Edit / Translate
@@ -148,15 +156,21 @@ urlpatterns += [
     url(r'^api/shape/(?P<title>.+)$', reader_views.shape_api),
     url(r'^api/preview/(?P<title>.+)$', reader_views.text_preview_api),
     url(r'^api/terms/(?P<name>.+)$', reader_views.terms_api),
+    url(r'^api/calendars/next-read/(?P<parasha>.+)$', reader_views.parasha_next_read_api),
     url(r'^api/calendars/?$', reader_views.calendars_api),
     url(r'^api/name/(?P<name>.+)$', reader_views.name_api),
     url(r'^api/category/?(?P<path>.+)?$', reader_views.category_api),
+    url(r'^api/tag-category/?(?P<path>.+)?$', reader_views.tag_category_api),
     url(r'^api/words/completion/(?P<word>.+)/(?P<lexicon>.+)$', reader_views.dictionary_completion_api),
-    #url(r'^api/words/completion/(?P<word>.+)$', reader_views.dictionary_completion_api),   # Search all dicts
+    url(r'^api/words/completion/(?P<word>.+)$', reader_views.dictionary_completion_api),   # Search all dicts
     url(r'^api/words/(?P<word>.+)$', reader_views.dictionary_api),
     url(r'^api/notifications/?$', reader_views.notifications_api),
     url(r'^api/notifications/read', reader_views.notifications_read_api),
     url(r'^api/updates/?(?P<gid>.+)?$', reader_views.updates_api),
+    url(r'^api/stories/?(?P<gid>.+)?$', reader_views.stories_api),
+    url(r'^api/story_reflector/?$', reader_views.story_reflector),
+    url(r'^api/user_stats/(?P<uid>.+)/?$', reader_views.user_stats_api),
+    url(r'^api/site_stats/?$', reader_views.site_stats_api),
     url(r'^api/messages/?$', reader_views.messages_api),
 ]
 
@@ -168,7 +182,7 @@ urlpatterns += [
     url(r'^api/sheets/(?P<sheet_id>\d+)/add_ref$',                    sheets_views.add_ref_to_sheet_api),
     url(r'^api/sheets/(?P<parasha>.+)/get_aliyot$',                   sheets_views.get_aliyot_by_parasha_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/copy_source$',                sheets_views.copy_source_to_sheet_api),
-    url(r'^api/sheets/(?P<sheet_id>\d+)/tags$',                       sheets_views.update_sheet_tags_api),
+    url(r'^api/sheets/(?P<sheet_id>\d+)/topics$',                     sheets_views.update_sheet_topics_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)$',                            sheets_views.sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)\.(?P<node_id>\d+)$',          sheets_views.sheet_node_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/like$',                       sheets_views.like_sheet_api),
@@ -180,10 +194,13 @@ urlpatterns += [
     url(r'^api/sheets/modified/(?P<sheet_id>\d+)/(?P<timestamp>.+)$', sheets_views.check_sheet_modified_api),
     url(r'^api/sheets/create/(?P<ref>[^/]+)(/(?P<sources>.+))?$',     sheets_views.make_sheet_from_text_api),
     url(r'^api/sheets/tag/(?P<tag>[^/]+)?$',                          sheets_views.sheets_by_tag_api),
+    url(r'^api/v2/sheets/tag/(?P<tag>[^/]+)?$',                       sheets_views.story_form_sheets_by_tag),
+    url(r'^api/v2/sheets/bulk/(?P<sheet_id_list>.+)$',                sheets_views.bulksheet_api),
     url(r'^api/sheets/trending-tags/?$',                              sheets_views.trending_tags_api),
     url(r'^api/sheets/tag-list/?$',                                   sheets_views.tag_list_api),
     url(r'^api/sheets/tag-list/user/(?P<user_id>\d+)?$',              sheets_views.user_tag_list_api),
     url(r'^api/sheets/tag-list/(?P<sort_by>[a-zA-Z\-]+)$',            sheets_views.tag_list_api),
+    url(r'^api/sheets/ref/(?P<ref>[^/]+)$',                           sheets_views.sheets_by_ref_api),
     url(r'^api/sheets/all-sheets/(?P<limiter>\d+)/(?P<offset>\d+)$',  sheets_views.all_sheets_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/export_to_drive$',            sheets_views.export_to_drive),
 ]
@@ -194,12 +211,13 @@ urlpatterns += [
     url(r'^api/groups/(?P<group_name>[^/]+)/set-role/(?P<uid>\d+)/(?P<role>[^/]+)$', sheets_views.groups_role_api),
     url(r'^api/groups/(?P<group_name>[^/]+)/invite/(?P<uid_or_email>[^/]+)(?P<uninvite>\/uninvite)?$', sheets_views.groups_invite_api),
     url(r'^api/groups/(?P<group_name>[^/]+)/pin-sheet/(?P<sheet_id>\d+)', sheets_views.groups_pin_sheet_api),
+    url(r'^api/groups/user-groups/(?P<user_id>\d+)$', sheets_views.user_groups_api),
 ]
 
 # Search API
 urlpatterns += [
-    url(r'^api/dummy-search$', reader_views.dummy_search_api)
-    # url(r'^api/search$', reader_views.search_api)
+    url(r'^api/dummy-search$', reader_views.dummy_search_api),
+    url(r'^api/search-wrapper$', reader_views.search_wrapper_api)
 ]
 
 # Following API
@@ -211,7 +229,9 @@ urlpatterns += [
 # Topics API
 urlpatterns += [
     url(r'^api/topics$', reader_views.topics_list_api),
+    url(r'^api/ref-topic-links/(?P<tref>.+)$', reader_views.topic_ref_api),
     url(r'^api/topics/(?P<topic>.+)$', reader_views.topics_api),
+    url(r'^api/bulktopics$', reader_views.bulk_topic_api),
     url(r'^api/recommend/topics(/(?P<ref_list>.+))?', reader_views.recommend_topics_api),
 ]
 
@@ -280,6 +300,7 @@ urlpatterns += [
 urlpatterns += [
     url(r'^random/link$',        reader_views.random_redirect),
     url(r'^random/?$',           reader_views.random_text_page),
+    url(r'^daf-roulette/?$',     reader_views.daf_roulette_redirect)
 ]
 
 # Registration
@@ -287,10 +308,13 @@ urlpatterns += [
     url(r'^login/?$', django_auth_views.LoginView.as_view(authentication_form=SefariaLoginForm), name='login'),
     url(r'^register/?$', sefaria_views.register, name='register'),
     url(r'^logout/?$', django_auth_views.LogoutView.as_view(), name='logout'),
-    url(r'^password/reset/?$', django_auth_views.PasswordResetView.as_view(email_template_name='registration/password_reset_email.txt', html_email_template_name='registration/password_reset_email.html'), {'password_reset_form': HTMLPasswordResetForm}, name='password_reset'),
-    url(r'^password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', django_auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    url(r'^password/reset/?$', django_auth_views.PasswordResetView.as_view(form_class=SefariaPasswordResetForm, email_template_name='registration/password_reset_email.txt', html_email_template_name='registration/password_reset_email.html'), name='password_reset'),
+    url(r'^password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', django_auth_views.PasswordResetConfirmView.as_view(form_class=SefariaSetPasswordForm), name='password_reset_confirm'),
     url(r'^password/reset/complete/$', django_auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     url(r'^password/reset/done/$', django_auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
+    url(r'^api/register/$', sefaria_views.register_api),
+    url(r'^api/login/$', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    url(r'^api/login/refresh/$', TokenRefreshView.as_view(), name='token_refresh'),
 ]
 
 # Compare Page
@@ -307,70 +331,6 @@ urlpatterns += [
     url(r'^vgarden/custom/(?P<key>.*)$', reader_views.custom_visual_garden_page),  # legacy.  Used for "maggid" and "ecology"
 ]
 
-static_pages = [
-    "about",
-    "donate",
-    "strategy",
-    "supporters",
-    "team",
-    "help",
-    "connect",
-    "visualizations",
-    "jobs",
-    "terms",
-    "privacy-policy",
-    "coming-soon",
-    "shraga-silverstein",
-    "adin-even-israel-steinsaltz",
-    "william-davidson-talmud",
-    "linker",
-    "ios",
-    "mobile",
-    "sefaria-edition",
-    "sefaria-community-translation",
-    "contributed-to-sefaria",
-    "translation-guidelines",
-    "transliteration-guidelines",
-    "even-haezer-guidelines",
-    "random-walk-through-torah",
-    "educators",
-    "the-sefaria-story",
-    "aramaic-translation-contest",
-    "newsletter",
-    "shavuot-map-2018",
-    "testimonials",
-    "torah-tab",
-]
-
-# Static and Semi Static Content
-urlpatterns += [
-    url(r'^$', reader_views.home, name="home"),
-    url(r'^metrics/?$', reader_views.metrics),
-    url(r'^digitized-by-sefaria/?$', reader_views.digitized_by_sefaria),
-    url(r'^(%s)/?$' % "|".join(static_pages), reader_views.serve_static),
-]
-
-
-# Redirects to Forum, Wiki, etc
-urlpatterns += [
-    url(r'^forum/?$', lambda x: HttpResponseRedirect('https://groups.google.com/forum/?fromgroups#!forum/sefaria')),
-    url(r'^wiki/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki')),
-    url(r'^developers/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#developers')),
-    url(r'^request-a-text/?$', lambda x: HttpResponseRedirect('https://goo.gl/forms/ru33ivawo7EllQxa2')),
-    url(r'^request-a-training/?$', lambda x: HttpResponseRedirect(' https://docs.google.com/forms/d/1CJZHRivM2qFeF2AE2afpvE1m86AgJPCxUEFu5EG92F8/edit?usp=sharing_eil&ts=5a4dc5e0')),
-    url(r'^contribute/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki/Guide-to-Contributing')),
-    url(r'^faq/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#frequently-asked-questions')),
-    url(r'^gala/?$', lambda x: HttpResponseRedirect('https://www.501auctions.com/sefaria')),
-    url(r'^jfn?$', lambda x: HttpResponseRedirect('https://www.sefaria.org/sheets/60494')),
-]
-
-urlpatterns +=[
-    url(r'^textmap/?$', lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria-Text-Map-June-2016.pdf')),
-    url(r'^workshop/?$', lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_SummerMeeting_2016.pdf')),
-    url(r'^ideasforteaching/?$',lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_Teacher_Generated_Ideas_for_Your_Classroom.pdf')),
-    url(r'^strategicplan/?$',lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_Strategic_Plan.pdf')),
-]
-
 # Sefaria.js -- Packaged JavaScript
 urlpatterns += [
     url(r'^data\.js$', sefaria_views.data_js),
@@ -385,7 +345,20 @@ urlpatterns += [
     url(r'^download/version/(?P<title>.+) - (?P<lang>[he][en]) - (?P<versionTitle>.+)\.(?P<format>plain\.txt)', sefaria_views.text_download_api),
     url(r'^download/version/(?P<title>.+) - (?P<lang>[he][en]) - (?P<versionTitle>.+)\.(?P<format>json|csv|txt)',sefaria_views.text_download_api),
     url(r'^download/bulk/versions/', sefaria_views.bulk_download_versions_api),
-    url(r'^api/text-upload$', sefaria_views.text_upload_api)
+    url(r'^api/text-upload$', sefaria_views.text_upload_api),
+    url(r'^api/linker-track$', sefaria_views.linker_tracking_api),
+
+]
+
+# dafroulette.js -
+urlpatterns += [
+    url(r'^dafroulette\.js$', sefaria_views.dafroulette_js)
+]
+
+
+
+urlpatterns += [
+    url(r'^api/passages/(?P<refs>.+)$', sefaria_views.passages_api),
 ]
 
 # File Uploads
@@ -412,7 +385,7 @@ urlpatterns += [
     url(r'^admin/reset/counts/(?P<title>.+)$', sefaria_views.reset_counts),
     url(r'^admin/reset/toc$', sefaria_views.rebuild_toc),
     url(r'^admin/reset/ac$', sefaria_views.rebuild_auto_completer),
-    url(r'^admin/reset/topics$', sefaria_views.rebuild_topics),
+    url(r'^admin/reset/api/(?P<apiurl>.+)$', sefaria_views.reset_cached_api),
     url(r'^admin/reset/(?P<tref>.+)$', sefaria_views.reset_ref),
     url(r'^admin/delete/orphaned-counts', sefaria_views.delete_orphaned_counts),
     url(r'^admin/rebuild/auto-links/(?P<title>.+)$', sefaria_views.rebuild_auto_links),
@@ -427,10 +400,11 @@ urlpatterns += [
     url(r'^admin/translation-requests-stats', sefaria_views.translation_requests_stats),
     url(r'^admin/sheet-stats', sefaria_views.sheet_stats),
     url(r'^admin/untagged-sheets', sefaria_views.untagged_sheets),
+    url(r'^admin/spam', sefaria_views.spam_dashboard),
     url(r'^admin/versions-csv', sefaria_views.versions_csv),
     url(r'^admin/index-sheets-by-timestamp', sefaria_views.index_sheets_by_timestamp),
-    url(r'^admin/?', include(admin.site.urls)),
 
+    url(r'^admin/?', include(admin.site.urls)),
 ]
 
 # Stats API - return CSV
@@ -445,10 +419,17 @@ urlpatterns += [
     url(r'^gauth/callback$', gauth_views.auth_return, name="gauth_callback"),
 ]
 
+# Site specific URLS loaded from
+urlpatterns += site_urlpatterns
+
 # Sheets in a reader panel
 urlpatterns += [
     url(r'^sheets/(?P<tref>[\d.]+)$', reader_views.catchall, {'sheet': True}),
 ]
+
+# add static files to urls
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+urlpatterns += staticfiles_urlpatterns()
 
 # Catch all to send to Reader
 urlpatterns += [

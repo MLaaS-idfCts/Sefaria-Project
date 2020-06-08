@@ -2,7 +2,7 @@
 """
 Override of Django forms for new users and password reset.
 
-Includes logic for subscribing to mailing list on register and for 
+Includes logic for subscribing to mailing list on register and for
 "User Seeds" -- pre-creating accounts that may already be in a Group.
 """
 from django import forms
@@ -13,9 +13,11 @@ from django.utils.translation import ugettext_lazy as _
 from emailusernames.forms import EmailUserCreationForm, EmailAuthenticationForm
 from emailusernames.utils import get_user, user_exists
 from captcha.fields import ReCaptchaField
+from captcha.widgets import ReCaptchaV2Checkbox
 
 from sefaria.client.util import subscribe_to_list
 from sefaria.local_settings import DEBUG
+from sefaria.settings import MOBILE_APP_KEY
 from django.utils.translation import get_language
 
 
@@ -27,30 +29,32 @@ class SefariaLoginForm(EmailAuthenticationForm):
     password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("Password")}))
 
 
-class NewUserForm(EmailUserCreationForm):
+class SefariaNewUserForm(EmailUserCreationForm):
     email = forms.EmailField(max_length=75, widget=forms.EmailInput(attrs={'placeholder': _("Email Address"), 'autocomplete': 'off'}))
     first_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("First Name"), 'autocomplete': 'off'}))
     last_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("Last Name"), 'autocomplete': 'off'}))
     password1 = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("Password"), 'autocomplete': 'off'}))
-    subscribe_announce = forms.BooleanField(label=_("Receive important announcements"), help_text=_("Receive important announcements"), initial=True, required=False)
-    subscribe_educator = forms.BooleanField(label=_("Receive our educator newsletter"), help_text=_("Receive our educator newsletter"), initial=False, required=False)
-    if not DEBUG:
-        attrs = {'theme': 'white'}
-        if get_language() == 'he':
-            attrs['lang'] = 'iw'
-        captcha = ReCaptchaField(attrs=attrs)
-    
+    subscribe_educator = forms.BooleanField(label=_("I am an educator"), help_text=_("I am an educator"), initial=False, required=False)
+
+    captcha_lang = "iw" if get_language() == 'he' else "en"
+    captcha = ReCaptchaField(
+        widget=ReCaptchaV2Checkbox(
+            attrs={
+                'data-theme': 'white'
+                #'data-size': 'compact',
+            },
+            #api_params={'hl': captcha_lang}
+        )
+    )
+
     class Meta:
         model = User
         fields = ("email",)
- 
+
     def __init__(self, *args, **kwargs):
         super(EmailUserCreationForm, self).__init__(*args, **kwargs)
         del self.fields['password2']
-        self.fields.keyOrder = ["email", "first_name", "last_name", "password1"]
-        if not DEBUG:
-            self.fields.keyOrder.append("captcha")
-        self.fields.keyOrder.append("subscribe_announce")
+        self.fields.keyOrder = ["email", "first_name", "last_name", "password1", "captcha"]
         self.fields.keyOrder.append("subscribe_educator")
 
     def clean_email(self):
@@ -64,26 +68,25 @@ class NewUserForm(EmailUserCreationForm):
     def save(self, commit=True):
         email = self.cleaned_data["email"]
         if user_exists(email):
-            # A 'User Seed' existing for this email address. 
+            # A 'User Seed' existing for this email address.
             user = get_user(email)
             user.set_password(self.cleaned_data["password1"])
             seed_group = Group.objects.get(name=SEED_GROUP)
             user.groups.remove(seed_group)
         else:
-            user = super(NewUserForm, self).save(commit=False)
+            user = super(SefariaNewUserForm, self).save(commit=False)
         
         user.first_name = self.cleaned_data["first_name"]
         user.last_name = self.cleaned_data["last_name"]
-               
+
         if commit:
             user.save()
 
         mailingLists = []
         language = get_language()
 
-        if self.cleaned_data["subscribe_announce"]:
-            list_name = "Announcements_General_Hebrew" if language == "he" else "Announcements_General"
-            mailingLists.append(list_name)
+        list_name = "Announcements_General_Hebrew" if language == "he" else "Announcements_General"
+        mailingLists.append(list_name)
 
         if self.cleaned_data["subscribe_educator"]:
             list_name = "Announcements_Edu_Hebrew" if language == "he" else "Announcements_Edu"
@@ -98,43 +101,38 @@ class NewUserForm(EmailUserCreationForm):
 
         return user
 
+class SefariaNewUserFormAPI(SefariaNewUserForm):
+
+    mobile_app_key = forms.CharField(widget=forms.HiddenInput())
+
+    def __init__(self, *args, **kwargs):
+        super(SefariaNewUserForm, self).__init__(*args, **kwargs)
+        # don't require captcha on API form
+        # instead, require that the correct app_key is sent
+        self.fields.pop('captcha')
+
+    def clean_mobile_app_key(self):
+        mobile_app_key = self.cleaned_data["mobile_app_key"]
+        if mobile_app_key != MOBILE_APP_KEY:
+            raise forms.ValidationError(_("Incorrect mobile_app_key provided"))
+
 # TODO: Check back on me
 # This class doesn't seem to be getting called at all -- it's referenced in urls.py,
 # but I'm not 100% convinced anything coded here actually sends the email template outside of the django defaults (rmn)
 #
-class HTMLPasswordResetForm(PasswordResetForm):
+class SefariaPasswordResetForm(PasswordResetForm):
     email = forms.EmailField(max_length=75, widget=forms.TextInput(attrs={'placeholder': _("Email Address"), 'autocomplete': 'off'}))
 
-    def save(self, domain_override=None, subject_template_name='registration/pass_reset_subject.txt',
-             email_template_name='registration/password_reset_email.html',
-             use_https=False, token_generator=default_token_generator, from_email=None, request=None,
-             html_email_template_name=None,
-             extra_email_context=None
-             ):
-        """
-        Generates a one-use only link for resetting password and sends to the user
-        """
-        from django.core.mail import EmailMessage
-        for user in self.users_cache:
-            if not domain_override:
-                current_site = get_current_site(request)
-                site_name = current_site.name
-                domain = current_site.domain
-            else:
-                site_name = domain = domain_override
-            c = {
-                'email': user.email,
-                'domain': domain,
-                'site_name': site_name,
-                'uid': int_to_base36(user.id),
-                'user': user,
-                'token': token_generator.make_token(user),
-                'protocol': use_https and 'https' or 'http',
-            }
-            subject = loader.render_to_string(subject_template_name, c)
-            # Email subject *must not* contain newlines
-            subject = ''.join(subject.splitlines())
-            email = loader.render_to_string(email_template_name, c)
-            msg = EmailMessage(subject, email, from_email, [user.email])
-            msg.content_subtype = "html"
-            msg.send()
+class SefariaSetPasswordForm(SetPasswordForm):
+    new_password1 = forms.CharField(
+        label=_("New password"),
+        widget=forms.PasswordInput(attrs={'placeholder': _("Enter New Password")}),
+        strip=False,
+        help_text=password_validation.password_validators_help_text_html(),
+    )
+    new_password2 = forms.CharField(
+        label=_("New password confirmation"),
+        strip=False,
+        widget=forms.PasswordInput(attrs={'placeholder': _("Repeat New Password")}),
+    )
+

@@ -4,6 +4,7 @@ const {
   ReaderNavigationMenuDisplaySettingsButton,
   LanguageToggleButton,
   LoadingMessage,
+  SinglePanelNavHeader,
   Note,
 }                         = require('./Misc');
 const React               = require('react');
@@ -13,7 +14,7 @@ const classNames          = require('classnames');
 const Sefaria             = require('./sefaria/sefaria');
 const $                   = require('./sefaria/sefariaJquery');
 const TextRange           = require('./TextRange');
-const AddToSourceSheetBox = require('./AddToSourceSheetBox');
+const { AddToSourceSheetWindow } = require('./AddToSourceSheet');
 const Footer              = require('./Footer');
 import Component          from 'react-class';
 
@@ -55,20 +56,18 @@ class MyNotesPanel extends Component {
     return (
       <div className={classStr}>
         {this.props.hideNavHeader ? null :
-          <div className={navTopClasses}>
-            <CategoryColorLine category={"Other"} />
-            <ReaderNavigationMenuMenuButton onClick={this.props.navHome}/>
-            <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
-            <h2>
-              <span className="int-en">My Notes</span>
-              <span className="int-he">הרשומות שלי</span>
-            </h2>
-        </div>}
+          <SinglePanelNavHeader
+            enTitle="My Notes"
+            heTitle="הרשומות שלי"
+            navHome={this.props.navHome}
+            showDisplaySettings={true}
+            openDisplaySettings={this.props.openDisplaySettings}/>
+        }
         <div className={contentClasses} onScroll={this.onScroll}>
           <div className="contentInner">
             {this.props.hideNavHeader ?
               <h1>
-                { this.props.multiPanel ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
+                { this.props.multiPanel && Sefaria._siteSettings.TORAH_SPECIFIC ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
                 <span className="int-en">My Notes</span>
                 <span className="int-he">הרשומות שלי</span>
               </h1>
@@ -87,9 +86,7 @@ class MyNotesPanel extends Component {
             </div>
 
           </div>
-          <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
-            <Footer />
-          </footer>
+          <Footer />
         </div>
       </div>);
   }
@@ -169,40 +166,5 @@ NoteListing.defaultProps = {
   showText: true
 };
 
-
-class AddToSourceSheetWindow extends Component {
-  close () {
-    if (this.props.close) {
-      this.props.close();
-    }
-  }
-  render () {
-    var nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
-
-    return (<div className="addToSourceSheetModal">
-      <div className="sourceSheetBoxTitle">
-        <img src="/static/img/circled-x.svg" className="closeButton" aria-hidden="true" alt="Close" onClick={this.close}/>
-        {Sefaria.loggedIn ? null : <span>
-            In order to add this source to a sheet, please <a href={"/login" + nextParam}>log in.</a>
-        </span>}
-        <div className="clearFix"></div>
-      </div>
-      {Sefaria.loggedIn ?
-        <AddToSourceSheetBox
-          srefs = {this.props.srefs}
-          en = {this.props.en}
-          he = {this.props.he}
-          note = {this.props.note}
-        /> : null }
-      </div>);
-  }
-}
-AddToSourceSheetWindow.propTypes = {
-  srefs:        PropTypes.array,
-  close:        PropTypes.func,
-  en:           PropTypes.string,
-  he:           PropTypes.string,
-  note:         PropTypes.string,
-};
 
 module.exports = MyNotesPanel;

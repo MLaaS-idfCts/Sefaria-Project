@@ -1,17 +1,18 @@
 {% extends "base.html" %}
 {% block static_css %}{% endblock %}
-{% load i18n cache humanize sefaria_tags%}
+{% load cache humanize sefaria_tags%}
 {% load static %}
+{% load i18n %}
 
 {% block title %}{% if title %}{{ title|striptags|strip_html_entities }} | {% trans "Sefaria Source Sheet Builder" %}{% else %}{% trans "Start a New Sheet - Sefaria Source Sheet Builder" %}{% endif %}{% endblock %}
 
-{% block description %}{% if sheet.owner %}{% blocktrans %}A source sheet created with Sefaria's Source Sheet Builder.{% endblocktrans %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
-{% block soc_description %}{% if sheet.owner %}{% blocktrans %}A source sheet created with Sefaria's Source Sheet Builder.{% endblocktrans %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
+{% block description %}{% if sheet.owner %}{% trans "A source sheet created with Sefaria's Source Sheet Builder." %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
+{% block soc_description %}{% if sheet.owner %}{% trans "A source sheet created with Sefaria's Source Sheet Builder." %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
 
 {% block head %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/tooltipster.css' %}" />
     {% if not is_public %}
-        <meta name="robots" content="noindex">
+        <meta name="robots" content="noindex, nofollow">
     {% endif %}
     {% if EMBED %}
         <link rel="canonical" href="{{ canonical_url }}">
@@ -104,9 +105,9 @@
                             {% endif %}
                         {% endif %}
 
-                        {% endif %}
-
                         <div class="line"></div>
+
+                        {% endif %}
 
                         <div class="optionItem" id="print" role="menuitem" tabindex="0">
                             <img src="{% static 'img/print.png' %}" alt="Print Icon">
@@ -115,6 +116,7 @@
                                 <span class="int-he">הדפסה</span>
                             </span>
                         </div>
+                        {% if not new_sheet %}
                         <div class="optionItem" id="visualize" role="menuitem" tabindex="0">
                             <i class="fa fa-picture-o"></i>
                             <span class="optionItemText">
@@ -124,7 +126,6 @@
                                 </a>
                             </span>
                         </div>
-                        {% if not new_sheet %}
                         <div class="optionItem" id="highlightToggle" role="menuitem" tabindex="0">
                             <i class="fa fa-pencil"></i>
                             <span class="optionItemText">
@@ -428,7 +429,7 @@
                 {% if can_edit or can_add %}
                 <div class="sheetsMenuBarItem" id="insertMenu">
                     <span class="int-en menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">Insert</span>
-                    <span class="int-he menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">הכנסה</span>
+                    <span class="int-he menuHeader" aria-haspopup="true" role="menuitem" tabindex="0">הוספה</span>
                     <div class="optionsMenu" aria-hidden="true" aria-label="submenu">
                         <div class="optionItem" id="addSourceMenu" role="menuitem" tabindex="0">
                             <img src="{% static 'img/source.png' %}" alt="Add Source Icon">
@@ -516,7 +517,7 @@
                             </span>
                             <span class="lastSavedConfirmed">
                                 <span class="int-en">All changes saved in Sefaria</span>
-                                <span class="int-he">כל השינויים שמורים בספאריה</span>
+                                <span class="int-he">כל השינויים שמורים בספריא</span>
                             </span>
                             <span class="saving">
                                 <span class="int-en">Saving...</span>
@@ -563,13 +564,6 @@
                     <span class="int-he">תצוגה בספריא</span>
                 </a>
                 {% else %}
-                <a id="likeButton" class="button{% if viewer_is_liker %} liked{% endif %}" role="button">
-                    {% if viewer_is_liker %}
-                        <span class="int-en">Unlike</span><span class="int-he">ביטול סימון "אהבתי"</span>
-                    {% else %}
-                        <span class="int-en">Like</span><span class="int-he">אהבתי</span>
-                    {% endif %}
-                </a>
                 <a id="onlineMode" href="/sheets/{{sheet.id}}" class="button" role="button" tabIndex="0">
                     <span class="int-en">View in Library</span>
                     <span class="int-he">תצוגה בספריא</span>
@@ -618,7 +612,7 @@
 			<img id="groupLogo" src="{{ sheet_group.headerUrl }}" alt="Logo for {{ sheet_group.name }}" />
 		</a>
 		{% else %}
-			<img id="groupLogo" style="display:none;" />
+            <a href="#"><img id="groupLogo"/></a>
 		{% endif %}
 	</div>
 	<div id="title" role="heading" aria-level="1">
@@ -668,11 +662,10 @@
         <div class="metadataOpenDetails">
             <div>
                 <span class="int-en">Created <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"F j, Y" }}</span> · <span class="views">{{ sheet.views }} {% if sheet.views == 1%}View{% else %}Views
-                {% endif %}</span> · <span class="likes" id="likeInfo-en"><span id="likeCount">{{like_count}}</span> {% if like_count == 1%}Like{% else %}Likes{% endif %}</span>{% if can_edit %}<span
+                {% endif %}</span>{% if can_edit %}<span
                         class="editButton">Edit</span>{% endif %}</span>
                 <span class="int-he">נוצר <span class="date">{{ sheet.dateCreated|date_string_to_date|date:"j F, Y" }}</span> · <span class="views">{% if sheet.views == 1%}צפייה אחת{% else %}{{ sheet.views }}
-                צפיות{% endif %}</span> · <span class="likes" id="likeInfo-he"><span id="likeCount">{{like_count}}</span>
-                    {% if like_count == 1%}סימון{% else %}סימוני{% endif %} אהבתי</span>{% if can_edit %}<span class="editButton">עריכה</span>{% endif %}</span>
+                צפיות{% endif %}</span>{% if can_edit %}<span class="editButton">עריכה</span>{% endif %}</span>
             </div>
             {% if sheet.via %}
             <div id="via">
@@ -699,9 +692,21 @@
             <div id="sheetSummary">{{ sheet.summary|linebreaks }}</div>
 
             <div id="sheetTags">
-                {% for tag in sheet.tags %}
-                    <a class="button" role="button" href="/sheets/tags/{{ tag }}">
-                        {{ tag }}
+                {% for topic in sheet.topics %}
+                    <a class="button" role="button" href="/topics/{{ topic.slug }}">
+                      {% if request.interfaceLang == 'english' %}
+                        {% if topic.en %}
+                          {{ topic.en }}
+                        {% else %}
+                          {{ topic.he }}
+                        {% endif %}
+                      {% elif request.interfaceLang == 'hebrew' %}
+                        {% if topic.he %}
+                          {{ topic.he }}
+                        {% else %}
+                          {{ topic.en }}
+                        {% endif %}
+                      {% endif %}
                     </a>
                 {% endfor %}
 
@@ -731,7 +736,7 @@
          --><div class="addInterfaceButton" id="customTextButton" tabindex="0" role="button">
                 <img src="{% static 'img/custom text.png' %}" alt="Add Outside Text Icon">
                 <span class="int-en">Text</span>
-                <span class="int-he">טקסט</span>
+                <span class="int-he">טקסט חופשי</span>
             </div><!--
          --><div class="addInterfaceButton" id="mediaButton" tabindex="0" role="button">
                 <img src="{% static 'img/media.png' %}" alt="Add Media Icon">
@@ -816,12 +821,7 @@
                     <span class="int-he">הוספת תמונה, סרטון יוטוב, קישור מ-SoundCloud או קובץ MP3</span>
                 </div>
                 <div class="blockContainer">
-                    <input id="inlineAddMediaInput" class="inlineAddTextInput"
-                           placeholder={% if request.interfaceLang == 'english' %}
-                                       "Paste URL"
-                                   {% else %}
-                                       "הדבק קישור"
-                                   {% endif %}/>
+                    <input id="inlineAddMediaInput" class="inlineAddTextInput" placeholder="{% trans 'Paste URL' %}" />
                     <div class="buttonContainer">
                         <div class="inlineAddSourceByttons">
                             <div class="button" role="button" tabIndex="0">
@@ -950,6 +950,7 @@
     </div>
 </div>
 
+<div id='inlineTextPreview'></div>
 
 </div>
 
@@ -968,8 +969,6 @@
 {% endif %}
 
 <div id="belowSheet"></div>
-
-<div id="footer"></div>
 
 
 <div id="assignmentsModal" class="modal s2Modal">
@@ -1020,11 +1019,9 @@
     <div class="line"></div>
 
     <div class="content">
-        <ul id="tags"><span class="addTagMsg"><span class="int-en">Add Tags...</span><span class="int-he">הוספת תיוגים</span></span></ul>
-
-        <div id="suggestedTags">
-
-        </div>
+        <input id="addTag" placeholder='{%trans "Add Tags..."%}' />
+        <ul id="tags"></ul>
+        <div id="suggestedTags"></div>
     </div>
 
     <div class="line"></div>
@@ -1428,7 +1425,7 @@
 	<div id="notPublished" style="display:none;">
 		<div class="header">
             <span class="int-en">No problem, this sheet is still not listed on Sefaria.</span>
-            <span class="int-he">אין בעיה, דף המקורות הזה עדיין לא יופיע למשתמשי ספאריה האחרים</span>
+            <span class="int-he">אין בעיה, דף המקורות הזה עדיין לא יופיע למשתמשי ספריא האחרים</span>
         </div>
 
         <p>
@@ -1449,7 +1446,6 @@
 	</div>
 </div>
 
-<div id='inlineTextPreview'></div>
 
 {% include "elements/login_prompt.html" with msg="To save, copy, or like, please log in." %}
 
@@ -1500,5 +1496,3 @@
 <script src="{% static 'js/sheets.js' %}"></script>
 
 {% endblock %}
-
-{% block footer %}{% endblock %}

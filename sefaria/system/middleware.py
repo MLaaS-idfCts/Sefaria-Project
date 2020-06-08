@@ -1,14 +1,16 @@
 import sys 
 import tempfile
-import hotshot
-import hotshot.stats
-from cStringIO import StringIO
+import cProfile
+import pstats
+from io import StringIO
 
 from django.conf import settings
 from django.utils import translation
 from django.shortcuts import redirect
+from django.http import HttpResponse
 
 from sefaria.settings import *
+from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
 from sefaria.utils.util import short_to_long_lang_code
 from django.utils.deprecation import MiddlewareMixin
@@ -33,7 +35,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
     Determines Interface and Content Language settings for each request.
     """
     def process_request(self, request):
-        excluded = ('/linker.js', "/api/", "/interface/", STATIC_URL)
+        excluded = ('/linker.js', "/api/", "/interface/", "/apple-app-site-association", STATIC_URL)
         if any([request.path.startswith(start) for start in excluded]):
             return # Save looking up a UserProfile, or redirecting when not needed
 
@@ -80,7 +82,10 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
         content = short_to_long_lang_code(content)
         # Don't allow languages other than what we currently handle
         content = default_content_lang if content not in ('english', 'hebrew', 'bilingual') else content
-        # Note: URL parameters may override values set her, handled in reader view.
+        # Note: URL parameters may override values set here, handled in reader view.
+
+        if not SITE_SETTINGS["TORAH_SPECIFIC"]:
+            content = "english"
 
         request.LANGUAGE_CODE = interface[0:2]
         request.interfaceLang = interface
@@ -125,9 +130,18 @@ def current_domain_lang(request):
     return domain_lang
 
 
+class CORSDebugMiddleware(MiddlewareMixin):
+    def process_response(self, request, response):
+        if DEBUG:
+            response["Access-Control-Allow-Origin"] = "*"
+            response["Access-Control-Allow-Methods"] = "POST, GET"
+            response["Access-Control-Allow-Headers"] = "*"
+        return response
+
+
 class ProfileMiddleware(MiddlewareMixin):
     """
-    Displays hotshot profiling for any view.
+    Displays profiling for any view.
     http://yoursite.com/yourview/?prof
 
     Add the "prof" key to query string by appending ?prof (or &prof=)
@@ -137,30 +151,22 @@ class ProfileMiddleware(MiddlewareMixin):
     * Only tested on Linux
     """
     def process_request(self, request):
-        if settings.DEBUG and request.GET.has_key('prof'):
-            self.tmpfile = tempfile.NamedTemporaryFile()
-            self.prof = hotshot.Profile(self.tmpfile.name)
+        if settings.DEBUG and 'prof' in request.GET:
+            self.prof = cProfile.Profile()
 
     def process_view(self, request, callback, callback_args, callback_kwargs):
-        if settings.DEBUG and request.GET.has_key('prof'):
+        if settings.DEBUG and 'prof' in request.GET:
             return self.prof.runcall(callback, request, *callback_args, **callback_kwargs)
 
     def process_response(self, request, response):
-        if settings.DEBUG and request.GET.has_key('prof'):
-            self.prof.close()
+        if settings.DEBUG and 'prof' in request.GET:
+            self.prof.create_stats()
 
-            out = StringIO()
-            old_stdout = sys.stdout
-            sys.stdout = out
+            io = StringIO()
+            stats = pstats.Stats(self.prof, stream=io)
 
-            stats = hotshot.stats.load(self.tmpfile.name)
-            stats.strip_dirs().sort_stats("cumulative")
+            stats.strip_dirs().sort_stats(request.GET.get('sort', "cumulative"))
             stats.print_stats()
 
-            sys.stdout = old_stdout
-            stats_str = out.getvalue()
-
-            if response and response.content and stats_str:
-                response.content = "<pre>" + stats_str + "</pre>"
-
+            response = HttpResponse('<pre>%s</pre>' % io.getvalue())
         return response

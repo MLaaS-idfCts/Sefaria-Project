@@ -1,14 +1,18 @@
-const React      = require('react');
-const Sefaria    = require('./sefaria/sefaria');
-const $          = require('./sefaria/sefariaJquery');
+const React                    = require('react');
+const PropTypes     = require('prop-types');
+const Sefaria                  = require('./sefaria/sefaria');
+const $                        = require('./sefaria/sefariaJquery');
+const { NewsletterSignUpForm } = require('./Misc');
 import Component from 'react-class';
-
 
 
 class Footer extends Component {
   constructor(props) {
     super(props);
     this.state = {subscribeMessage: null};
+  }
+  componentDidMount() {
+      this.setState({isClient: true});
   }
   trackLanguageClick(language){
     Sefaria.track.setInterfaceLanguage('interface language footer', language);
@@ -38,11 +42,13 @@ class Footer extends Component {
     }
   }
   render() {
-    var fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
-    var currentPath = Sefaria.util.currentPath();
-    var currentPathEncoded = encodeURIComponent(currentPath);
-    var next = currentPathEncoded ? currentPathEncoded : '?home';
+    if (!Sefaria._siteSettings.TORAH_SPECIFIC) { return null; }
+
+    const fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
+    const blgURL = Sefaria.interfaceLang == "hebrew" ? "https://blog.sefaria.org.il/" : "https://blog.sefaria.org/";
+    let next = this.state.isClient ? (encodeURIComponent(Sefaria.util.currentPath())) : "/" ; //try to make sure that a server render of this does not get some weird data in the url that then gets cached
     return (
+      <footer id="footer" className="static sans">
         <div id="footerInner">
           <div className="section">
 
@@ -105,6 +111,10 @@ class Footer extends Component {
                   <span className="int-en">Mobile Apps</span>
                   <span className="int-he">ספריא בנייד</span>
               </a>
+              <a href="/daf-yomi" className="outOfAppLink">
+                  <span className="int-en">Daf Yomi</span>
+                  <span className="int-he">דף יומי</span>
+              </a>
               <a href="/torah-tab" className="outOfAppLink">
                   <span className="int-en">Torah Tab</span>
                   <span className="int-he">תורה טאב</span>
@@ -115,7 +125,7 @@ class Footer extends Component {
               </a>
               <a href="/groups" className="outOfAppLink">
                   <span className="int-en">Groups</span>
-                  <span className="int-he">הקבוצות</span>
+                  <span className="int-he">קבוצות</span>
               </a>
               <a href="/updates" className="outOfAppLink">
                   <span className="int-en">New Additions</span>
@@ -151,7 +161,7 @@ class Footer extends Component {
                   <span className="int-en">Join Us</span>
                   <span className="int-he">הצטרף אלינו</span>
               </div>
-              <a href="/donate" className="outOfAppLink">
+              <a href="https://sefaria.nationbuilder.com/supportsefaria" className="outOfAppLink">
                   <span className="int-en">Donate</span>
                   <span className="int-he">תרומות</span>
               </a>
@@ -167,6 +177,10 @@ class Footer extends Component {
                   <span className="int-en">Jobs</span>
                   <span className="int-he">דרושים</span>
               </a>
+              <a href="https://store.sefaria.org" className="outOfAppLink">
+                  <span className="int-en">Shop</span>
+                  <span className="int-he">חנות</span>
+              </a>
           </div>
 
           <div className="section last connect">
@@ -174,50 +188,41 @@ class Footer extends Component {
                   <span className="int-en">Connect</span>
                   <span className="int-he">התחבר</span>
               </div>
-              <div id="newsletterFooterBox">
-                <span className="int-en">
-                  <input id="newsletterInput" placeholder="Sign up for Newsletter" onKeyUp={this.handleSubscribeKeyUp} />
-                </span>
-                <span className="int-he">
-                  <input id="newsletterInput" placeholder="הצטרפו לרשימת התפוצה" onKeyUp={this.handleSubscribeKeyUp} />
-                </span>
-                <img src="/static/img/circled-arrow-right.svg" onClick={this.handleSubscribe} />
-                { this.state.subscribeMessage ? 
-                  <div id="subscribeMessage">{this.state.subscribeMessage}</div>
-                  : null }
-              </div>
+              <NewsletterSignUpForm contextName="Footer" />
               <LikeFollowButtons />
-              <a href={fbURL} target="_blank" className="outOfAppLink">
-                <span className="int-en">Facebook</span>
-                <span className="int-he">פייסבוק</span>
-              </a>
-              &bull;
-              <a href="https://twitter.com/SefariaProject" target="_blank" className="outOfAppLink">
-                <span className="int-en">Twitter</span>
-                <span className="int-he">טוויטר</span>
+              <div className="socialLinks">
+                  <a href={fbURL} target="_blank" className="outOfAppLink">
+                    <span className="int-en">Facebook</span>
+                    <span className="int-he">פייסבוק</span>
+                  </a>
+                  &bull;
+                  <a href="https://twitter.com/SefariaProject" target="_blank" className="outOfAppLink">
+                    <span className="int-en">Twitter</span>
+                    <span className="int-he">טוויטר</span>
 
-              </a>
-              <br />
-              <a href="https://www.youtube.com/user/SefariaProject" target="_blank" className="outOfAppLink">
-                  <span className="int-en">YouTube</span>
-                  <span className="int-he">יוטיוב</span>
-              </a>
-              &bull;
-              <a href="https://blog.sefaria.org" target="_blank" className="outOfAppLink">
-                  <span className="int-en">Blog</span>
-                  <span className="int-he">בלוג</span>
-              </a>
-              <br />
-              <a href="https://www.instagram.com/sefariaproject/" target="_blank" className="outOfAppLink">
-                  <span className="int-en">Instagram</span>
-                  <span className="int-he">אינסטגרם</span>
+                  </a>
+                  <br />
+                  <a href="https://www.youtube.com/user/SefariaProject" target="_blank" className="outOfAppLink">
+                      <span className="int-en">YouTube</span>
+                      <span className="int-he">יוטיוב</span>
+                  </a>
+                  &bull;
+                  <a href={blgURL} target="_blank" className="outOfAppLink">
+                      <span className="int-en">Blog</span>
+                      <span className="int-he">בלוג</span>
+                  </a>
+                  <br />
+                  <a href="https://www.instagram.com/sefariaproject/" target="_blank" className="outOfAppLink">
+                      <span className="int-en">Instagram</span>
+                      <span className="int-he">אינסטגרם</span>
 
-              </a>
-              &bull;
-              <a href="mailto:hello@sefaria.org" target="_blank" className="outOfAppLink">
-                  <span className="int-en">Email</span>
-                  <span className="int-he">דוא&quot;ל</span>
-              </a>
+                  </a>
+                  &bull;
+                  <a href="mailto:hello@sefaria.org" target="_blank" className="outOfAppLink">
+                      <span className="int-en">Email</span>
+                      <span className="int-he">דוא&quot;ל</span>
+                  </a>
+              </div>
               <div id="siteLanguageToggle">
                   <div id="siteLanguageToggleLabel">
                       <span className="int-en">Site Language</span>
@@ -233,10 +238,10 @@ class Footer extends Component {
               </div>
           </div>
         </div>
+      </footer>
     );
   }
 }
-
 
 class LikeFollowButtons extends Component {
   componentDidMount() {

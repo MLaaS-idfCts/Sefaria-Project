@@ -2,62 +2,13 @@
 """
 Miscellaneous functions for Sefaria.
 """
-import pytz
 from datetime import datetime
-from HTMLParser import HTMLParser
+from html.parser import HTMLParser
 import re
 from functools import wraps
-from django.utils import translation
-from django.utils.translation import ungettext_lazy, ugettext
+from itertools import zip_longest
 
 epoch = datetime.utcfromtimestamp(0)
-TIME_CHUNKS = [
-    ("days", 365, ungettext_lazy(u"%d year", u"%d years")),
-    ("days", 30, ungettext_lazy(u"%d month", u"%d months")),
-    ("days", 7, ungettext_lazy(u"%d week", u"%d weeks")),
-    ("days", 1, ungettext_lazy(u"%d day", u"%d days")),
-    ("seconds", 3600, ungettext_lazy(u"%d hour", u"%d hours")),
-    ("seconds", 60, ungettext_lazy(u"%d minute", u"%d minutes")),
-    ("seconds", 1, ungettext_lazy(u"%d second", u"%d seconds"))
-]
-
-
-def concise_natural_time(start_date, end_date=None, lang=None):
-    """
-    meant as a shorter version of naturaltime() from django
-    :param start_date:
-    :param end_date:
-    :param lang: 2-letter lang code to force a certain output. optional
-    :return: difference in time b/w start_date and end_date
-    """
-    if end_date is None:
-        end_date = datetime.utcnow()
-    delta = end_date - start_date
-
-    n, time_unit = None, None
-    for attr, cutoff, temp_time_unit in TIME_CHUNKS:
-        n_units = getattr(delta, attr)
-        if n_units > 0:
-            if n_units >= cutoff:
-                n = n_units/cutoff
-
-                time_unit = temp_time_unit
-                break
-        elif n_units < 0:
-            # date is in the future. pretend like it's now
-            break
-    if lang:
-        translation.activate(lang)
-    if n is None:
-        ret = ugettext(u"now")
-    else:
-        ret = time_unit % n
-    if lang:
-        translation.deactivate()
-    return ret
-
-
-
 
 
 def epoch_time(since=None):
@@ -67,15 +18,16 @@ def epoch_time(since=None):
     total_seconds = lambda delta: int(delta.days * 86400 + delta.seconds + delta.microseconds / 1e6)
     return total_seconds(since - epoch)
 
-def graceful_exception(logger=None, return_value=[]):
+
+def graceful_exception(logger=None, return_value=[], exception_type=Exception):
     def argumented_decorator(func):
         @wraps(func)
         def decorated_function(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
-            except Exception as e:
+            except exception_type as e:
                 if logger:
-                    logger.exception(e)
+                    logger.exception(str(e))
             return return_value
         return decorated_function
     return argumented_decorator
@@ -91,7 +43,7 @@ def list_depth(x, deep=False):
     """
     if isinstance(x, int):
         return 0
-    elif len(x) > 0 and (deep or all(map(lambda y: isinstance(y, list), x))):
+    elif len(x) > 0 and (deep or all([isinstance(y, list) for y in x])):
         return 1 + max([list_depth(y, deep=deep) for y in x])
     else:
         return 1
@@ -184,10 +136,16 @@ def union(a, b):
 
 class MLStripper(HTMLParser):
     def __init__(self):
+        super().__init__()
+
         self.reset()
+        self.strict = False
+        self.convert_charrefs = True
         self.fed = []
+
     def handle_data(self, d):
         self.fed.append(d)
+
     def get_data(self):
         return ' '.join(self.fed)
 
@@ -209,19 +167,19 @@ def text_preview(en, he):
     text merging what's available in jagged string arrays 'en' and 'he'.
     """
     n_chars = 80
-    en = [en] if isinstance(en, basestring) else [""] if en == [] or not isinstance(en, list) else en
-    he = [he] if isinstance(he, basestring) else [""] if he == [] or not isinstance(he, list) else he
+    en = [en] if isinstance(en, str) else [""] if en == [] or not isinstance(en, list) else en
+    he = [he] if isinstance(he, str) else [""] if he == [] or not isinstance(he, list) else he
 
     def preview(section):
         """Returns a preview string for list section"""
-        section =[s for s in section if isinstance(s, basestring)]
-        section = " ".join(map(unicode, section))
+        section =[s for s in section if isinstance(s, str)]
+        section = " ".join(map(str, section))
         return strip_tags(section[:n_chars]).strip()
 
     if not any(isinstance(x, list) for x in en + he):
         return {'en': preview(en), 'he': preview(he)}
     else:
-        zipped = map(None, en, he)
+        zipped = zip_longest(en, he)
         return [text_preview(x[0], x[1]) for x in zipped]
 
 
@@ -311,7 +269,7 @@ def replace_using_regex(regex, query, old, new, endline=None):
             temp = match.replace(old, new)
             query = query.replace(match, temp)
         if endline is not None:
-            query.replace(u'\n', endline+u'\n')
+            query.replace('\n', endline+'\n')
     return query
 
 
@@ -414,12 +372,12 @@ def titlecase(text):
                 continue
 
             if "/" in word and "//" not in word:
-                slashed = map(lambda t: titlecase(t), word.split('/'))
+                slashed = [titlecase(t) for t in word.split('/')]
                 tc_line.append("/".join(slashed))
                 continue
 
             if '-' in word:
-                hyphenated = map(lambda t: titlecase(t), word.split('-'))
+                hyphenated = [titlecase(t) for t in word.split('-')]
                 tc_line.append("-".join(hyphenated))
                 continue
 
@@ -498,8 +456,36 @@ def get_size(obj, seen=None):
                     size += get_size(obj.__dict__, seen)
                 break
     if isinstance(obj, dict):
-        size += sum((get_size(v, seen) for v in obj.values()))
-        size += sum((get_size(k, seen) for k in obj.keys()))
+        size += sum((get_size(v, seen) for v in list(obj.values())))
+        size += sum((get_size(k, seen) for k in list(obj.keys())))
     elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes, bytearray)):
         size += sum((get_size(i, seen) for i in obj))
     return size
+
+
+def get_hebrew_date(dt_obj:datetime) -> tuple:
+    """
+
+    :param dt_obj : datetime object
+    :return: en date and he date for Hebrew date
+    """
+    from convertdate import hebrew
+    months = [
+        ("Nisan", "ניסן"),
+        ("Iyar", "אייר"),
+        ("Sivan", "סיוון"),
+        ("Tammuz", "תמוז"),
+        ("Av", "אב"),
+        ("Elul", "אלול"),
+        ("Tishrei", "תשרי"),
+        ("Cheshvan", "חשון"),
+        ("Kislev", "כסלו"),
+        ("Tevet", "טבת"),
+        ("Shevat", "שבט"),
+        ("Adar", "אדר"),
+        ("Adar II", "אדר ב׳"),
+    ]
+    y, m, d = hebrew.from_gregorian(dt_obj.year, dt_obj.month, dt_obj.day)
+    en = "{} {}, {}".format(months[m-1][0], d, y)
+    he = "{} {}, {}".format(months[m-1][1], d, y)
+    return en, he

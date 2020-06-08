@@ -5,10 +5,12 @@ logger = logging.getLogger(__name__)
 
 from sefaria.system.database import db
 from sefaria.system.exceptions import BookNameError, InputError
+from sefaria.site.categories import REVERSE_ORDER, CATEGORY_ORDER, TOP_CATEGORIES
 from . import abstract as abstract
 from . import schema as schema
 from . import text as text
 from . import link as link
+from . import group as group
 
 
 class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject):
@@ -20,14 +22,11 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
     required_attrs = ["lastPath", "path", "depth"]
     optional_attrs = ["enDesc", "heDesc", "titles", "sharedTitle"]
 
-    def __unicode__(self):
-        return u"Category: {}".format(u", ".join(self.path))
-
     def __str__(self):
-        return unicode(self).encode('utf-8')
+        return "Category: {}".format(", ".join(self.path))
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
-        return u"{}().load({{'path': [{}]}})".format(self.__class__.__name__, u", ".join(map(lambda x: u'"{}"'.format(x), self.path)))
+        return "{}().load({{'path': [{}]}})".format(self.__class__.__name__, ", ".join(['"{}"'.format(x) for x in self.path]))
 
     def _init_defaults(self):
         self._init_title_defaults()
@@ -44,7 +43,7 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
         elif not self.sharedTitle:
             self.add_title(name, "en", True, True)
         else:
-            raise IndexError(u"Can not find Term for {}".format(name))
+            raise IndexError("Can not find Term for {}".format(name))
         self.lastPath = name
         self.path[-1] = name
 
@@ -53,15 +52,15 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
         assert self.lastPath == self.path[-1] == self.get_primary_title("en"), "Category name not matching"
 
         if not self.sharedTitle and not self.get_titles_object():
-            raise InputError(u"Category {} must have titles or a shared title".format(self))
+            raise InputError("Category {} must have titles or a shared title".format(self))
 
         try:
             self.title_group.validate()
         except InputError as e:
-            raise InputError(u"Category {} has invalid titles: {}".format(self, e))
+            raise InputError("Category {} has invalid titles: {}".format(self, e))
 
         if self.sharedTitle and schema.Term().load({"name": self.sharedTitle}).titles != self.get_titles_object():
-            raise InputError(u"Category {} with sharedTitle can not have explicit titles".format(self))
+            raise InputError("Category {} with sharedTitle can not have explicit titles".format(self))
 
     def _normalize(self):
         super(Category, self)._normalize()
@@ -98,10 +97,10 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
     def can_delete(self):
         obj = self.get_toc_object()
         if not obj:
-            logger.error(u"Could not get TOC object for Category {}.".format(u"/".join(self.path)))
+            logger.error("Could not get TOC object for Category {}.".format("/".join(self.path)))
             return False
         if len(obj.children):
-            logger.error(u"Can not delete category {} that has contents.".format(u"/".join(self.path)))
+            logger.error("Can not delete category {} that has contents.".format("/".join(self.path)))
             return False
         return True
 
@@ -140,9 +139,9 @@ def toc_serial_to_objects(toc):
     :return:
     """
     root = TocCategory()
-    root.add_primary_titles("TOC", u"שרש")
+    root.add_primary_titles("TOC", "שרש")
     for e in toc:
-        root.append(schema.deserialize_tree(e, struct_class=TocCategory, struct_title_attr="category", leaf_class=TocTextIndex, leaf_title_attr="title", children_attr="contents"))
+        root.append(schema.deserialize_tree(e, struct_class=TocCategory, struct_title_attr="category", leaf_class=TocTextIndex, leaf_title_attr="title", children_attr="contents", additional_classes=[TocGroupNode]))
     return root
 
 
@@ -152,9 +151,10 @@ class TocTree(object):
         :param lib: Library object, in the process of being created
         """
         self._root = TocCategory()
-        self._root.add_primary_titles("TOC", u"שרש")
+        self._root.add_primary_titles("TOC", "שרש")
         self._path_hash = {}
         self._library = lib
+        self._groups_in_library = []
 
         # Store first section ref.
         vss = db.vstate.find({}, {"title": 1, "first_section_ref": 1, "flags": 1})
@@ -180,46 +180,68 @@ class TocTree(object):
             node = self._make_index_node(i)
             cat = self.lookup(i.categories)
             if not cat:
-                logger.warning(u"Failed to find category for {}".format(i.categories))
+                logger.warning("Failed to find category for {}".format(i.categories))
                 continue
             cat.append(node)
-            vs = self._vs_lookup[i.title]
+            vs = self._vs_lookup.get(i.title, None)
+            if not vs:
+                continue
             # If any text in this category is incomplete, the category itself and its parents are incomplete
             for field in ("enComplete", "heComplete"):
                 for acat in [cat] + list(reversed(cat.ancestors())):
                     # Start each category completeness as True, set to False whenever we hit an incomplete text below it
                     flag = False if not vs[field] else getattr(acat, field, True)
                     setattr(acat, field, flag)
-                    if acat.get_primary_title() == u"Commentary":
+                    if acat.get_primary_title() == "Commentary":
                         break # Don't consider a category incomplete for containing incomplete commentaries
 
             self._path_hash[tuple(i.categories + [i.title])] = node
 
+        # Include Groups in TOC that has a `toc` field set
+        group_set = group.GroupSet({"toc": {"$exists": True}, "listed": True})
+        for g in group_set:
+            self._groups_in_library.append(g.name)
+            node = TocGroupNode(group_object=g)
+            categories = node.categories
+            cat  = self.lookup(node.categories)
+            if not cat:
+                logger.warning("Failed to find category for {}".format(categories))
+                continue
+            cat.append(node)
+           
+            self._path_hash[tuple(node.categories + [g.name])] = node
+
         self._sort()
 
     def all_category_nodes(self, include_root = True):
-        return ([self._root] if include_root else []) + [v for v in self._path_hash.values() if isinstance(v, TocCategory)]
+        return ([self._root] if include_root else []) + [v for v in list(self._path_hash.values()) if isinstance(v, TocCategory)]
 
     def _sort(self):
         def _explicit_order_and_title(node):
+            """
+            Return sort key as tuple:  (isString, value)
+            :param node:
+            :return:
+            """
             title = node.primary_title("en")
             complete = getattr(node, "enComplete", False)
             complete_or_title_key = "1z" + title if complete else "2z" + title
 
             try:
                 # First sort by global order list below
-                return ORDER.index(title)
+                return (False, CATEGORY_ORDER.index(title))
 
             except ValueError:
-                # Sort top level Commentary categories just below theit base category
+                # Sort top level Commentary categories just below their base category
                 if isinstance(node, TocCategory):
                     temp_cat_name = title.replace(" Commentaries", "")
                     if temp_cat_name in TOP_CATEGORIES:
-                        return ORDER.index(temp_cat_name) + 0.5
+                        return (False, CATEGORY_ORDER.index(temp_cat_name) + 0.5)
 
-                # Sort by an eplicit `order` field if present
+                # Sort by an explicit `order` field if present
                 # otherwise into two alphabetical list for complete and incomplete.
-                return getattr(node, "order", complete_or_title_key)
+                res = getattr(node, "order", complete_or_title_key)
+                return (isinstance(res, str), res)
 
         for cat in self.all_category_nodes():  # iterate all categories
             cat.children.sort(key=_explicit_order_and_title)
@@ -234,9 +256,9 @@ class TocTree(object):
         d["firstSection"] = vs.get("first_section_ref", None)
         d["heComplete"]   = vs.get("heComplete", False)
         d["enComplete"]   = vs.get("enComplete", False)
-        if title in ORDER:
+        if title in CATEGORY_ORDER:
             # If this text is listed in ORDER, consider its position in ORDER as its order field.
-            d["order"] = ORDER.index(title)
+            d["order"] = CATEGORY_ORDER.index(title)
 
         if "base_text_titles" in d and len(d["base_text_titles"]) > 0:
             d["refs_to_base_texts"] = {btitle:
@@ -257,7 +279,10 @@ class TocTree(object):
         return self._root
 
     def get_serialized_toc(self):
-        return self._root.serialize()["contents"]
+        return self._root.serialize().get("contents", [])
+
+    def get_groups_in_library(self):
+        return self._groups_in_library
 
     def flatten(self):
         """
@@ -294,11 +319,11 @@ class TocTree(object):
         node = self.lookup(index.categories, title)
 
         if recount or not node:
-            from version_state import VersionState
+            from .version_state import VersionState
             try:
                 vs = VersionState(title)
             except BookNameError:
-                logger.warning(u"Failed to find VersionState for {} in TocTree.update_title()".format(title))
+                logger.warning("Failed to find VersionState for {} in TocTree.update_title()".format(title))
                 return
             vs.refresh()
             sn = vs.state_node(index.nodes)
@@ -311,10 +336,10 @@ class TocTree(object):
         if node:
             node.replace(new_node)
         else:
-            logger.info(u"Did not find TOC node to update: {} - adding.".format(u"/".join(index.categories + [title])))
+            logger.info("Did not find TOC node to update: {} - adding.".format("/".join(index.categories + [title])))
             cat = self.lookup(index.categories)
             if not cat:
-                logger.warning(u"Failed to find category for {}".format(index.categories))
+                logger.warning("Failed to find category for {}".format(index.categories))
             cat.append(new_node)
 
         self._path_hash[tuple(index.categories + [index.title])] = new_node
@@ -426,130 +451,55 @@ class TocTextIndex(TocNode):
     }
 
 
+class TocGroupNode(TocNode):
+    """
+    categories: Array(2)
+    name: "Some Group"
+    isGroup: true
+    enComplete: true
+    heComplete: true
+    """
+    def __init__(self, serial=None, group_object=None, **kwargs):
+        if group_object:
+            self._group_object = group_object
+            group_contents = group_object.contents()
+            serial = {
+                "categories": group_contents["toc"]["categories"],
+                "name": group_contents["name"],
+                "title": group_contents["toc"]["collectiveTitle"]["en"] if "collectiveTitle" in group_contents["toc"] else group_contents["toc"]["title"],
+                "heTitle": group_contents["toc"]["collectiveTitle"]["he"] if "collectiveTitle" in group_contents["toc"] else group_contents["toc"]["heTitle"], 
+                "isGroup": True,
+                "enComplete": True,
+                "heComplete": True,
+            }
+        elif serial:
+            self._group_object = group.Group().load({"name": serial["name"]})
 
-# Giant list ordering or categories
-# indentation and inclusion of duplicate categories (like "Seder Moed")
-# is for readability only. The table of contents will follow this structure.
-ORDER = [
-    "Tanakh",
-        "Torah",
-            "Genesis",
-            "Exodus",
-            "Leviticus",
-            "Numbers",
-            "Deuteronomy",
-        "Prophets",
-        "Writings",
-        "Targum",
-            'Onkelos Genesis',
-            'Onkelos Exodus',
-            'Onkelos Leviticus',
-            'Onkelos Numbers',
-            'Onkelos Deuteronomy',
-            'Targum Jonathan on Genesis',
-            'Targum Jonathan on Exodus',
-            'Targum Jonathan on Leviticus',
-            'Targum Jonathan on Numbers',
-            'Targum Jonathan on Deuteronomy',
-        'Rashi',
-    "Mishnah",
-        "Seder Zeraim",
-        "Seder Moed",
-        "Seder Nashim",
-        "Seder Nezikin",
-        "Seder Kodashim",
-        "Seder Tahorot",
-    "Talmud",
-        "Bavli",
-                "Seder Zeraim",
-                "Seder Moed",
-                "Seder Nashim",
-                "Seder Nezikin",
-                "Seder Kodashim",
-                "Seder Tahorot",
-        "Yerushalmi",
-                "Seder Zeraim",
-                "Seder Moed",
-                "Seder Nashim",
-                "Seder Nezikin",
-                "Seder Kodashim",
-                "Seder Tahorot",
-        "Tosafot",
-        "Rif",
-    "Midrash",
-        "Aggadic Midrash",
-            "Midrash Rabbah",
-        "Halachic Midrash",
-    "Halakhah",
-        "Mishneh Torah",
-            'Introduction',
-            'Sefer Madda',
-            'Sefer Ahavah',
-            'Sefer Zemanim',
-            'Sefer Nashim',
-            'Sefer Kedushah',
-            'Sefer Haflaah',
-            'Sefer Zeraim',
-            'Sefer Avodah',
-            'Sefer Korbanot',
-            'Sefer Taharah',
-            'Sefer Nezikim',
-            'Sefer Kinyan',
-            'Sefer Mishpatim',
-            'Sefer Shoftim',
-        "Shulchan Arukh",
-    "Kabbalah",
-        "Zohar",
-    'Liturgy',
-        'Siddur',
-        'Haggadah',
-        'High Holidays',
-        'Piyutim',
-    'Philosophy',
-    "Tanaitic",
-        "Tosefta",
-            "Seder Zeraim",
-            "Seder Moed",
-            "Seder Nashim",
-            "Seder Nezikin",
-            "Seder Kodashim",
-            "Seder Tahorot",
-        "Masechtot Ketanot",
-    'Chasidut',
-        "Early Works",
-        "Breslov",
-        "R' Tzadok HaKohen",
-    'Musar',
-    'Responsa',
-        "Rashba",
-        "Rambam",
-    'Apocrypha',
-    'Modern Works',
-    "Reference",
-    'Other',
-    'Tosafot',
-]
+        super(TocGroupNode, self).__init__(serial)
 
-TOP_CATEGORIES = [
-    "Tanakh",
-    "Mishnah",
-    "Talmud",
-    "Midrash",
-    "Halakhah",
-    "Kabbalah",
-    "Liturgy",
-    "Philosophy",
-    "Tanaitic",
-    "Chasidut",
-    "Musar",
-    "Responsa",
-    "Apocrypha",
-    "Modern Works",
-    "Reference",
-    "Other"
-]
+    def get_group_object(self):
+        return self._group_object
 
-REVERSE_ORDER = [
-    'Commentary'  # Uch, STILL special casing commentary here... anything to be done??
-]
+    def serialize(self, **kwargs):
+        d = super(TocGroupNode, self).serialize()
+        d["nodeType"] = "TocGroupNode"
+        return d
 
+    required_param_keys = [
+        "categories",
+        "name",
+        "title",
+        "heTitle",
+        "isGroup",
+    ]
+
+    optional_param_keys = [
+        "order",
+        "heComplete",
+        "enComplete",
+    ]
+
+    title_attrs = {
+        "en": "title",
+        "he": "heTitle",
+    }

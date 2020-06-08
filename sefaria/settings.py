@@ -1,7 +1,6 @@
 # Django settings for sefaria project.
 
 import os.path
-
 from django.utils.translation import ugettext_lazy as _
 
 relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
@@ -13,7 +12,7 @@ relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
 # timezone as the operating system.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
-TIME_ZONE = 'America/Vancouver'
+TIME_ZONE = 'America/Halifax'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -50,7 +49,7 @@ MEDIA_URL = ''
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = ''
+STATIC_ROOT = '/app/static-collected'
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
@@ -93,7 +92,7 @@ TEMPLATES = [
                     "sefaria.system.context_processors.titles_json",
                     "sefaria.system.context_processors.toc",
                     "sefaria.system.context_processors.terms",
-                    "sefaria.system.context_processors.embed_page",
+                    "sefaria.system.context_processors.body_flags",
                     "sefaria.system.context_processors.user_and_notifications",
                     "sefaria.system.context_processors.calendar_links",
                     "sefaria.system.context_processors.header_html",
@@ -120,6 +119,7 @@ MIDDLEWARE = [
     'sefaria.system.middleware.LanguageCookieMiddleware',
     'sefaria.system.middleware.LanguageSettingsMiddleware',
     'sefaria.system.middleware.ProfileMiddleware',
+    'sefaria.system.middleware.CORSDebugMiddleware',
     'sefaria.system.multiserver.coordinator.MultiServerEventListenerMiddleware',
     #'easy_timezones.middleware.EasyTimezoneMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
@@ -148,6 +148,7 @@ INSTALLED_APPS = (
     'anymail',
     'webpack_loader',
     'django_user_agents',
+    'rest_framework',
     #'easy_timezones'
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
@@ -163,6 +164,12 @@ AUTHENTICATION_BACKENDS = (
     'emailusernames.backends.EmailAuthBackend',
 )
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    )
+}
 
 LOCALE_PATHS = (
     relative_to_abs_path('../locale'),
@@ -286,6 +293,21 @@ CACHES = {
     }
 }
 
+"""
+GLOBAL_INTERRUPTING_MESSAGE = {
+    "name":       "shavuot-banner-2020",
+    "repetition": 2,
+    "style":      "banner",
+    "condition": {
+        "returning_only": False,
+        "desktop_only": False,
+        "english_only": False,
+        "hebrew_only": False,
+        "debug": False
+    }
+}
+"""
+GLOBAL_INTERRUPTING_MESSAGE = None
 
 # Grab enviornment specific settings from a file which
 # is left out of the repo.
@@ -313,3 +335,5 @@ WEBPACK_LOADER = {
 
 }
 DATA_UPLOAD_MAX_MEMORY_SIZE = 24000000
+
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))

@@ -51,10 +51,23 @@ node_modules
 #####################
 /.idea
 
+# Visual Studio Code directory #
+#####################
+/.vscode
+
+# pystest cache #
+#####################
+/.pytest_cache
+/sefaria/tests/.pytest_cache
+
+
 # Sefaria Local Settings files #
 ################################
 /sefaria/local_settings.py
-/node/local_settings.json
+
+# Site specific templates and urls #
+####################################
+# /site
 
 # Symlink needed for Djano admin #
 ##################################
@@ -63,6 +76,7 @@ node_modules
 #  Virtualenv Files #
 #####################
 venv/
+.python-version
 
 # Partner files #
 #################
@@ -108,3 +122,7 @@ static/pagerank.json
 static/sheetrank.json
 
 /random_files
+
+# Miscellaneous #
+#################
+/dafChat/deploy/dafchat/valuesGeneration/_generatedHelmValues.yaml

@@ -1,8 +1,5 @@
 const {
-  CategoryColorLine,
   CategoryAttribution,
-  ReaderNavigationMenuMenuButton,
-  ReaderNavigationMenuDisplaySettingsButton,
   TwoOrThreeBox,
   LanguageToggleButton,
 }                = require('./Misc');
@@ -11,16 +8,14 @@ const classNames = require('classnames');
 const PropTypes  = require('prop-types');
 const Sefaria    = require('./sefaria/sefaria');
 const Footer     = require('./Footer');
+const MobileHeader = require('./MobileHeader');
 import Component from 'react-class';
 
 
 class ReaderNavigationCategoryMenu extends Component {
   // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
   render() {
-    var footer = this.props.compare ? null :
-                    (<footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
-                      <Footer />
-                    </footer> );
+
     // Show Talmud with Toggles
     var categories  = this.props.categories[0] === "Talmud" && this.props.categories.length == 1 ?
                         ["Talmud", "Bavli"] : this.props.categories;
@@ -61,26 +56,25 @@ class ReaderNavigationCategoryMenu extends Component {
     }
     var catContents    = Sefaria.tocItemsByCategories(categories);
     var nestLevel      = this.props.category == "Commentary" ? 1 : 0;
+    var footer         = this.props.compare ? null : <Footer />;
     var navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader, noLangToggleInHebrew: 1});
-    var navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
     var contentClasses = classNames({content: 1, hasFooter: footer != null});
     return (<div className={navMenuClasses}>
-              <div className={navTopClasses}>
-                <CategoryColorLine category={categories[0]} />
-                {this.props.hideNavHeader ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.navHome} compare={this.props.compare} interfaceLang={this.props.interfaceLang}/>)}
-                {this.props.hideNavHeader ? null : (<h2>
-                  <span className="en">{catTitle}</span>
-                  <span className="he">{heCatTitle}</span>
-                </h2>)}
-                {this.props.hideNavHeader ? null :
-                  (this.props.interfaceLang === "hebrew" ?
-                    <ReaderNavigationMenuDisplaySettingsButton placeholder={true} />
-                    : <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />)}
-              </div>
+              <MobileHeader
+                mode={'innerTOC'}
+                hideNavHeader={this.props.hideNavHeader}
+                interfaceLang={this.props.interfaceLang}
+                category={categories[0]}
+                openDisplaySettings={this.props.openDisplaySettings}
+                navHome={this.props.navHome}
+                compare={this.props.compare}
+                catTitle={catTitle}
+                heCatTitle={heCatTitle}
+              />
               <div className={contentClasses}>
                 <div className="contentInner">
                   {this.props.hideNavHeader ? (<h1>
-                      {this.props.interfaceLang !== "hebrew" ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
+                      {this.props.interfaceLang !== "hebrew"  && Sefaria._siteSettings.TORAH_SPECIFIC ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
                       <span className="en">{catTitle}</span>
                       <span className="he">{heCatTitle}</span>
                     </h1>) : null}
@@ -140,21 +134,21 @@ class ReaderNavigationCategoryMenuContents extends Component {
   hebrewContentSort(cats) {
     // Sorts contents of this category by Hebrew Alphabetical
     //console.log(cats);
-    var heCats = cats.slice().map(function(item, indx) {
+    const heCats = cats.slice().map(function(item, indx) {
       item.enOrder = indx;
       return item;
     });
     //console.log(heCats.slice())
-    heCats = heCats.sort(function(a, b) {
+    heCats.sort(function(a, b) {
       if ("order" in a || "order" in b) {
-        var aOrder = "order" in a ? a.order : 9999;
-        var bOrder = "order" in b ? b.order : 9999;
+        const aOrder = "order" in a ? a.order : 9999;
+        const bOrder = "order" in b ? b.order : 9999;
         return aOrder > bOrder ? 1 : -1;
 
-      } else if (("category" in a) != ("category" in b)) {
+      } else if (("category" in a) !== ("category" in b)) {
         return a.enOrder > b.enOrder ? 1 : -1;
 
-      } else if (a.heComplete != b.heComplete) {
+      } else if (a.heComplete !== b.heComplete) {
         return a.heComplete ? -1 : 1;
 
       } else if (a.heTitle && b.heTitle) {
@@ -172,7 +166,7 @@ class ReaderNavigationCategoryMenuContents extends Component {
       var contents = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ?
                       this.hebrewContentSort(this.props.contents)
                       : this.props.contents;
-      for (var i = 0; i < contents.length; i++) {
+      for (let i = 0; i < contents.length; i++) {
         var item = contents[i];
         if (item.category) {
           // Category
@@ -196,7 +190,7 @@ class ReaderNavigationCategoryMenuContents extends Component {
               // Create a link to a subcategory
               var url = "/texts/" + newCats.join("/");
               var incomplete = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ? !item.heComplete : !item.enComplete;
-              var classes = classNames({catLink: 1, incomplete: incomplete});
+              var classes = classNames({catLink: 1, blockLink: 1, incomplete: incomplete});
               content.push((<a href={url} className={classes} data-cats={newCats.join("|")} key={"cat." + this.props.nestLevel + "." + i}>
                               <span className='en'>{item.category}</span>
                               <span className='he'>{item.heCategory}</span>
@@ -220,21 +214,36 @@ class ReaderNavigationCategoryMenuContents extends Component {
                           </div>));
           }
         } else {
-          // Add a Text
-          var [title, heTitle] = this.getRenderedTextTitleString(item.title, item.heTitle);
-          const lastPlace = Sefaria.lastPlaceForText(item.title)
-          var ref =  lastPlace ? lastPlace.ref : item.firstSection;
-          var url = "/" + Sefaria.normRef(ref);
-          var incomplete = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ? !item.heComplete : !item.enComplete;
-          var classes = classNames({refLink: 1, blockLink: 1, incomplete: incomplete});
-          content.push((<a href={url}
-                          className={classes}
-                          data-ref={ref}
-                          key={"text." + this.props.nestLevel + "." + i}>
-                          <span className='en'>{title}</span>
-                          <span className='he'>{heTitle}</span>
-                        </a>
-                        ));
+          if (item.isGroup) {
+            // Add a Group
+            var url = "/groups/" + item.name.replace(/\s/g, "-");
+            var classes = classNames({groupLink: 1, blockLink: 1, outOfAppLink: 1});
+            content.push((<a href={url}
+                            className={classes}
+                            data-group={item.name}
+                            key={"group." + this.props.nestLevel + "." + i}>
+                            <span className='en'>{item.title}</span>
+                            <span className='he'>{item.heTitle}</span>
+                          </a>
+                          ));
+          } else {
+            // Add a Text
+            var [title, heTitle] = this.getRenderedTextTitleString(item.title, item.heTitle);
+            const lastPlace = Sefaria.lastPlaceForText(item.title);
+            var ref =  lastPlace ? lastPlace.ref : item.firstSection;
+            var url = "/" + Sefaria.normRef(ref);
+            var incomplete = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ? !item.heComplete : !item.enComplete;
+            var classes = classNames({refLink: 1, blockLink: 1, incomplete: incomplete});
+            content.push((<a href={url}
+                            className={classes}
+                            data-ref={ref}
+                            key={"text." + this.props.nestLevel + "." + i}>
+                            <span className='en'>{title}</span>
+                            <span className='he'>{heTitle}</span>
+                          </a>
+                          ));
+
+          }
         }
       }
       var boxedContent = [];

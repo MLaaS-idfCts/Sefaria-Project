@@ -57,11 +57,11 @@ def filter_type_to_query(filter_type):
     q = {}
 
     if filter_type == "translate":
-        q = {"$and": [dict(q.items() + {"rev_type": "add text"}.items()), {"version": "Sefaria Community Translation"}]}
+        q = {"$and": [dict(list(q.items()) + list({"rev_type": "add text"}.items())), {"version": "Sefaria Community Translation"}]}
     elif filter_type == "index_change":
         q = {"rev_type": {"$in": ["add index", "edit index"]}}
     elif filter_type == "flagged":
-        q = {"$and": [dict(q.items() + {"rev_type": "review"}.items()), {"score": {"$lte": 0.4}}]}
+        q = {"$and": [dict(list(q.items()) + list({"rev_type": "review"}.items())), {"score": {"$lte": 0.4}}]}
     elif filter_type:
         q["rev_type"] = filter_type.replace("_", " ")
 
@@ -167,17 +167,16 @@ def text_at_revision(tref, version, lang, revision):
     """
     changes = db.history.find({"ref": tref, "version": version, "language": lang}).sort([['revision', -1]])
     current = TextChunk(Ref(tref), lang, version)
-    text = unicode(current.text)  # needed?
+    text = str(current.text)  # needed?
 
-    for i in range(changes.count()):
-        r = changes[i]
+    for r in changes:
         if r["revision"] == revision: break
         patch = dmp.patch_fromText(r["revert_patch"])
         text = dmp.patch_apply(patch, text)[0]
 
     return text
 
-
+'''
 def next_revision_num():
     """
     Deprecated in favor of sefaria.model.history.next_revision_num()
@@ -185,7 +184,7 @@ def next_revision_num():
     last_rev = db.history.find().sort([['revision', -1]]).limit(1)
     revision = last_rev.next()["revision"] + 1 if last_rev.count() else 1
     return revision
-
+'''
 
 def record_index_deletion(title, uid):
     """

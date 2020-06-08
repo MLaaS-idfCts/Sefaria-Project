@@ -10,7 +10,7 @@
 <div id="profilePage" class="static">
 	<div class="inner">
 		<div id="profileTop">
-			<img id="profileImage" src="{{ profile.gravatar_url }}" alt="User Profile Picture"/>
+			<img id="profileImage" src="{{ profile.profile_pic_url }}" alt="User Profile Picture"/>
 
 			<h1 id="profileName">{{ profile.first_name }} {{ profile.last_name }}</h1>
 
@@ -167,7 +167,11 @@ $(function(){
 				$(this).removeClass('follow').addClass("following");
 			}
 			$.post("/api/" + action + "/{{ profile.id }}", {}, function(data) {
-				Sefaria.track.event("Following", "New Follow", "");
+                if (action === "follow") {
+                    Sefaria.track.event("Following", "New Follow", "");
+                } else {
+                    Sefaria.track.event("Following", "Unfollow", "");
+                }
 			});
 		{% else %}
 			window.location = "/register?next=" + window.location.pathname;

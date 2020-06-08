@@ -12,15 +12,73 @@ class AboutBox extends Component {
       details: null,
     }
   }
-  componentDidMount() {
-    Sefaria.indexDetails(this.props.title, (data) => {
-      this.setState({details: data});
-    });
+
+  setTextMetaData() {
+    if (this.props.title == "Sheet") {
+      const sheetID = (Sefaria.sheets.extractIdFromSheetRef(this.props.srefs));
+        if (!Sefaria.sheets.loadSheetByID(sheetID)) {
+          Sefaria.sheets.loadSheetByID(sheetID, function (data) {
+              this.setState({ details: data });
+          }.bind(this));
+      }
+      else {
+          this.setState({
+            details: Sefaria.sheets.loadSheetByID(sheetID),
+          });
+        }
+
+    }
+    else {
+      Sefaria.getIndexDetails(this.props.title).then(data => {
+        this.setState({details: data});
+      });
+    }
   }
+
+  componentDidMount() {
+      this.setTextMetaData();
+  }
+  componentDidUpdate(prevProps, prevState) {
+    if (prevProps.title !== this.props.title) {
+      this.setState({details: null});
+      this.setTextMetaData();
+    }
+  }
+
   render() {
     const d = this.state.details;
     const vh = this.props.currObjectVersions.he;
     const ve = this.props.currObjectVersions.en;
+
+    if (this.props.srefs[0].startsWith("Sheet")) {
+      let detailSection = null;
+
+      if (d) {
+
+          detailSection = (<div className="detailsSection">
+                  <h2 className="aboutHeader">
+                      <span className="int-en">About This Text</span>
+                      <span className="int-he">אודות ספר זה</span>
+                  </h2>
+                  <div className="aboutTitle">
+                      <span className="en">{d.title}</span>
+                  </div>
+                  <div className="aboutSubtitle">
+                      <span className="en">By: {d.ownerName}</span>
+                  </div>
+                  <div className="aboutDesc">
+                      <span className="en">{d.summary}</span>
+                  </div>
+              </div>
+          )
+      }
+      return(
+
+      <section className="aboutBox">{detailSection}</section>
+      )
+
+    }
+
     let detailSection = null;
     if (d) {
       let authorsEn, authorsHe;
@@ -99,10 +157,12 @@ class AboutBox extends Component {
     const versionSectionHe =
       (!!vh ? <div className="currVersionSection">
         <h2 className="aboutHeader">
-          <span className="int-en">Current Hebrew Version</span>
-          <span className="int-he">גרסה עברית נוכחית</span>
+          <span className="int-en">Current Version</span>
+          <span className="int-he">מהדורה נוכחית</span>
         </h2>
         <VersionBlock
+          rendermode="about-box"
+          sidebarDisplay = {true}
           version={vh}
           currVersions={currVersions}
           currentRef={this.props.srefs[0]}
@@ -112,10 +172,12 @@ class AboutBox extends Component {
     const versionSectionEn =
       (!!ve ? <div className="currVersionSection">
         <h2 className="aboutHeader">
-          <span className="int-en">Current English Version</span>
-          <span className="int-he">גרסה אנגלית נוכחית</span>
+          <span className="int-en">Current Translation</span>
+          <span className="int-he">תרגום נוכחי</span>
         </h2>
         <VersionBlock
+          rendermode="about-box"
+          sidebarDisplay = {true}
           version={ve}
           currVersions={currVersions}
           currentRef={this.props.srefs[0]}

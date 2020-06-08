@@ -36,7 +36,7 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
     if vsource:
         chunk.versionSource = vsource  # todo: log this change
     if chunk.save():
-        model.log_text(user, action, oref, lang, vtitle, old_text, text, **kwargs)
+        model.log_text(user, action, oref, lang, vtitle, old_text, chunk.text, **kwargs)
         if USE_VARNISH:
             invalidate_ref(oref, lang=lang, version=vtitle, purge=True)
             if oref.next_section_ref():
@@ -77,7 +77,7 @@ def add(user, klass, attrs, **kwargs):
             obj = klass().load({klass.criteria_field: attrs[klass.criteria_field]})
     if obj:
         old_dict = obj.contents(**kwargs)
-        obj.load_from_dict(attrs).save()
+        obj.load_from_dict(attrs).save() if klass != model.Index else obj.update_from_dict(attrs).save()
         model.log_update(user, klass, old_dict, obj.contents(**kwargs), **kwargs)
         return obj
     obj = klass(attrs).save()

@@ -6,12 +6,16 @@
 <html>
 <head>
     <title>{% block title %}{{ title|striptags }}{% endblock %}</title>
-    <meta charset="utf-8">
-    <meta name="description" property="og:description" content="{% block description %}{{ desc|striptags }}{% endblock %}">
+    <meta charset="utf-8"/>
+    <meta name="description" property="og:description" content="{% block description %}{{ desc|striptags }}{% endblock %}"/>
+
+    {% if noindex %}
+        <meta name="robots" content="noindex, nofollow">
+    {% endif %}
 
     <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="{% static "files/opensearch.xml" %}" />
-    <link rel="alternate" href="//www.sefaria.org{{ request.path }}" hreflang="en" />
-    <link rel="alternate" href="//www.sefaria.org.il{{ request.path }}" hreflang="he" />
+    <link rel="alternate" href="https://www.sefaria.org{{ request.path }}" hreflang="en" />
+    <link rel="alternate" href="https://www.sefaria.org.il{{ request.path }}" hreflang="he" />
 
     {% block ogtype %}
         <meta property="og:type" content="website"/>
@@ -25,14 +29,13 @@
     {% endblock %}
 
     <meta property="og:title" content="{{title|striptags}}" />
-    <meta property="og:url" content="//www.sefaria.org{{ request.path }}" />
+    <meta property="og:url" content="https://www.sefaria.org{{ request.path }}" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@sefariaproject" />
     <meta name="twitter:title" content="{{title|striptags}}" />
     <meta name="twitter:description" content="{% block soc_description %}{{ desc|striptags }}{% endblock %}" />
     <meta name="twitter:image" content="https://embed.sefaria.org{{ request.path }}?lang={{request.GET.lang}}&platform=twitter">
-
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-itunes-app" content="app-id=1163273965">
@@ -54,15 +57,15 @@
 
     {% block head %}{% endblock %}
 
-    <link rel="stylesheet" href="{% static "css/common.css" %}">
-    <link rel="stylesheet" href="{%  static "font-awesome/css/font-awesome.css" %}">
-    <link rel="stylesheet" type="text/css" href="{% static "css/keyboard.css" %}">
-    <link rel="stylesheet" href="{%  static "css/s2.css" %}">
-    <link rel="stylesheet" href="{%  static "css/s2-print.css" %}" media="print" />
+    <link rel="stylesheet" href="{% static 'css/common.css' %}">
+    <link rel="stylesheet" href="{%  static 'font-awesome/css/font-awesome.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/keyboard.css' %}">
+    <link rel="stylesheet" href="{%  static 'css/s2.css' %}">
+    <link rel="stylesheet" href="{%  static 'css/s2-print.css' %}" media="print" />
 
     {% block static_css %}
     {% if not html %}
-    <link rel="stylesheet" href="{%  static "css/static.css" %}">
+    <link rel="stylesheet" href="{%  static 'css/static.css' %}">
     {% endif %}
     {% endblock %}
 
@@ -70,32 +73,23 @@
         {% block css %}{% endblock %}
     </style>
 
-    <script>
-        {% if GOOGLE_ANALYTICS_CODE %}
-            // GOOGLE ANALYTICS
-            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-            ga('create', '{{ GOOGLE_ANALYTICS_CODE }}', 'auto');
-
-            window.onerror = function(msg, url, lineNumber) {
-                ga('send', 'event', 'Javascript Errors',  msg, url + ':' + lineNumber);
-            };
-        {% else  %}
-            var ga = function(){};
-            ga._mock = true;
-        {% endif %}
-        window.ga = ga;
-    </script>
+    {% if GOOGLE_TAG_MANAGER_CODE %}
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer',"{{ GOOGLE_TAG_MANAGER_CODE }}");</script>
+    <!-- End Google Tag Manager -->
+    {% endif %}
 
     <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
     <script>
         WebFont.load({
           google: {
             families: ['Crimson Text:400,700'],
-            text: 'ăǎġḥḤḳḲŏṭżūŻāīēḗîìi̧ ̆̄'
+            text: 'ăǎġḥḤḫḳḲŏṭżūŻāīēḗîìi̧ ̆̄'
           },
           typekit: {
             id: 'aeg8div' // Adobe Garamond Pro
@@ -103,12 +97,18 @@
         });
         WebFont.load({
           google: {
-            families: ['Roboto:400,700', 'Heebo:400,700:hebrew', 'Frank Ruehl Libre:400,700:hebrew'] // The dotted h causes Heebo not to load.
+            families: ['Roboto:300,400,700', 'Heebo:300,400,700:hebrew'] // The dotted h causes Heebo not to load.
           }});
     </script>
 </head>
 
-<body class="interface-{{ request.interfaceLang }}{% if EMBED %} embeded{% endif %}">
+<body class="interface-{% if request.interfaceLang %}{{request.interfaceLang}}{% else %}english{% endif %}{% if EMBED %} embeded{% endif %} {% block bodyclasses %}{% endblock %}">
+    {% if GOOGLE_TAG_MANAGER_CODE %}
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ GOOGLE_TAG_MANAGER_CODE }}"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) --> 
+    {% endif %}
 
     {% autoescape off %}
     {% if html %}
@@ -127,7 +127,9 @@
     </div>
 
     {% block footer %} <!-- todo: sheets is overwriting this, why? -->
-        {% include "elements/footer.html" with class=contentLang %}
+        {% if SITE_SETTINGS.TORAH_SPECIFIC %}
+            <div id="footerContainer">{% include "elements/footer.html" %}</div>
+        {% endif %}
     {% endblock %}
     {% endif %}
 
@@ -138,28 +140,74 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
 
-    <script src="{% static "js/lib/keyboard.js" %}"></script>
+    <script src="{% static 'js/lib/keyboard.js' %}"></script>
     <script src="/data.js"></script>
 
     <script>
       {% autoescape off %}
+      if (!window.jQuery) {
+        console.log('loading jquery locally');
+        document.write('<script src="/static/js/lib/jquery.js"><\/script><script src="/static/js/lib/jquery-ui.js"><\/script>');
+      }
+      if (!window.React) {
+          console.log('loading react locally');
+          document.write('<script src="/static/js/lib/react.development.js"><\/script><script src="/static/js/lib/react-dom.development.js"><\/script>');
+      }
       var DJANGO_VARS = {
         props: {{ propsJSON|default:"null" }},
         contentLang: "{{ request.contentLang }}",
         interfaceLang: "{{ request.interfaceLang }}",
         inReaderApp: {% if html %}true{% else %}false{% endif %},
-        ga: ga,
         static_url: {{ STATIC_PREFIX }}
       };
+      document.addEventListener('copy', function(e) {
+          const selection = document.getSelection()
+          const text_only = selection.toString();
+
+          if (selection.rangeCount) {
+              var container = document.createElement("div");
+              for (var i = 0, len = selection.rangeCount; i < len; ++i) {
+                  container.appendChild(selection.getRangeAt(i).cloneContents());
+              }
+
+            //remove line numbers
+              var lineNumbers = container.getElementsByClassName('segmentNumber');
+              while(lineNumbers.length > 0){
+                  lineNumbers[0].parentNode.removeChild(lineNumbers[0]);
+              }
+
+              var curReaderPanel = (selection.getRangeAt(0).commonAncestorContainer.closest('.readerPanel'))
+
+              if (curReaderPanel && curReaderPanel.classList.contains('hebrew')) {
+                  var elsToRemove = container.getElementsByClassName('en')
+                  while(elsToRemove.length > 0){
+                      elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
+                  }
+              }
+
+              else if (curReaderPanel && curReaderPanel.classList.contains('english')) {
+                  var elsToRemove = container.getElementsByClassName('he')
+                  while(elsToRemove.length > 0){
+                      elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
+                  }
+              }
+
+              html = container.innerHTML;
+          }
+          else {
+              html = text_only;
+          }
+
+          const clipdata = e.clipboardData || window.clipboardData;
+
+          clipdata.setData('text/plain', text_only);
+          clipdata.setData('text/html', html);
+          e.preventDefault();
+      });
       {% endautoescape %}
     </script>
 
     {% render_bundle 'main' %}
-
-    <!-- Don't think these are needed....
-    {% include "js/jquery.html" %}
-    <script>{% include "js/django-csrf.js" %}</script>
-    -->
 
     {% block js %}{% endblock %}
 </body>

@@ -2,12 +2,14 @@
 group.py
 Writes to MongoDB Collection: groups
 """
+import bleach
+
 from django.utils.translation import ugettext as _
 
 from . import abstract as abst
 from sefaria.model.user_profile import public_user_data
 from sefaria.system.exceptions import InputError
-
+from sefaria.utils import hebrew
 
 class Group(abst.AbstractMongoRecord):
     """
@@ -21,12 +23,12 @@ class Group(abst.AbstractMongoRecord):
 
     required_attrs = [
         "name",          # string name of group
-        "admins",        # array or uids
-        "publishers",    # array of uids
-        "members",       # array of uids
+        "admins",        # list or uids
+        "publishers",    # list of uids
+        "members",       # list of uids
     ]
     optional_attrs = [
-        "invitations",      # array of dictionaries representing outstanding invitations
+        "invitations",      # list of dictionaries representing outstanding invitations
         "description",      # string text of short description
         "websiteUrl",       # url for group website
         "headerUrl",        # url of an image to use in header
@@ -35,7 +37,16 @@ class Group(abst.AbstractMongoRecord):
         "pinned_sheets",    # list of sheet ids, pinned to top
         "listed",           # Bool, whether to list group publicly
         "moderationStatus", # string status code for moderator-set statuses
-        "tag_order",        # list of strings, display order for sheet tags       
+        "pinnedTags",       # list of strings, display order for sheet tags
+        "showTagsByDefault",# Bool, whether to default to opening tags list
+        "toc",              # object signaling inclusion in TOC with fields
+                                # `categories` - list
+                                # `title` - string
+                                # `heTitle` - string
+                                # `collectiveTitle` - optional dictionary with `en`, `he`, overiding title display in TOC/Sidebar.
+                                # `desscription` - string
+                                # `heDescription` - string
+                                # These fields will override `name` and `description` for display
     ]
 
     def _normalize(self):
@@ -47,6 +58,13 @@ class Group(abst.AbstractMongoRecord):
             else:
                 # Allows include protocol
                 self.websiteUrl = "https://" + website
+
+        toc = getattr(self, "toc", None)
+        if toc:
+            tags = ["b", "i", "br", "span"]
+            attrs = {"span": ["class"]}
+            toc["description"] = bleach.clean(toc["description"], tags=tags, attributes=attrs)
+            toc["heDescription"] = bleach.clean(toc["heDescription"], tags=tags, attributes=attrs)
 
     def _validate(self):
         assert super(Group, self)._validate()
@@ -67,27 +85,59 @@ class Group(abst.AbstractMongoRecord):
             if old != new:
                 self._handle_image_change(old, new)
 
+    def all_names(self, lang):
+        primary_name = self.primary_name(lang)
+        names = [primary_name] if primary_name else []
+
+        if hasattr(self, "toc"):
+            names += [self.toc["title"]] if lang == "en" else [self.toc["heTitle"]]
+            names += [self.toc["collectiveTitle"][lang]] if "collectiveTitle" in self.toc else []
+
+        return list(set(names))
+
+    def primary_name(self, lang):
+        return self.name if (hebrew.is_hebrew(self.name) == (lang == "he")) else None
+
     def contents(self, with_content=False, authenticated=False):
-        from sefaria.sheets import group_sheets, sheet_tag_counts
+        from sefaria.sheets import group_sheets, sheet_topics_counts
         contents = super(Group, self).contents()
-        if with_content: 
+        if with_content:
             contents["sheets"]       = group_sheets(self, authenticated)["sheets"]
-            contents["tags"]         = sheet_tag_counts({"group": self.name})
+            contents["topics"]       = sheet_topics_counts({"group": self.name})
             contents["admins"]       = [public_user_data(uid) for uid in contents["admins"]]
             contents["publishers"]   = [public_user_data(uid) for uid in contents["publishers"]]
             contents["members"]      = [public_user_data(uid) for uid in contents["members"]]
             contents["invitations"]  = getattr(self, "invitations", []) if authenticated else []
             contents["pinnedSheets"] = getattr(self, "pinned_sheets", [])
+            contents["pinnedTags"]   = getattr(self, "pinnedTags", [])
         return contents
 
-    def listing_contents(self):
+    def listing_contents(self, uid=None):
         contents = {
             "name": self.name,
             "imageUrl": getattr(self, "imageUrl", None),
+            "headerUrl": getattr(self, "headerUrl", None),
             "memberCount": self.member_count(),
             "sheetCount": self.sheet_count(),
         }
+        if uid is not None:
+            contents["canPublish"] = self.can_publish(uid)
+            contents["membership"] = self.membership_role(uid)
         return contents
+
+    def membership_role(self, uid):
+        """
+        Get membership level in group
+        :param uid:
+        :return: either "member", "admin" or "publisher"
+        """
+        if uid in self.members:
+            return "member"
+        if uid in self.publishers:
+            return "publisher"
+        if uid in self.admins:
+            return "admin"
+        return None
 
     def add_member(self, uid, role="member"):
         """
@@ -102,7 +152,7 @@ class Group(abst.AbstractMongoRecord):
         else:
             self.members.append(uid)
         self.save()
-        
+
     def remove_member(self, uid):
         """
         Remove `uid` from this group.
@@ -114,12 +164,12 @@ class Group(abst.AbstractMongoRecord):
 
     def invite_member(self, email, inviter, role="member"):
         """
-        Invites a person by email to sign up for a Sefaria and join a group. 
-        Creates on outstanding inviations record for `email` / `role` 
+        Invites a person by email to sign up for a Sefaria and join a group.
+        Creates on outstanding inviations record for `email` / `role`
         and sends an invitation to `email`.
         """
         self.remove_invitation(email)
-        self.invitations = [{"email": email, "role": role}] + self.invitations 
+        self.invitations = [{"email": email, "role": role}] + self.invitations
         self.send_invitation(email, inviter)
         self.save()
 
@@ -142,7 +192,7 @@ class Group(abst.AbstractMongoRecord):
         from sefaria.model import UserProfile
 
         inviter       = UserProfile(id=inviter_id)
-        message_html  = render_to_string("email/group_signup_invitation_email.html", 
+        message_html  = render_to_string("email/group_signup_invitation_email.html",
                                         {
                                             "inviter": inviter.full_name,
                                             "groupName": self.name,
@@ -178,8 +228,8 @@ class Group(abst.AbstractMongoRecord):
 
     def sheet_count(self):
         """Returns the number of sheets in this group"""
-        from sefaria.system.database import db
-        return db.sheets.find({"group": self.name}).count()
+        from sefaria.sheets import SheetSet
+        return SheetSet({"group": self.name}).count()
 
     @property
     def url(self):
@@ -214,8 +264,11 @@ class Group(abst.AbstractMongoRecord):
 class GroupSet(abst.AbstractMongoSet):
     recordClass = Group
 
-    def for_user(self, uid):
-        self.__init__({"$or": [{"admins": uid}, {"publishers": uid}, {"members": uid}]}, sort=[("name", 1)])
+    def for_user(self, uid, private=True):
+        query = {"$or": [{"admins": uid}, {"publishers": uid}, {"members": uid}]}
+        if not private:
+            query["listed"] = True
+        self.__init__(query, sort=[("name", 1)])
         return self
 
 

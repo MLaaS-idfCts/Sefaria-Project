@@ -1,4 +1,6 @@
 # encoding=utf-8
+import django
+django.setup()
 from sefaria.model import *
 from sefaria.helper import schema
 from sefaria.system.exceptions import BookNameError
@@ -7,7 +9,7 @@ import pytest
 
 @pytest.mark.deep
 def setup_module():
-    print 'Creating Dummy Index'
+    print('Creating Dummy Index')
 
     # ensure dummy index was properly deleted
     index = Index().load({'title': 'Delete Me'})
@@ -21,13 +23,13 @@ def setup_module():
     # Build an index with some nodes
     root = SchemaNode()
     root.add_title('Delete Me', 'en', primary=True)
-    root.add_title(u'תמחק אותי', 'he', primary=True)
+    root.add_title('תמחק אותי', 'he', primary=True)
     root.key = 'Delete Me'
 
     part1 = JaggedArrayNode()
     part1.add_title('Part1', 'en', primary=True)
     part1.add_title("Partone", 'en')
-    part1.add_title(u'חלק 1', 'he', primary=True)
+    part1.add_title('חלק 1', 'he', primary=True)
     part1.sectionNames = ['Chapter', 'Verse']
     part1.addressTypes = ['Integer', 'Integer']
     part1.depth = 2
@@ -36,7 +38,7 @@ def setup_module():
 
     part2 = JaggedArrayNode()
     part2.add_title('Part2', 'en', primary=True)
-    part2.add_title(u'חלק 2', 'he', primary=True)
+    part2.add_title('חלק 2', 'he', primary=True)
     part2.sectionNames = ['Section', 'Segment']
     part2.addressTypes = ['Integer', 'Integer']
     part2.depth = 2
@@ -49,7 +51,7 @@ def setup_module():
     alt.depth = 0
     alt.wholeRef = 'Delete Me, Part1 1:2-3:1'
     alt.add_title('Something', 'en', True)
-    alt.add_title(u'משהו', 'he', True)
+    alt.add_title('משהו', 'he', True)
 
     index = Index({
         'schema': root.serialize(),
@@ -65,6 +67,15 @@ def setup_module():
         "title": "Delete Me",
         "versionSource": "http://foobar.com",
         "versionTitle": "Schema Test",
+        "chapter": root.create_skeleton()
+    }).save()
+
+    # an empty version
+    v = Version({
+        "language": "en",
+        "title": "Delete Me",
+        "versionSource": "http://foobar.com",
+        "versionTitle": "Schema Test Blank",
         "chapter": root.create_skeleton()
     }).save()
 
@@ -111,17 +122,17 @@ def setup_module():
     }).save()
 
     VersionState("Delete Me").refresh()
-    print 'End of test setup'
+    print('End of test setup')
 
 
 @pytest.mark.deep
 def teardown_module():
-    print 'Cleaning Up'
+    print('Cleaning Up')
     ls = LinkSet(Ref("Delete Me"))
     ls.delete()
     ns = NoteSet({"ref": {"$regex": "Delete Me.*"}})
     ns.delete()
-    v = Version().load({'title': 'Delete Me'})
+    v = VersionSet({'title': 'Delete Me'})
     v.delete()
     i = Index().load({'title': 'Delete Me'})
     i.delete()
@@ -152,7 +163,7 @@ def test_migrate_to_complex_structure():
     # Build an index with some nodes
     root = JaggedArrayNode()
     root.add_title('MigrateBook', 'en', primary=True)
-    root.add_title(u'הספר', 'he', primary=True)
+    root.add_title('הספר', 'he', primary=True)
     root.key = 'MigrateBook'
     root.depth = 2
     root.addressTypes = ["Integer", "Integer"]
@@ -238,13 +249,13 @@ def test_migrate_to_complex_structure():
     new_schema = SchemaNode()
     new_schema.key = "MigrateBook"
     new_schema.add_title("MigrateBook", "en", primary=True)
-    new_schema.add_title(u"הספר", "he", primary=True)
+    new_schema.add_title("הספר", "he", primary=True)
 
     depths = [2, 1, 2, 1, 1, 1, 1, 1, 1, 1]
     for i in range(10):
         ja = JaggedArrayNode()
         ja.add_title('Part {}'.format(i+1), 'en', primary=True)
-        ja.add_title(u'חלק {}'.format(i+1), 'he', primary=True)
+        ja.add_title('חלק {}'.format(i+1), 'he', primary=True)
         ja.key = str(i)
         ja.depth = depths[i]
         ja.addressTypes = ["Integer"] * depths[i]
@@ -314,13 +325,15 @@ def test_change_node_structure():
     assert node.depth == 3
     chunk = TextChunk(Ref('Delete Me, Part1'), 'en', 'Schema Test')
     assert chunk.text == [[['Part1 part1'], ['Part1']], [['Part1']], [['Part1'], [], ['part1']]]
+    blank_chunk = TextChunk(Ref('Delete Me, Part1'), 'en', 'Schema Test Blank')
+    assert len(blank_chunk.text) == 0
     assert isinstance(Link().load({'refs': ['Delete Me, Part1 1:1:1', 'Shabbat 2a:5'],}), Link)
     assert isinstance(Link().load({'refs': ['Delete Me, Part1 2:1:1', 'Delete Me, Part2 2:1'], }), Link)
     assert isinstance(Link().load({'refs': ['Delete Me, Part1 3:1', 'Shabbat 2a:5'], }), Link)
     assert isinstance(Link().load({'refs': ['Delete Me, Part2 1:1', 'Shabbat 2a:5'], }), Link)
     assert isinstance(Link().load({'refs': ['Delete Me, Part2 3', 'Shabbat 2a:5'], }), Link)
     assert isinstance(Note().load({'ref': 'Delete Me, Part1 1:1:1'}), Note)
-    assert library.get_index('Delete Me').get_alt_structure('alt').wholeRef == u'Delete Me, Part1 1:2:1-3:1:1'
+    assert library.get_index('Delete Me').get_alt_structure('alt').wholeRef == 'Delete Me, Part1 1:2:1-3:1:1'
 
     # decrease depth
     node = library.get_index('Delete Me').nodes.children[0]
@@ -335,4 +348,4 @@ def test_change_node_structure():
     assert isinstance(Link().load({'refs': ['Delete Me, Part2 1:1', 'Shabbat 2a:5'], }), Link)
     assert isinstance(Link().load({'refs': ['Delete Me, Part2 3', 'Shabbat 2a:5'], }), Link)
     assert isinstance(Note().load({'ref': 'Delete Me, Part1 1:1'}), Note)
-    assert library.get_index('Delete Me').get_alt_structure('alt').wholeRef == u'Delete Me, Part1 1:2-3:1'
+    assert library.get_index('Delete Me').get_alt_structure('alt').wholeRef == 'Delete Me, Part1 1:2-3:1'

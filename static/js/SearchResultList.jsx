@@ -65,7 +65,7 @@ class SearchResultList extends Component {
 
     _abortRunningQuery(type) {
       if(this.state.runningQueries[type]) {
-          this.state.runningQueries[type].abort();
+          this.state.runningQueries[type].abort();  //todo: make work with promises
       }
       this.updateRunningQuery(type, null, false);
     }
@@ -76,7 +76,7 @@ class SearchResultList extends Component {
     }
 
     componentWillUnmount() {
-        this._abortRunningQueries();
+        this._abortRunningQueries();  // todo: make this work w/ promises
         $(ReactDOM.findDOMNode(this)).closest(".content").unbind("scroll", this.handleScroll);
     }
 
@@ -155,10 +155,9 @@ class SearchResultList extends Component {
         query: this.props.query,
         type,
         size,
-        from: last,
+        start: last,
         field,
         sort_type: sortType,
-        get_filters: false,
         applied_filters: appliedFilters,
         appliedFilterAggTypes,
         aggregationsToUpdate: [],
@@ -173,7 +172,7 @@ class SearchResultList extends Component {
           this.state.hits[type] = nextHits;
 
           this.setState({hits: this.state.hits});
-          this._loadRemainder(type, last + this.backgroundQuerySize, total, nextHits);
+          this._loadRemainder(type, last + nextHits.length, total, nextHits);
         }
       };
 
@@ -184,7 +183,15 @@ class SearchResultList extends Component {
     _executeAllQueries(props) {
       this.types.forEach(t => this._executeQuery(props, t));
     }
-
+    _getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, type, interfaceLang) {
+      const uniqueAggTypes = [...(new Set(appliedFilterAggTypes))];
+      const justUnapplied = uniqueAggTypes.indexOf(this.lastAppliedAggType[type]) === -1; // if you just unapplied an aggtype filter completely, make sure you rerequest that aggType's filters also in case they were deleted
+      if (filtersValid && aggregation_field_array.length === 1) { return []; }
+      return Sefaria.util
+      .zip(aggregation_field_array, aggregation_field_lang_suffix_array)
+      .filter(([agg, _]) => justUnapplied || agg !== this.lastAppliedAggType[type])        // remove lastAppliedAggType
+      .map(([agg, suffix_map]) => `${agg}${suffix_map ? suffix_map[interfaceLang] : ''}`);  // add suffix based on interfaceLang to filter, if present in suffix_map
+    }
     _executeQuery(props, type) {
       //This takes a props object, so as to be able to handle being called from componentWillReceiveProps with newProps
       props = props || this.props;
@@ -199,14 +206,11 @@ class SearchResultList extends Component {
       const { field, fieldExact, sortType, filtersValid, appliedFilters, appliedFilterAggTypes } = searchState;
       const request_applied = filtersValid && appliedFilters;
       const isCompletionStep = request_applied || appliedFilters.length === 0;
-      const { aggregation_field_array, build_and_apply_filters } = SearchState.metadataByType[type];
-      const uniqueAggTypes = [...(new Set(appliedFilterAggTypes))];
-      const justUnapplied = uniqueAggTypes.indexOf(this.lastAppliedAggType[type]) === -1; // if you just unapplied an aggtype filter completely, make sure you rerequest that aggType's filters also in case they were deleted
-      const aggregationsToUpdate = aggregation_field_array.filter( a => justUnapplied || a !== this.lastAppliedAggType[type]);
+      const { aggregation_field_array, build_and_apply_filters, aggregation_field_lang_suffix_array } = SearchState.metadataByType[type];
+      const aggregationsToUpdate = this._getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, type, props.interfaceLang);
       const runningQuery = Sefaria.search.execute_query({
           query: props.query,
           type,
-          get_filters: !filtersValid,
           applied_filters: request_applied,
           appliedFilterAggTypes,
           aggregationsToUpdate,
@@ -229,7 +233,7 @@ class SearchResultList extends Component {
                 let availableFilters = [];
                 let registry = {};
                 let orphans = [];
-                for (let aggregation of aggregation_field_array) {
+                for (let aggregation of aggregationsToUpdate) {
                   if (!!data.aggregations[aggregation]) {
                     const { buckets } = data.aggregations[aggregation];
                     const { availableFilters: tempAvailable, registry: tempRegistry, orphans: tempOrphans } = Sefaria.search[build_and_apply_filters](buckets, appliedFilters, appliedFilterAggTypes, aggregation);
@@ -241,7 +245,7 @@ class SearchResultList extends Component {
                 this.props.registerAvailableFilters(type, availableFilters, registry, orphans, aggregationsToUpdate);
               }
               if(isCompletionStep) {
-                this._loadRemainder(type, this.initialQuerySize, data.hits.total, hitArray);
+                  this._loadRemainder(type, hitArray.length, data.hits.total, hitArray);
               }
           },
           error: this._handle_error
@@ -306,6 +310,7 @@ class SearchResultList extends Component {
               <SearchSheetResult
                     data={result}
                     query={this.props.query}
+                    openProfile={this.props.openProfile}
                     key={result._id} />);
         }
 
@@ -347,6 +352,7 @@ class SearchResultList extends Component {
     }
 }
 SearchResultList.propTypes = {
+  interfaceLang:            PropTypes.oneOf(['english', 'hebrew']),
   query:                    PropTypes.string,
   tab:                      PropTypes.oneOf(["text", "sheet"]),
   textSearchState:          PropTypes.object,
@@ -356,7 +362,8 @@ SearchResultList.propTypes = {
   updateAppliedFilter:      PropTypes.func,
   updateAppliedOptionField: PropTypes.func,
   updateAppliedOptionSort:  PropTypes.func,
-  registerAvailableFilters: PropTypes.func
+  registerAvailableFilters: PropTypes.func,
+  openProfile:              PropTypes.func.isRequired,
 };
 
 

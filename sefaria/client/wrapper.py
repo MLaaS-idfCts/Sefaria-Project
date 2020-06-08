@@ -8,6 +8,7 @@ from sefaria.model import *
 from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.system.exceptions import InputError, NoVersionFoundError
 from sefaria.model.user_profile import user_link, public_user_data
+from sefaria.sheets import get_sheets_for_ref
 from sefaria.utils.hebrew import hebrew_term
 
 
@@ -22,23 +23,43 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
 
     # The text we're asked to get links to
     anchorTref = link.refs[pos]
-    anchorRef = Ref(anchorTref)
+    anchorRef  = Ref(anchorTref)
+    anchorTrefExpanded = getattr(link, "expandedRefs{}".format(pos))
 
     # The link we found to anchorRef
-    linkTref = link.refs[(pos + 1) % 2]
-    linkRef = Ref(linkTref)
+    linkPos   = (pos + 1) % 2
+    linkTref  = link.refs[linkPos]
+    linkRef   = Ref(linkTref)
+    langs     = getattr(link, "availableLangs", [[],[]])
+    linkLangs = langs[linkPos]
 
-    com["_id"]           = str(link._id)
-    com['index_title']   = linkRef.index.title
-    com["category"]      = linkRef.primary_category #usually the index's categories[0] or "Commentary".
-    com["type"]          = link.type
-    com["ref"]           = linkTref
-    com["anchorRef"]     = anchorTref
-    com["sourceRef"]     = linkTref
-    com["sourceHeRef"]   = linkRef.he_normal()
-    com["anchorVerse"]   = anchorRef.sections[-1] if len(anchorRef.sections) else 0
-    com["anchorText"]    = getattr(link, "anchorText", "")
-    com["inline_reference"] = getattr(link, "inline_reference", None)
+    com["_id"]               = str(link._id)
+    com['index_title']       = linkRef.index.title
+    com["category"]          = linkRef.primary_category #usually the index's categories[0] or "Commentary".
+    com["type"]              = link.type
+    com["ref"]               = linkTref
+    com["anchorRef"]         = anchorTref
+    com["anchorRefExpanded"] = anchorTrefExpanded
+    com["sourceRef"]         = linkTref
+    com["sourceHeRef"]       = linkRef.he_normal()
+    com["anchorVerse"]       = anchorRef.sections[-1] if len(anchorRef.sections) else 0
+    com["sourceHasEn"]       = "en" in linkLangs
+    # com["anchorText"]        = getattr(link, "anchorText", "") # not currently used
+    if getattr(link, "inline_reference", None):
+        com["inline_reference"]  = getattr(link, "inline_reference", None)
+    if getattr(link, "highlightedWords", None):
+        com["highlightedWords"] = getattr(link, "highlightedWords", None)
+
+    compDate = getattr(linkRef.index, "compDate", None)
+    if compDate:
+        try:
+            com["compDate"] = int(compDate)
+        except ValueError:
+            com["compDate"] = 3000  # default comp date to in the future
+        try:
+            com["errorMargin"] = int(getattr(linkRef.index, "errorMargin", 0))
+        except ValueError:
+            com["errorMargin"] = 0
 
     # Pad out the sections list, so that comparison between comment numbers are apples-to-apples
     lsections = linkRef.sections[:] + [0] * (linkRef.index_node.depth - len(linkRef.sections))
@@ -48,8 +69,8 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
 
     if with_text:
         text             = TextFamily(linkRef, context=0, commentary=False)
-        com["text"]      = text.text if isinstance(text.text, basestring) else JaggedTextArray(text.text).flatten_to_array()
-        com["he"]        = text.he if isinstance(text.he, basestring) else JaggedTextArray(text.he).flatten_to_array()
+        com["text"]      = text.text if isinstance(text.text, str) else JaggedTextArray(text.text).flatten_to_array()
+        com["he"]        = text.he if isinstance(text.he, str) else JaggedTextArray(text.he).flatten_to_array()
 
     # if the the link is commentary, strip redundant info (e.g. "Rashi on Genesis 4:2" -> "Rashi")
     # this is now simpler, and there is explicit data on the index record for it.
@@ -124,6 +145,16 @@ def format_note_object_for_client(note):
     return com
 
 
+def format_sheet_as_link(sheet):
+    sheet["category"]        = "Commentary" if "Commentary" in sheet["groupTOC"]["categories"] else sheet["groupTOC"]["categories"][0]
+    sheet["collectiveTitle"] = sheet["groupTOC"]["collectiveTitle"] if "collectiveTitle" in sheet["groupTOC"] else {"en": sheet["groupTOC"]["title"], "he": sheet["groupTOC"]["heTitle"]}
+    sheet["index_title"]     = sheet["collectiveTitle"]["en"]
+    sheet["sourceRef"]       = sheet["title"]
+    sheet["sourceHeRef"]     = sheet["title"]
+    sheet["isSheet"]         = True
+    return sheet
+
+
 def get_notes(oref, public=True, uid=None, context=1):
     """
     Returns a list of notes related to ref.
@@ -136,10 +167,11 @@ def get_notes(oref, public=True, uid=None, context=1):
     return notes
 
 
-def get_links(tref, with_text=True):
+def get_links(tref, with_text=True, with_sheet_links=False):
     """
     Return a list of links tied to 'ref' in client format.
-    If with_text, retrieve texts for each link.
+    If `with_text`, retrieve texts for each link.
+    If `with_sheet_links` include sheet results for sheets in groups which are listed in the TOC.
     """
     links = []
     oref = Ref(tref)
@@ -157,16 +189,28 @@ def get_links(tref, with_text=True):
         # find the position (0 or 1) of "anchor", the one we're getting links for
         # If both sides of the ref are in the same section of a text, only one direction will be used.  bug? maybe not.
         if reRef:
-            pos = 0 if re.match(reRef, link.refs[0]) else 1
+            pos = 0 if any(re.match(reRef, tref) for tref in link.expandedRefs0) else 1
         else:
-            pos = 0 if nRef == link.refs[0][:lenRef] else 1
+            pos = 0 if any(nRef == tref[:lenRef] for tref in link.expandedRefs0) else 1
         try:
+            # Skip any anchor refs that aren't segment level.  Unrolling the call to is_segment_level() here, just to save the N function calls.
+            anchor_ref = Ref(link.refs[pos])
+            node_depth = getattr(anchor_ref.index_node, "depth", None)
+            if node_depth is None or len(anchor_ref.sections) != node_depth:
+                continue
+
+            # Skip any related refs that are super section level
+            source_ref = Ref(link.refs[0 if pos == 1 else 1])
+            node_depth = getattr(source_ref.index_node, "depth", None)
+            if node_depth is None or len(source_ref.sections) + 1 < node_depth:
+                continue
+
             com = format_link_object_for_client(link, False, nRef, pos)
         except InputError:
-            # logger.warning("Bad link: {} - {}".format(link.refs[0], link.refs[1]))
+            logger.warning("Bad link: {} - {}".format(link.refs[0], link.refs[1]))
             continue
         except AttributeError as e:
-            logger.error(u"AttributeError in presenting link: {} - {} : {}".format(link.refs[0], link.refs[1], e))
+            logger.error("AttributeError in presenting link: {} - {} : {}".format(link.refs[0], link.refs[1], e))
             continue
 
         # Rather than getting text with each link, walk through all links here,
@@ -185,8 +229,8 @@ def get_links(tref, with_text=True):
                             top_nref_tc = TextChunk(top_oref, lang)
                             versionInfoMap = None if not top_nref_tc._versions else {
                                 v.versionTitle: {
-                                    'license': getattr(v, 'license', u''),
-                                    'versionTitleInHebrew': getattr(v, 'versionTitleInHebrew', u'')
+                                    'license': getattr(v, 'license', ''),
+                                    'versionTitleInHebrew': getattr(v, 'versionTitleInHebrew', '')
                                 } for v in top_nref_tc._versions
                             }
                             if top_nref_tc.is_merged:
@@ -220,11 +264,11 @@ def get_links(tref, with_text=True):
                         if attr not in com:
                             com[attr] = res
                         else:
-                            if isinstance(com[attr], basestring):
+                            if isinstance(com[attr], str):
                                 com[attr] = [com[attr]]
                             com[attr] += res
                         temp_version = temp_nref_data['version']
-                        if isinstance(temp_version, basestring) or temp_version is None:
+                        if isinstance(temp_version, str) or temp_version is None:
                             com[versionAttr] = temp_version
                             com[licenseAttr] = temp_nref_data['license']
                             com[vtitleInHeAttr] = temp_nref_data['versionTitleInHebrew']
@@ -249,8 +293,8 @@ def get_links(tref, with_text=True):
             logger.warning("Trying to get non existent text for ref '{}'. Link refs were: {}".format(top_nref, link.refs))
             continue
 
-    # Harded-coding automatic display of links to an underlying text. bound_texts = ("Rashba on ",)
-    # E.g., when requesting "Steinsaltz on X" also include links "X" as though they were connected directly to Steinsaltz.
+    # Hard-coding automatic display of links to an underlying text. bound_texts = ("Rashba on ",)
+    # E.g., when requesting "Steinsaltz on X" also include links to "X" as though they were connected directly to Steinsaltz.
     bound_texts = ("Steinsaltz on ",)
     for prefix in bound_texts:
         if nRef.startswith(prefix):
@@ -258,11 +302,17 @@ def get_links(tref, with_text=True):
             base_links = get_links(base_ref)
             def add_prefix(link):
                 link["anchorRef"] = prefix + link["anchorRef"]
+                link["anchorRefExpanded"] = [prefix + l for l in link["anchorRefExpanded"]]
                 return link
             base_links = [add_prefix(link) for link in base_links]
             orig_links_refs = [(origlink['sourceRef'], origlink['anchorRef']) for origlink in links]
-            base_links = filter(lambda x: ((x['sourceRef'], x['anchorRef']) not in orig_links_refs) and (x["sourceRef"] != x["anchorRef"]), base_links)
+            base_links = [x for x in base_links if ((x['sourceRef'], x['anchorRef']) not in orig_links_refs) and (x["sourceRef"] != x["anchorRef"])]
             links += base_links
 
-    links = [l for l in links if not Ref(l["anchorRef"]).is_section_level()]
+    groups = library.get_groups_in_library()
+    if with_sheet_links and len(groups):
+        sheet_links = get_sheets_for_ref(tref, in_group=groups)
+        formatted_sheet_links = [format_sheet_as_link(sheet) for sheet in sheet_links]
+        links += formatted_sheet_links
+
     return links

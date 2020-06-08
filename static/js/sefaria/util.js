@@ -1,11 +1,48 @@
 const $              = require('./sefariaJquery');
 const extend         = require('extend');
 const striptags      = require('striptags');
-
+const humanizeDuration = require('humanize-duration');
 
 var INBROWSER = (typeof document !== 'undefined');
 
 class Util {
+    static localeDate(dateString) {
+        // takes dateString (usually generated from Python datetime object) and returns a human readable string depending on interfaceLang
+        const locale = Sefaria.interfaceLang === 'english' ? 'en-US' : 'iw-IL';
+        const dateOptions = {year: 'numeric', month: 'short', day: 'numeric'};
+        return (new Date(dateString)).toLocaleDateString(locale, dateOptions).replace(',', '');  // remove comma from english date
+    }
+    static sign_up_user_testing() {
+      // temporary function to be used in template 'user_testing_israel.html'
+        const validateEmail = function(email) {
+          const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+          return re.test(email);
+        };
+        const email = $('#email-input').val();
+        if (!validateEmail(email)) {
+            alert(email + ' is not a valid email');
+            return;
+        }
+        console.log('Email valid', email);
+        const feedback = {
+          refs: null,
+          type: 'user_testing',
+          url: null,
+          currVersions: null,
+          email: email
+        };
+        const postData = {json: JSON.stringify(feedback)};
+        $.post('/api/send_feedback', postData);
+    }
+    static naturalTimePlural(n, singular, plural) {
+      return n <= 1 ? singular : plural;
+    }
+    static naturalTime(timeStamp) {
+      // given epoch time stamp, return string of time delta between `timeStamp` and now
+      const now = Util.epoch_time();
+      const language = Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en';
+      return Util.sefariaHumanizeDuration(now - timeStamp, { language });
+    }
     static object_equals(a, b) {
         // simple object equality assuming values are primitive. see here
         // http://adripofjavascript.com/blog/drips/object-equality-in-javascript.html
@@ -232,6 +269,12 @@ class Util {
           };
         }
 
+        String.prototype.splitCamelCase = function() {
+              return this.replace(/([A-Z])/g, ' $1')
+                          .trim()
+                          .replace(/^./, str => str.toUpperCase())
+        };
+
         Array.prototype.compare = function(testArr) {
             if (this.length != testArr.length) return false;
             for (var i = 0; i < testArr.length; i++) {
@@ -242,6 +285,15 @@ class Util {
             }
             return true;
         };
+
+        Array.prototype.elementsAreEqual = function (testArr) {
+          // uses Object.is() to determine is elements point to same objects even if outer array is different
+          if (!testArr || (this.length != testArr.length)) return false;
+          for (var i = 0; i < testArr.length; i++) {
+              if (!Object.is(this[i], testArr[i])) return false;
+          }
+          return true;
+        }
 
         Array.prototype.pad = function(s,v) {
             var l = Math.abs(s) - this.length;
@@ -288,7 +340,7 @@ class Util {
             this.splice(new_index, 0, this.splice(old_index, 1)[0]);
             return this; // for testing purposes
         };
-
+        /*  I highly suspect that these functions work properly. Not worth the slight performance gain. Commenting out for now in case we want to revisit later.
         Array.prototype.insertInOrder = function(element, comparer) {
           // see https://stackoverflow.com/questions/1344500/efficient-way-to-insert-a-number-into-a-sorted-array-of-numbers
           // insert `element` into array so that the array remains sorted, assuming it was sorted to begin with
@@ -315,7 +367,7 @@ class Util {
             case 1: return this.locationOfSorted(element, comparer, pivot, end);
           };
         };
-
+        */
         if (!Array.prototype.fill) {
           Object.defineProperty(Array.prototype, 'fill', {
             value: function(value) {
@@ -589,6 +641,8 @@ class Util {
 
         this.current_lookup_ajax = null;
 
+        this.dropdownAnchorSide = this.options.interfaceLang == "he" ? "right" : "left";
+
         this.$input
             .on("input", this.check.bind(this))
             .keyup(function(e) {
@@ -598,14 +652,12 @@ class Util {
                 }.bind(this))
             .autocomplete({
                 source: function(request, response) {
-                  Sefaria.lookupRef(
-                      request.term,
-                      function (d) { response(d["completions"]); }
-                  );
+                  Sefaria.getName(request.term, true)
+                         .then(d => d.completions)
+                         .then(response);
                 },
-                select: function(event, ui) {
-                  this._lookupAndRoute(ui.item.value);
-                }.bind(this),
+                position: {my: this.dropdownAnchorSide + " top", at: this.dropdownAnchorSide + " bottom"},
+                select: (event, ui) => this._lookupAndRoute(ui.item.value),
                 minLength: 3
             });
     };
@@ -691,32 +743,34 @@ Util.RefValidator.prototype = {
       return return_message;
   },
   _lookupAndRoute: function(inString) {
-      if (this.current_lookup_ajax) {this.current_lookup_ajax.abort();}
-      this.current_lookup_ajax = Sefaria.lookupRef(
-        inString,
-        function(data) {
-          // If this query has been outpaced by typing, just return.
-          if (this.$input.val() != inString) { return; }
+      if (this.current_lookup_ajax) {this.current_lookup_ajax.cancel();}
+      this.current_lookup_ajax = Sefaria.makeCancelable(Sefaria.getName(inString, true));
+      this.current_lookup_ajax.promise.then(data => {
+              // If this query has been outpaced by typing, just return.
+              if (this.$input.val() != inString) { this.current_lookup_ajax = null; return; }
 
-          // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
-          if (Sefaria.isACaseVariant(inString, data)) {
-            this._lookupAndRoute(Sefaria.repairCaseVariant(inString, data));
-            return;
-          }
+              // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
+              if (Sefaria.isACaseVariant(inString, data)) {
+                this._lookupAndRoute(Sefaria.repairCaseVariant(inString, data));
+                this.current_lookup_ajax = null;
+                return;
+              }
 
-          this.$msg.css("direction", (data["lang"]=="he"?"rtl":"ltr"))
-              .html(this._getMessage(inString, data));
-          if (!data.is_ref && this.options.allow_new_titles) {
-              this._allow(inString);
-              return;
-          }
-          if (data.is_ref && (data.is_section || (data.is_segment && !this.options.disallow_segments))) {
-            this._allow(inString, data["ref"]);  //pass normalized ref
-            return;
-          }
-          this._disallow();
-        }.bind(this)
-      );
+              this.$msg.css("direction", (data["lang"]=="he"?"rtl":"ltr"))
+                  .html(this._getMessage(inString, data));
+              if (!data.is_ref && this.options.allow_new_titles) {
+                  this._allow(inString);
+                  this.current_lookup_ajax = null;
+                  return;
+              }
+              if (data.is_ref && (data.is_section || (data.is_segment && !this.options.disallow_segments))) {
+                this._allow(inString, data["ref"]);  //pass normalized ref
+                this.current_lookup_ajax = null;
+                return;
+              }
+              this._disallow();
+              this.current_lookup_ajax = null;
+          });
   },
   _allow: function(inString, ref) {
     if (inString != this.$input.val()) {
@@ -756,7 +810,7 @@ Util.RefValidator.prototype = {
         this.$input.autocomplete("disable");
         this.$preview.show();
         this.$preview.html("<div class='en'>" + en.join("") + "</div>" + "<div class='he'>" + he.join("") + "</div>");
-        this.$preview.position({my: "left top", at: "left bottom", of: this.$input, collision: "none" }).width('691px').css('margin-top','20px');
+        this.$preview.position({my: this.dropdownAnchorSide + " top", at: this.dropdownAnchorSide + " bottom", of: this.$input, collision: "none" }).width('691px');
     }.bind(this));
   },
   check: function() {
@@ -773,8 +827,33 @@ Util.RefValidator.prototype = {
       this._lookupAndRoute(inString);
   }
 };
-
+const secsInDay = 24 * 60 * 60;
 Util._cookies = {};
 Util._scrollbarWidth = null;
+Util.sefariaHumanizeDuration = humanizeDuration.humanizer({
+  units: ['y', 'mo', 'w', 'd', 'h', 'm', 's'],
+  largest: 1,
+  round: true,
+  unitMeasures: {
+    y: 365 * secsInDay,
+    mo: 30 * secsInDay,
+    w: 7 * secsInDay,
+    d: secsInDay,
+    h: 60 * 60,
+    m: 60,
+    s: 1,
+  },
+  languages: {
+    he: {  // add hebrew since it's not supported in the package
+      y: n => Util.naturalTimePlural(n, 'שנה', 'שנים'),
+      mo: n => Util.naturalTimePlural(n, 'חודש', 'חודשים'),
+      w: n => Util.naturalTimePlural(n, 'שבוע', 'שבועות'),
+      d: n => Util.naturalTimePlural(n, 'יום', 'ימים'),
+      h: n => Util.naturalTimePlural(n, 'שעה', 'שעות'),
+      m: n => Util.naturalTimePlural(n, 'דקה', 'דקות'),
+      s: n => Util.naturalTimePlural(n, 'שנייה', 'שניות'),
+    }
+  },
+});
 
 module.exports = Util;

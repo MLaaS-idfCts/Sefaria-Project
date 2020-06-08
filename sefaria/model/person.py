@@ -96,6 +96,7 @@ class Person(abst.AbstractMongoRecord):
     def get_grouped_relationships(self):
         return PersonRelationshipSet.load_by_key(self.key).grouped(self.key)
 
+    # todo: store results of this IndexSet on the object, so that the query isn't repeated between has_indexes and get_indexes
     def has_indexes(self):
         from . import text
         return text.IndexSet({"authors": self.key}).count() > 0
@@ -137,39 +138,39 @@ class Person(abst.AbstractMongoRecord):
 
         # get set of all places, birth, death, composition, publication
         if getattr(self, "birthPlace", None):
-            updatePlace(self.birthPlace, "birth", "Born", u"נולד")
+            updatePlace(self.birthPlace, "birth", "Born", "נולד")
 
         for i in self.get_indexes():  # todo: Commentaries
             if getattr(i, "compPlace", None):
                 tp = i.composition_time_period()
                 if tp:
                     en_string = "{} composed {}".format(i.get_title("en"), tp.period_string("en"))
-                    he_string = i.get_title("he") + u" נתחבר " + tp.period_string("he")
+                    he_string = i.get_title("he") + " נתחבר " + tp.period_string("he")
                 else:
                     en_string = "{} composed".format(i.get_title("en"))
-                    he_string = i.get_title("he") + u" " + u"נתחבר"
+                    he_string = i.get_title("he") + " " + "נתחבר"
                 updatePlace(i.compPlace, "composed", en_string, he_string)
 
             if getattr(i, "pubPlace", None):
                 tp = i.publication_time_period()
                 if tp:
                     en_string = "{} first published {}".format(i.get_title("en"), tp.period_string("en"))
-                    he_string = i.get_title("he") + u" נדפס לראשונה " + tp.period_string("he")
+                    he_string = i.get_title("he") + " נדפס לראשונה " + tp.period_string("he")
                 else:
                     en_string = "{} first published".format(i.get_title("en"))
-                    he_string = i.get_title("he") + u" " + u"נדפס לראשונה"
+                    he_string = i.get_title("he") + " " + "נדפס לראשונה"
                 updatePlace(i.pubPlace, "published", en_string, he_string)
 
         if getattr(self, "deathPlace", None):
-            updatePlace(self.deathPlace, "death", "Died", u"נפטר")
+            updatePlace(self.deathPlace, "death", "Died", "נפטר")
 
         if not places:
             return None
 
-        for key, data in places.items():
+        for key, data in list(places.items()):
             p = place.Place().load({"key": key})
             if not p:
-                logger.warning(u"Found a bad {} place key '{}' for {}".format(data["type"], key, self.primary_name("en")))
+                logger.warning("Found a bad {} place key '{}' for {}".format(data["type"], key, self.primary_name("en")))
                 del places[key]
                 continue
             data["en_name"] = p.primary_name("en")
@@ -180,7 +181,7 @@ class Person(abst.AbstractMongoRecord):
             return places
 
         features = []
-        for key, data in places.iteritems():
+        for key, data in places.items():
             if data.get("point"):
                 loc = data.pop("point")
                 features.append(geojson.Feature(geometry=loc, id=key, properties=data))
@@ -305,7 +306,7 @@ def process_index_title_change_in_gardens(indx, **kwargs):
         try:
             l.save()
         except InputError: #todo: this belongs in a better place - perhaps in abstract
-            logger.warning("Deleting link that failed to save: {} {}".format(l.refs[0], l.refs[1]))
+            logger.warning(u"Deleting link that failed to save: {} {}".format(l.refs[0], l.refs[1]))
             l.delete()
 
 

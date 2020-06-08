@@ -3,8 +3,9 @@ import json
 from rauth import OAuth2Service
 from datetime import datetime
 
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.core.mail import EmailMultiAlternatives
+from functools import wraps
 
 from sefaria import local_settings as sls
 
@@ -18,11 +19,14 @@ def jsonResponse(data, callback=None, status=200):
     except AttributeError:
         pass
 
+    if data is None:
+        data = {"error": 'No data available'}
+
     if "_id" in data:
         data["_id"] = str(data["_id"])
 
     if isinstance(data, dict):
-        for key in data.keys():
+        for key in list(data.keys()):
             if isinstance(data[key], datetime):
                 data[key] = data[key].isoformat()
 

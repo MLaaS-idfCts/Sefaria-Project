@@ -4,8 +4,10 @@ const {
   LoginPrompt,
   LanguageToggleButton,
   ReaderNavigationMenuCloseButton,
+  SheetListing,
   Note,
   FeedbackBox,
+  ToolTipped,
 }                            = require('./Misc');
 const {
   CategoryFilter,
@@ -18,7 +20,7 @@ const $                      = require('./sefaria/sefariaJquery');
 const TextRange              = require('./TextRange');
 const TextList               = require('./TextList');
 const ConnectionsPanelHeader = require('./ConnectionsPanelHeader');
-const AddToSourceSheetBox    = require('./AddToSourceSheetBox');
+const { AddToSourceSheetBox }= require('./AddToSourceSheet');
 const LexiconBox             = require('./LexiconBox');
 const AboutBox               = require('./AboutBox');
 const VersionsBox            = require('./VersionsBox');
@@ -27,10 +29,10 @@ const classNames             = require('classnames');
 import Component             from 'react-class';
 
 
-
 class ConnectionsPanel extends Component {
   constructor(props) {
     super(props);
+    this._savedHistorySegments = new Set();
     this.state = {
       flashMessage: null,
       currObjectVersions: {en: null, he: null},
@@ -42,9 +44,12 @@ class ConnectionsPanel extends Component {
     this._isMounted = true;
     this.loadData();
     this.getCurrentVersions();
+    this.debouncedCheckVisibleSegments = Sefaria.util.debounce(this.checkVisibleSegments, 100);
+    this.addScrollListener();
   }
   componentWillUnmount() {
     this._isMounted = false;
+    this.removeScrollListener();
   }
   componentDidUpdate(prevProps, prevState) {
     if (!prevProps.srefs.compare(this.props.srefs)) {
@@ -52,11 +57,11 @@ class ConnectionsPanel extends Component {
     }
     // Turn on the lexicon when receiving new words if they are less than 3
     // and don't span refs.
-    if (!prevProps.selectedWords &&
-        this.props.selectedWords &&
+    if (this.props.selectedWords &&
+        this.props.selectedWords !== prevProps.selectedWords &&
         this.props.selectedWords.match(/[\s:\u0590-\u05ff.]+/) &&
         this.props.selectedWords.split(" ").length < 3 &&
-        this.props.srefs.length == 1) {
+        this.props.srefs.length === 1) {
       this.props.setConnectionsMode("Lexicon");
     }
     // Go back to main sidebar when words are unselected
@@ -70,6 +75,69 @@ class ConnectionsPanel extends Component {
         prevProps.srefs[0]            !== this.props.srefs[0]) {
       this.getCurrentVersions();
     }
+
+    if (prevProps.mode !== 'TextList' && this.props.mode === 'TextList') {
+      this.removeScrollListener();
+      this.addScrollListener();
+    }
+  }
+  addScrollListener() {
+    this.$scrollView = $(".connectionsPanel .texts");
+    if (this.$scrollView[0]) {
+      this.$scrollView[0].addEventListener("scroll", this.handleScroll);
+    }
+  }
+  removeScrollListener() {
+    if (!!this.$scrollView && this.$scrollView[0]) {
+      this.$scrollView[0].removeEventListener("scroll", this.handleScroll);
+    }
+  }
+  handleScroll(event) {
+    this.debouncedCheckVisibleSegments();
+  }
+  checkVisibleSegments() {
+    if (!this._isMounted || !this.props.filter || !this.props.filter.length) { return; }
+    const initialFilter = this.props.filter;
+    const initialRefs = this.props.srefs;
+    this.$scrollView.find(".textListTextRangeBox .textRange").each((i, element) => {
+      if (!this.isSegmentVisible(element)) { return; }
+      const callback = this.onIntentTimer.bind(null, element, initialFilter, initialRefs);
+      this.props.checkIntentTimer(null, callback);  // instead of saving timer, we want to have multiple timers running because multiple segments can be on screen
+    });
+  }
+  onIntentTimer(element, initialFilter, initialRefs) {
+    if (
+      !this._isMounted                ||
+      !this.isSegmentVisible(element) ||
+      this.didFilterChange(initialFilter, initialRefs, this.props.filter, this.props.srefs)
+    ) { return; }
+    const ref = element.getAttribute('data-ref');
+    if (this._savedHistorySegments.has(ref)) { return; }
+    const parsedRef = Sefaria.parseRef(ref);
+    // TODO: add version info once we support that in links
+    Sefaria.saveUserHistory({
+      ref,
+      versions: {en: null, he: null},
+      book: parsedRef.book,
+      language: this.props.contentLang,
+      secondary: true,
+    });
+    this._savedHistorySegments.add(ref);
+  }
+  isSegmentVisible(segment) {
+    const threshold = 100;
+    const $segment = $(segment);
+    const top = $segment.offset().top - this.$scrollView.offset().top;
+    const bottom = $segment.outerHeight() + top;
+    return top < this.$scrollView.outerHeight() - threshold && bottom > threshold;
+  }
+  didFilterChange(prevFilter, prevRefs, nextFilter, nextRefs) {
+    if (
+      !prevFilter || !nextFilter ||
+      !prevFilter.length || !nextFilter.length ||
+      prevFilter[0] !== nextFilter[0]
+    ) { return true; }
+    return !prevRefs.compare(nextRefs);
   }
   sectionRef() {
     return Sefaria.sectionRef(Sefaria.humanRef(this.props.srefs)) || this.props.srefs;
@@ -119,23 +187,18 @@ class ConnectionsPanel extends Component {
   }
   getData(cb) {
     // Gets data about this text from cache, which may be null.
-    return Sefaria.text(this.props.srefs[0], {context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he}, cb);
+    return Sefaria.getText(this.props.srefs[0], {context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he}).then(cb);
   }
   getVersionFromData(d, lang) {
     //d - data received from this.getData()
     //language - the language of the version
+    //console.log(d);
+    const currentVersionTitle = (lang == "he") ? d.heVersionTitle : d.versionTitle;
     return {
-      language:               lang,
-      versionTitle:           lang == "he" ? d.heVersionTitle : d.versionTitle,
-      versionSource:          lang == "he" ? d.heVersionSource : d.versionSource,
-      versionStatus:          lang == "he" ? d.heVersionStatus : d.versionStatus,
-      license:                lang == "he" ? d.heLicense : d.license,
+      ... d.versions.find(v => v.versionTitle == currentVersionTitle && v.language == lang),
+      title:                  d.indexTitle,
+      heTitle:                d.heIndexTitle,
       sources:                lang == "he" ? d.heSources : d.sources,
-      versionNotes:           lang == "he" ? d.heVersionNotes : d.versionNotes,
-      digitizedBySefaria:     lang == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria,
-      versionTitleInHebrew:   lang == "he" ? d.heVersionTitleInHebrew : d.versionTitleInHebrew,
-      versionNotesInHebrew:   lang == "he" ? d.heVersionNotesInHebrew : d.versionNotesInHebrew,
-      extendedNotes:          lang == "he" ? d.extendedNotesHebrew : d.extendedNotes,
       merged:                 lang == "he" ? !!d.heSources : !!d.sources,
     }
   }
@@ -167,11 +230,14 @@ class ConnectionsPanel extends Component {
           });
       });
   }
-
   checkSrefs(srefs) {
     // Mostly exists for properly displaying Ranging refs in TextList on page loads and on sheets
     if (typeof(srefs) == "object" && srefs.length == 1) {
       srefs = Sefaria.splitRangingRef(srefs[0]);
+    }
+    if (srefs.length == 1 && (Sefaria.sectionRef(srefs[0]) == srefs[0])) {
+        const oref = Sefaria.ref(srefs[0]);
+        srefs = Sefaria.makeSegments(oref).map(segment => segment.ref)
     }
     return(srefs)
   }
@@ -184,9 +250,7 @@ class ConnectionsPanel extends Component {
       else {
           return false
       }
-
   }
-
   render() {
     var content = null;
     if (!this.state.linksLoaded) {
@@ -211,6 +275,7 @@ class ConnectionsPanel extends Component {
                     showBooks={false}
                     multiPanel={this.props.multiPanel}
                     filter={this.props.filter}
+                    nodeRef={this.props.nodeRef}
                     contentLang={this.props.contentLang}
                     setFilter={this.props.setFilter}
                     setConnectionsMode={this.props.setConnectionsMode}
@@ -219,8 +284,12 @@ class ConnectionsPanel extends Component {
                     multiPanel={this.props.multiPanel}
                     setConnectionsMode={this.props.setConnectionsMode}
                     openComparePanel={this.props.openComparePanel}
+                    toggleSignUpModal = {this.props.toggleSignUpModal}
                     sheetsCount={Sefaria.sheets.sheetsTotalCount(this.props.srefs)}
-                    notesCount={Sefaria.notesTotalCount(this.props.srefs)} />
+                    notesCount={Sefaria.notesTotalCount(this.props.srefs)}
+                    webpagesCount={Sefaria.webPagesByRef(this.props.srefs).length}
+                    topicsCount={Sefaria.topicsByRefCount(this.props.srefs)}
+                  />
                   </div>);
 
     } else if (this.props.mode === "ConnectionsList") {
@@ -229,6 +298,7 @@ class ConnectionsPanel extends Component {
                     category={this.props.connectionsCategory}
                     showBooks={true}
                     multiPanel={this.props.multiPanel}
+                    nodeRef={this.props.nodeRef}
                     contentLang={this.props.contentLang}
                     filter={this.props.filter}
                     setFilter={this.props.setFilter}
@@ -241,6 +311,7 @@ class ConnectionsPanel extends Component {
                     srefs={this.checkSrefs(this.props.srefs)}
                     filter={this.props.filter}
                     recentFilters={this.props.recentFilters}
+                    nodeRef={this.props.nodeRef}
                     fullPanel={this.props.fullPanel}
                     multiPanel={this.props.multiPanel}
                     contentLang={this.props.contentLang}
@@ -251,19 +322,22 @@ class ConnectionsPanel extends Component {
                     onNavigationClick={this.props.onNavigationClick}
                     onCompareClick={this.props.onCompareClick}
                     onOpenConnectionsClick={this.props.onOpenConnectionsClick}
+                    handleSheetClick={this.props.handleSheetClick}
                     openNav={this.props.openNav}
                     openDisplaySettings={this.props.openDisplaySettings}
                     closePanel={this.props.closePanel}
                     selectedWords={this.props.selectedWords}
-                    checkIntentTimer={this.props.checkIntentTimer}
+                    checkVisibleSegments={this.checkVisibleSegments}
                   />);
 
     } else if (this.props.mode === "Sheets") {
+      var connectedSheet = this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null;
       content = (<div>
                   <AddToSourceSheetBox
                     srefs={this.props.srefs}
                     nodeRef = {this.props.nodeRef}
                     fullPanel={this.props.fullPanel}
+                    toggleSignUpModal = {this.props.toggleSignUpModal}
                     setConnectionsMode={this.props.setConnectionsMode}
                     addToSourceSheet={this.props.addToSourceSheet} />
                   { Sefaria._uid ?
@@ -275,21 +349,24 @@ class ConnectionsPanel extends Component {
                   { this.props.srefs[0].indexOf("Sheet") == -1 ?
                   <MySheetsList
                     srefs={this.props.srefs}
+                    connectedSheet = {connectedSheet}
                     fullPanel={this.props.fullPanel}
                     handleSheetClick={this.props.handleSheetClick}
+                    openProfile={this.props.openProfile}
                   /> : null }
 
                   { this.props.srefs[0].indexOf("Sheet") == -1 ?
                   <PublicSheetsList
                     srefs={this.props.srefs}
+                    connectedSheet = {connectedSheet}
                     fullPanel={this.props.fullPanel}
                     handleSheetClick={this.props.handleSheetClick}
+                    openProfile={this.props.openProfile}
                   /> : null }
 
                 </div>);
 
     } else if (this.props.mode === "Notes") {
-        console.log(this.props);
       content = (<div>
                   <AddNoteBox
                     srefs={this.props.srefs}
@@ -314,20 +391,34 @@ class ConnectionsPanel extends Component {
                     oref={Sefaria.ref(this.props.srefs[0])}
                     onEntryClick={this.props.onTextClick}
                     onCitationClick={this.props.onCitationClick}
-      />);
+                    interfaceLang={this.props.interfaceLang} />);
+
+    } else if (this.props.mode === "Topics") {
+      content = (
+        <TopicList
+          contentLang={this.props.contentLang}
+          srefs={this.props.srefs}
+          interfaceLang={this.props.interfaceLang}
+        />
+      );
+    } else if (this.props.mode === "WebPages" || this.props.mode === "WebPagesList") {
+      content = (<WebPagesList
+                    srefs={this.props.srefs}
+                    filter={this.props.mode == "WebPages" ? null : this.props.webPagesFilter}
+                    setWebPagesFilter={this.props.setWebPagesFilter}
+                    interfaceLang={this.props.interfaceLang}
+                    key="WebPages"/>);
 
     } else if (this.props.mode === "Tools") {
-        console.log(this.props.srefs);
-        console.log(this.props.canEditText);
       content = (<ToolsList
                     srefs={this.props.srefs}
+                    toggleSignUpModal={this.props.toggleSignUpModal}
                     canEditText={this.props.canEditText}
                     setConnectionsMode={this.props.setConnectionsMode}
                     currVersions={this.props.currVersions}
                     masterPanelLanguage={this.props.masterPanelLanguage} />);
 
     } else if (this.props.mode === "Share") {
-        console.log('share');
       content = (<ShareBox
                     url={window.location.href}
                     fullPanel={this.props.fullPanel}
@@ -363,6 +454,7 @@ class ConnectionsPanel extends Component {
 
     } else if (this.props.mode === "Login") {
       content = (<LoginPrompt fullPanel={this.props.fullPanel} />);
+
     } else if (this.props.mode === "About") {
       content = (<AboutBox
                   currObjectVersions={this.state.currObjectVersions}
@@ -370,8 +462,8 @@ class ConnectionsPanel extends Component {
                   title={this.props.title}
                   srefs={this.props.srefs}
                   getLicenseMap={this.props.getLicenseMap}
-                  viewExtendedNotes={this.props.viewExtendedNotes}
-                />);
+                  viewExtendedNotes={this.props.viewExtendedNotes} />);
+
     } else if (this.props.mode === "Versions" || this.props.mode === "Version Open") {
       content = (<VersionsBox
                   currObjectVersions={this.state.currObjectVersions}
@@ -388,15 +480,15 @@ class ConnectionsPanel extends Component {
                   getDataRef={this.getDataRef}
                   onRangeClick={this.props.onTextClick}
                   viewExtendedNotes={this.props.viewExtendedNotes}
-                  onCitationClick={this.props.onCitationClick}/>);
+                  onCitationClick={this.props.onCitationClick} />);
+
     } else if (this.props.mode === "extended notes") {
       content = (<ExtendedNotes
                   currVersions={this.props.currVersions}
                   title={this.props.title}/>);
     }
-    var marginless = ["Resources", "ConnectionsList", "Tools", "Share"].indexOf(this.props.mode) != -1;
+    var marginless = ["Resources", "ConnectionsList", "Tools", "Share", "WebPages", "Topics"].indexOf(this.props.mode) != -1;
 
-    //marginless = 0;
     var classes = classNames({connectionsPanel: 1, textList: 1, marginless: marginless, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
     return (
       <div className={classes} key={this.props.mode}>
@@ -459,21 +551,24 @@ ConnectionsPanel.propTypes = {
   recentVersionFilters:    PropTypes.array,
   setVersionFilter:        PropTypes.func.isRequired,
   checkIntentTimer:        PropTypes.func.isRequired,
+  openProfile:             PropTypes.func.isRequired,
 };
 
 
 class ResourcesList extends Component {
-  // A list of Resources in addition to connections
+  // A list of Resources in addition to connection
   render() {
     return (<div className="resourcesList">
               {this.props.multiPanel ?
-                <ToolsButton en="Other Text" he="השווה" icon="search" onClick={this.props.openComparePanel} />
+                <ToolsButton en="Other Text" he="טקסט נוסף" icon="search" onClick={this.props.openComparePanel} />
               : null }
               <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
-              <ToolsButton en="Notes" he="הרשומות שלי" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => this.props.setConnectionsMode("Notes")} />
+              <ToolsButton en="Notes" he="הערות" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Notes")} />
+              <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={this.props.topicsCount} onClick={() => this.props.setConnectionsMode("Topics")} />
               <ToolsButton en="About" he="אודות" image="book-64.png" onClick={() => this.props.setConnectionsMode("About")} />
-              <ToolsButton en="Versions" he="גרסאות" image="layers.png" onClick={() => this.props.setConnectionsMode("Versions")} />
+              <ToolsButton en="Translations" he="תרגומים" image="layers.png" onClick={() => this.props.setConnectionsMode("Versions")} />
               <ToolsButton en="Dictionaries" he="מילונים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
+              <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpage.svg" count={this.props.webpagesCount} onClick={() => this.props.setConnectionsMode("WebPages")} />
               <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
               <ToolsButton en="Feedback" he="משוב" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
             </div>);
@@ -493,7 +588,7 @@ class SheetNodeConnectionTools extends Component {
   render() {
     return (<div className="resourcesList">
               {this.props.multiPanel ?
-                <ToolsButton en="Other Text" he="השווה" icon="search" onClick={this.props.openComparePanel} />
+                <ToolsButton en="Other Text" he="טקסט נוסף" icon="search" onClick={this.props.openComparePanel} />
               : null }
                 <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
 
@@ -506,7 +601,7 @@ SheetNodeConnectionTools.propTypes = {
   multiPanel:         PropTypes.bool.isRequired,
   setConnectionsMode: PropTypes.func.isRequired,
   openComparePanel:   PropTypes.func.isRequired,
-}
+};
 
 
 class ConnectionsSummary extends Component {
@@ -514,39 +609,57 @@ class ConnectionsSummary extends Component {
   // If `category` is present, shows a single category, otherwise all categories.
   // If `showBooks`, show specific text counts beneath each category.
   render() {
-    var refs       = this.props.srefs;
-    var summary    = Sefaria.linkSummary(refs);
-    var oref       = Sefaria.ref(refs[0]);
-    var isTopLevel = !this.props.category;
-    var baseCat    = oref ? oref["categories"][0] : null;
+    const refs          = this.props.srefs;
+    const excludedSheet = this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null;
+    const oref          = Sefaria.ref(refs[0]);
+    const isTopLevel    = !this.props.category;
+    const baseCat       = oref ? oref["categories"][0] : null;
+    let summary       = Sefaria.linkSummary(refs, excludedSheet);
 
-    if (!summary) { return (<LoadingMessage />); }
+    if (!summary) { return (<div className="connectionsSummaryLoading"><LoadingMessage /></div>); }
 
-    if (this.props.category == "Commentary" ) {
+    if (this.props.category === "Commentary" ) {
       // Show Quoting Commentary & Modern Commentary together with Commentary
-      summary = summary.filter(cat => (cat.category.indexOf("Commentary") != -1));
+      summary = summary.filter(cat => (cat.category.indexOf("Commentary") !== -1));
+      const order = ["Commentary", "Modern Commentary", "Quoting Commentary"];
       summary.sort((a, b) => {
-        var order = ["Commentary", "Modern Commentary", "Quoting Commentary"];
-        var ia = order.indexOf(a.category)
-        var ib = order.indexOf(b.category)
+        const ia = order.indexOf(a.category);
+        const ib = order.indexOf(b.category);
         return ia - ib;
       });
 
     } else if (this.props.category) {
       // Single Category Summary
-      summary = summary.filter(function(cat) { return cat.category == this.props.category; }.bind(this));
-      if (summary.length == 0) {
-        summary = [{category: this.props.category, books: [], count: 0}];
+      summary = summary.filter(function(cat) { return cat.category === this.props.category; }.bind(this));
+      if (summary.length === 0) {
+        summary = [{category: this.props.category, books: [], count: 0, hasEnglish: false}];
       }
 
     } else if (isTopLevel) {
-      // Top Level summary, don't show Quoting or Modern Commentary
-      summary = summary.filter(cat => (cat.category.indexOf("Commentary") < 1));
+
+      // Hide Quoting or Modern Commentary from the top level view
+      let topSummary = summary.filter(cat => (cat.category.indexOf("Commentary") < 1));
+      // But include Quoting and Modern Commentary counts and english mark in top level Commentary section
+      let subCommentaryCats = summary.filter(cat => (cat.category.indexOf("Commentary") > 1));
+      if (subCommentaryCats.length && summary[0].category !== "Commentary") {
+        // handle case of having Modern/Quoting Commentary, but no Commentary
+         topSummary = [{category: "Commentary", count: 0, books: [], hasEnglish: false}].concat(topSummary);
+      } else if (subCommentaryCats.length && summary[0].category === "Commentary") {
+        // If Commentary object is present and we have sub commentary counts to add, replace the object
+        // so we can add to the count without changing the underlying object.
+         topSummary = [{category: "Commentary", count: summary[0].count, books: [], hasEnglish: summary[0].hasEnglish}].concat(topSummary.slice(1))
+      }
+      subCommentaryCats.map(cat => {
+        topSummary[0].count += cat.count;
+        topSummary[0].hasEnglish = cat.hasEnglish || summary[0].hasEnglish;
+      });
+
+      summary = topSummary;
     }
 
-    var connectionsSummary = summary.map(function(cat, i) {
+    const connectionsSummary = summary.map(function(cat, i) {
 
-      var books = this.props.contentLang == "hebrew"
+      const books = this.props.contentLang === "hebrew"
                     ? cat.books.concat().sort(Sefaria.linkSummaryBookSortHebrew.bind(null, baseCat))
                     : cat.books;
       return (
@@ -557,6 +670,7 @@ class ConnectionsSummary extends Component {
           showBooks={this.props.showBooks}
           count={cat.count}
           books={books}
+          hasEnglish={cat.hasEnglish}
           filter={this.props.filter}
           updateRecent={true}
           setFilter={this.props.setFilter}
@@ -587,14 +701,18 @@ class MySheetsList extends Component {
   // List of my sheets for a ref in the Sidebar
   render() {
     var sheets = Sefaria.sheets.userSheetsByRef(this.props.srefs);
-    var content = sheets.length ? sheets.map(function(sheet) {
-      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} />)
+    var content = sheets.length ? sheets.filter(sheet => {
+      // Don't show sheets as connections to themselves
+      return sheet.id !== this.props.connectedSheet;
+    }).map(sheet => {
+      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} openProfile={this.props.openProfile} />)
     }, this) : null;
     return content && content.length ? (<div className="sheetList">{content}</div>) : null;
   }
 }
 MySheetsList.propTypes = {
-  srefs: PropTypes.array.isRequired,
+  srefs:          PropTypes.array.isRequired,
+  connectedSheet: PropTypes.string,
 };
 
 
@@ -602,84 +720,153 @@ class PublicSheetsList extends Component {
   // List of public sheets for a ref in the sidebar
   render() {
     var sheets = Sefaria.sheets.sheetsByRef(this.props.srefs);
-    var content = sheets.length ? sheets.filter(function(sheet) {
-      // My sheets are show already in MySheetList
-      return sheet.owner !== Sefaria._uid;
-    }).map(function(sheet) {
-      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} />)
+    var content = sheets.length ? sheets.filter(sheet => {
+      // My sheets are shown already in MySheetList
+      return sheet.owner !== Sefaria._uid && sheet.id !== this.props.connectedSheet;
+    }).map(sheet => {
+      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} openProfile={this.props.openProfile} />)
     }, this) : null;
     return content && content.length ? (<div className="sheetList">{content}</div>) : null;
   }
 }
 PublicSheetsList.propTypes = {
   srefs: PropTypes.array.isRequired,
+  connectedSheet: PropTypes.string,
 };
 
+const TopicList = ({ srefs, interfaceLang, contentLang }) => {
+  // segment ref topicList can be undefined even if loaded
+  // but section ref topicList is null when loading and array when loaded
+  const sectionRef = Sefaria.getRefFromCache(srefs[0]).sectionRef;
+  const topics = Sefaria.topicsByRef(srefs)
+  return (
+    <div className={`topicList ${contentLang === 'hebrew' ? 'topicsHe' : 'topicsEn'}`}>
+      {
+        Sefaria.topicsByRef(sectionRef) === null ? (
+          <div className="webpageList empty">
+            <LoadingMessage />
+          </div>
+        ) : (!topics || !topics.length) ? (
+          <div className="webpageList empty">
+            <LoadingMessage
+              message={"No topics known here."}
+              heMessage={"אין נושאים ידועים."}
+            />
+          </div>
+        ) : topics.map(
+          topic => (
+            <TopicListItem
+              key={topic.topic}
+              topic={topic}
+              interfaceLang={interfaceLang}
+              srefs={srefs}
+            />
+          )
+        )
+      }
+    </div>
+  );
+}
 
-class SheetListing extends Component {
-  // A source sheet listed in the Sidebar
-  handleSheetClick(e, sheet) {
-      Sefaria.track.sheets("Opened via Connections Panel", this.props.connectedRefs.toString())
-      //console.log("Sheet Click Handled");
-    if (Sefaria._uid == this.props.sheet.owner) {
-      Sefaria.track.event("Tools", "My Sheet Click", this.props.sheet.sheetUrl);
-    } else {
-      Sefaria.track.event("Tools", "Sheet Click", this.props.sheet.sheetUrl);
-    }
-    this.props.handleSheetClick(e,sheet);
+const TopicListItem = ({ topic, interfaceLang, srefs }) => {
+  let dataSourceText = '';
+  const langKey = interfaceLang === 'english' ? 'en' : 'he';
+  if (!!topic.dataSources && Object.values(topic.dataSources).length > 0) {
+    dataSourceText = `${Sefaria._('This topic is connected to ')}"${Sefaria._r(srefs[0])}" ${Sefaria._('by')} ${Object.values(topic.dataSources).map(d => d[langKey]).join(' & ')}.`;
   }
-  handleSheetOwnerClick() {
-    Sefaria.track.event("Tools", "Sheet Owner Click", this.props.sheet.ownerProfileUrl);
-  }
-  handleSheetTagClick(tag) {
-    Sefaria.track.event("Tools", "Sheet Tag Click", tag);
+  return (
+    <a href={`/topics/${topic.topic}`} className="toolsButton topicButton" target="_blank">
+      <span className="topicButtonTitle">
+        <span className="contentText">
+          <span className="en">{topic.title.en}</span>
+          <span className="he">{topic.title.he}</span>
+        </span>
+        <ToolTipped altText={dataSourceText} classes={"saveButton tooltip-toggle three-dots-button"}>
+          <img src="/static/img/three-dots.svg" alt={dataSourceText}/>
+        </ToolTipped>
+      </span>
+      {
+        topic.description && (topic.description.en || topic.description.he) ? (
+          <span className="smallText">
+            <span className="en">{topic.description.en}</span>
+            <span className="he">{topic.description.he}</span>
+          </span>
+        ) : null
+      }
+    </a>
+  );
+}
+
+class WebPagesList extends Component {
+  // List of web pages for a ref in the sidebar
+  setFilter(filter) {
+    this.props.setWebPagesFilter(filter);
   }
   render() {
-    var sheet = this.props.sheet;
-    var viewsIcon = sheet.public ?
-      <div className="sheetViews sans"><i className="fa fa-eye" title={sheet.views + " views"}></i> {sheet.views}</div>
-      : <div className="sheetViews sans"><i className="fa fa-lock" title="Private"></i></div>;
+    let webpages = Sefaria.webPagesByRef(this.props.srefs)
+    let content = [];
 
-    return (
-      <div className="sheet" key={sheet.sheetUrl}>
-        <div className="sheetInfo">
-          <div className="sheetUser">
-            <a href={sheet.ownerProfileUrl} target="_blank" onClick={this.handleSheetOwnerClick}>
-              <img className="sheetAuthorImg" src={sheet.ownerImageUrl} />
-            </a>
-            <a href={sheet.ownerProfileUrl} target="_blank" className="sheetAuthor" onClick={this.handleSheetOwnerClick}>{sheet.ownerName}</a>
+    if (!this.props.filter) {
+      let sites = {};
+      webpages.map(page => {
+        if (page.siteName in sites) {
+          sites[page.siteName].count++;
+        } else {
+          sites[page.siteName] = {name: page.siteName, faviconUrl: page.faviconUrl, count: 1};
+        }
+      });
+      sites = Object.values(sites).sort((a, b) => b.count - a.count);
+      content = sites.map(site => {
+        return (<div className="website toolsButton" onClick={()=>this.setFilter(site.name)} key={site.name}>
+          <img className="icon" src={site.faviconUrl} />
+          <span className="siteName toolsButtonText">{site.name} <span className="connectionsCount">({site.count})</span></span>
+        </div>);
+      });
+    } else {
+      webpages = webpages.filter(page => this.props.filter == "all" || page.siteName == this.props.filter);
+      content = webpages.map(webpage => {
+        return (<div className={"webpage" + (webpage.isHebrew ? " hebrew" : "")} key={webpage.url}>
+          <img className="icon" src={webpage.faviconUrl} />
+          <a className="title" href={webpage.url} target="_blank">{webpage.title}</a>
+          <div className="domain">{webpage.domain}</div>
+          {webpage.description ? <div className="description">{webpage.description}</div> : null}
+          <div className="stats">
+            <span className="int-en">Citing: {webpage.anchorRef}</span>
+            <span className="int-he">מצטט: {Sefaria._r(webpage.anchorRef)}</span>
           </div>
-          {viewsIcon}
-        </div>
-        <a href={sheet.sheetUrl} target="_blank" className="sheetTitle" onClick={(e) => this.handleSheetClick(e,sheet)}>
-          <img src="/static/img/sheet.svg" className="sheetIcon"/>
-          <span className="sheetTitleText">{sheet.title}</span>
-        </a>
-        <div className="sheetTags">
-          {sheet.tags.map(function(tag, i) {
-            var separator = i == sheet.tags.length -1 ? null : <span className="separator">,</span>;
-            return (<a href={"/sheets/tags/" + tag}
-                        target="_blank"
-                        className="sheetTag"
-                        key={tag}
-                        onClick={this.handleSheetTagClick.bind(null, tag)}>{tag}{separator}</a>)
-          }.bind(this))}
-        </div>
-      </div>);
+        </div>)
+      });
+    }
+
+    if (!content.length) {
+      const filterName = this.props.filter !== "all" ? this.props.filter : null;
+      const en = "No web pages known" + (filterName ? " from " + filterName : "") + " here.";
+      const he = "אין דפי אינטרנט ידועים" + (filterName ? " מ" + filterName : "") + ".";
+      return <div className="webpageList empty">
+                  <LoadingMessage message={en} heMessage={he} />
+                </div>;
+    }
+
+    const linkerMessage = Sefaria._siteSettings.TORAH_SPECIFIC ?
+              <div className="webpagesLinkerMessage sans">
+                <span className="int-en">Sites that are listed here use the <a href="/linker">Sefaria Linker</a>.</span>
+                <span className="int-he">אתרים המפורטים כאן משתמשים <a href="/linker">במרשתת ההפניות</a>.</span>
+              </div> : null;
+
+    return <div className="webpageList">
+              {content}
+              {linkerMessage}
+            </div>;
+
   }
 }
-SheetListing.propTypes = {
-  sheet: PropTypes.object.isRequired,
+WebPagesList.propTypes = {
+  srefs: PropTypes.array.isRequired,
 };
 
 
 class ToolsList extends Component {
   render() {
-      console.log(this.props.srefs)
-      console.log(this.props.canEditText)
-      console.log(this.props.currVersions)
-      console.log(this.props.setConnectionsMode)
-      console.log(this.props.masterPanelLanguage)
     var editText  = this.props.canEditText ? function() {
         var refString = this.props.srefs[0];
         var currentPath = Sefaria.util.currentPath();
@@ -698,17 +885,21 @@ class ToolsList extends Component {
     }.bind(this) : null;
 
     var addTranslation = function() {
-      var nextParam = "?next=" + Sefaria.util.currentPath();
-      Sefaria.track.event("Tools", "Add Translation Click", this.props.srefs[0],
-          {hitCallback: () => {window.location = "/translate/" + this.props.srefs[0] + nextParam}}
-      );
+      if (!Sefaria._uid) { this.props.toggleSignUpModal() }
+
+      else {
+          var nextParam = "?next=" + Sefaria.util.currentPath();
+          Sefaria.track.event("Tools", "Add Translation Click", this.props.srefs[0],
+              {hitCallback: () => {window.location = "/translate/" + this.props.srefs[0] + nextParam}}
+          );
+      }
     }.bind(this);
 
     return (
       <div>
         <ToolsButton en="Share" he="שתף" image="tools-share.svg" onClick={() => this.props.setConnectionsMode("Share")} />
         <ToolsButton en="Add Translation" he="הוסף תרגום" image="tools-translate.svg" onClick={addTranslation} />
-        <ToolsButton en="Add Connection" he="הוסף קישור לטקסט אחר" image="tools-add-connection.svg"onClick={() => this.props.setConnectionsMode("Add Connection")} />
+        <ToolsButton en="Add Connection" he="הוסף קישור לטקסט אחר" image="tools-add-connection.svg"onClick={() => !Sefaria._uid  ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Add Connection")} />
         { editText ? (<ToolsButton en="Edit Text" he="ערוך טקסט" image="tools-edit-text.svg" onClick={editText} />) : null }
       </div>);
   }
@@ -861,20 +1052,9 @@ class AddNoteBox extends Component {
     this.setState({isPrivate: false});
   }
   deleteNote() {
+          alert(Sefaria._("Something went wrong (that's all I know)."));
     if (!confirm(Sefaria._("Are you sure you want to delete this note?"))) { return; }
-    var url = "/api/notes/" + this.props.noteId;
-    $.ajax({
-      type: "delete",
-      url: url,
-      success: function() {
-        Sefaria.clearPrivateNotes();
-        Sefaria.track.event("Tools", "Delete Note", this.props.noteId);
-        this.props.onDelete();
-      }.bind(this),
-      error: function() {
-        alert(Sefaria._("Something went wrong (that's all I know)."));
-      }
-    });
+    Sefaria.deleteNote(this.props.noteId).then(this.props.onDelete);
   }
   render() {
     if (!Sefaria._uid) {
@@ -887,7 +1067,7 @@ class AddNoteBox extends Component {
         <textarea className="noteText" placeholder={Sefaria._("Write a note...")} defaultValue={this.props.noteText}></textarea>
         <div className="button fillWidth" onClick={this.saveNote}>
           <span className="int-en">{this.props.noteId ? "Save" : "Add Note"}</span>
-          <span className="int-he">{this.props.noteId ? "שמור": "הוסף רשומה"}</span>
+          <span className="int-he">{this.props.noteId ? "שמירה": "הוספת הערה"}</span>
         </div>
         {this.props.noteId ?
           <div className="button white fillWidth" onClick={this.props.onCancel}>
@@ -897,7 +1077,7 @@ class AddNoteBox extends Component {
         {this.props.noteId ?
           (<div className="deleteNote" onClick={this.deleteNote}>
             <span className="int-en">Delete Note</span>
-            <span className="int-he">מחק רשומה</span>
+            <span className="int-he">מחיקת הערה</span>
            </div>): null }
       </div>);
 
@@ -946,8 +1126,6 @@ class MyNotes extends Component {
   }
   render() {
     var myNotesData = Sefaria.privateNotes(this.props.srefs);
-    console.log(this.props.srefs)
-    console.log(myNotesData)
     var myNotes = myNotesData ? myNotesData.map(function(note) {
       var editNote = function() {
         this.props.editNote(note);
@@ -1022,7 +1200,7 @@ class AddConnectionBox extends Component {
       var oRef = Sefaria.ref(ref);
       if (!oRef) {
         // If a range was selected, the ref cache may not have a Hebrew ref for us, so ask the API
-        Sefaria.ref(ref, this.setHeRefs);
+        Sefaria.getRef(ref).then(this.setHeRefs);
         return "...";
       }
       return oRef.heRef;

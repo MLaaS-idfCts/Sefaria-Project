@@ -1,6 +1,7 @@
 const {
   LoadingMessage,
   ReaderMessage,
+  ProfilePic,
 } = require('./Misc');
 
 const React = require('react');
@@ -43,21 +44,12 @@ class Sheet extends Component {
 
     for (var i = 0; i < data.sources.length; i++) {
       if ("ref" in data.sources[i]) {
-        Sefaria.ref(data.sources[i].ref, function(ref) {
-           {
-               Sefaria.links(ref.sectionRef, function(){
-                    this.forceUpdate();
-               }.bind(this))
-
-               }
-        }.bind(this));
+        Sefaria.getRef(data.sources[i].ref)
+            .then(ref => ref.sectionRef)
+            .then(ref => Sefaria.related(ref, () => this.forceUpdate));
       }
     }
   }
-
-  componentDidUpdate(prevProps, prevState) {
-  }
-
 
   ensureData() {
     if (!this.getSheetFromCache()) {
@@ -69,11 +61,7 @@ class Sheet extends Component {
     // Scrollbars take up spacing, causing the centering of Sheet to be slightly off center
     // compared to the header. This functions sets appropriate padding to compensate.
     var width = Sefaria.util.getScrollbarWidth();
-    if (this.props.interfaceLang == "hebrew") {
-      this.$container.css({paddingRight: width, paddingLeft: 0});
-    } else {
-      this.$container.css({paddingRight: 0, paddingLeft: width});
-    }
+    this.$container.css({paddingRight: 0, paddingLeft: width});
   }
 
   render() {
@@ -91,6 +79,7 @@ class Sheet extends Component {
             onRefClick={this.props.onRefClick}
             onSegmentClick={this.props.onSegmentClick}
             highlightedNodes={this.props.highlightedNodes}
+            highlightedRefsInSheet={this.props.highlightedRefsInSheet}
             scrollDir = {this.state.scrollDir}
             authorStatement = {sheet.ownerName}
             authorUrl = {sheet.ownerProfileUrl}
@@ -101,6 +90,7 @@ class Sheet extends Component {
             hasSidebar = {this.props.hasSidebar}
             sheetNumbered = {sheet.options.numbered}
             sheetID = {sheet.id}
+            openProfile={this.props.openProfile}
           />
       )
     }
@@ -177,15 +167,12 @@ class SheetContent extends Component {
               'nl', 'li', 'b', 'i', 'strong', 'em', 'small', 'big', 'span', 'strike', 'hr', 'br', 'div',
               'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre', 'sup' ],
             allowedAttributes: {
-              a: [ 'href', 'name', 'target' ],
+              a: [ 'href', 'name', 'target', 'class', 'data-ref' ],
               img: [ 'src' ],
               p: ['style'],
               span: ['style'],
               div: ['style'],
               td: ['colspan'],
-            },
-            allowedClasses: {
-             'sup': ['nechama'],
             },
             allowedStyles: {
               '*': {
@@ -209,10 +196,22 @@ class SheetContent extends Component {
     this.props.onRefClick(ref);
   }
 
+  openProfile(e) {
+    e.preventDefault();
+    const slugMatch = this.props.authorUrl.match(/profile\/(.+)$/);
+    const slug = !!slugMatch ? slugMatch[1] : '';
+    this.props.openProfile(slug, this.props.authorStatement);
+  }
+
   render() {
     var sources = this.props.sources.length ? this.props.sources.map(function(source, i) {
-
+      const highlightedRef = this.props.highlightedRefsInSheet ? Sefaria.normRefList(this.props.highlightedRefsInSheet) : null;
       if ("ref" in source) {
+        const highlighted = this.props.highlightedNodes ?
+            this.props.highlightedNodes == source.node :
+              highlightedRef ? 
+              Sefaria.refContains(source.ref, highlightedRef) :
+                false;
         return (
           <SheetSource
             key={i}
@@ -222,7 +221,7 @@ class SheetContent extends Component {
             handleClick={this.handleClick}
             cleanHTML={this.cleanHTML}
             onSegmentClick={this.props.onSegmentClick}
-            highlightedNodes={this.props.highlightedNodes}
+            highlighted={highlighted}
             sheetNumbered={this.props.sheetNumbered}
           />
         )
@@ -234,6 +233,7 @@ class SheetContent extends Component {
             key={i}
             sourceNum={i + 1}
             source={source}
+            handleClick={this.handleClick}
             cleanHTML={this.cleanHTML}
             onSegmentClick={this.props.onSegmentClick}
             highlightedNodes={this.props.highlightedNodes}
@@ -248,6 +248,7 @@ class SheetContent extends Component {
             key={i}
             sourceNum={i + 1}
             source={source}
+            handleClick={this.handleClick}
             cleanHTML={this.cleanHTML}
             onSegmentClick={this.props.onSegmentClick}
             highlightedNodes={this.props.highlightedNodes}
@@ -262,6 +263,7 @@ class SheetContent extends Component {
             key={i}
             sourceNum={i + 1}
             source={source}
+            handleClick={this.handleClick}
             cleanHTML={this.cleanHTML}
             onSegmentClick={this.props.onSegmentClick}
             highlightedNodes={this.props.highlightedNodes}
@@ -275,6 +277,7 @@ class SheetContent extends Component {
           <SheetMedia
             key={i}
             sourceNum={i + 1}
+            handleClick={this.handleClick}
             cleanHTML={this.cleanHTML}
             source={source}
             onSegmentClick={this.props.onSegmentClick}
@@ -296,11 +299,15 @@ class SheetContent extends Component {
 
             <div className="authorStatement">
                 <div className="groupListingImageBox imageBox">
-                    <a href={this.props.authorUrl}>
-                        <img className="groupListingImage img-circle" src={this.props.authorImage} alt="Author Avatar" />
+                    <a href={this.props.authorUrl} onClick={this.openProfile}>
+                      <ProfilePic
+                        url={this.props.authorImage}
+                        len={30}
+                        name={this.props.authorStatement}
+                      />
                     </a>
                 </div>
-                <span>by <a href={this.props.authorUrl}>{this.props.authorStatement}</a></span>
+                <span>{Sefaria._("by")} <a href={this.props.authorUrl} onClick={this.openProfile}>{this.props.authorStatement}</a></span>
             </div>
 
             {this.props.group && this.props.group != "" ?
@@ -319,6 +326,10 @@ class SheetContent extends Component {
         <div className="text">
             <div className="textInner">{sources}</div>
         </div>
+        <div id="printFooter" style={{display:"none"}}>
+          <span className="int-en">Created with <img src="/static/img/logo.svg" /></span>
+          <span className="int-he">{Sefaria._("Created with")} <img src="/static/img/logo.svg" /></span>
+        </div>
       </div>
     )
   }
@@ -326,11 +337,19 @@ class SheetContent extends Component {
 
 class SheetSource extends Component {
   sheetSourceClick(event) {
-    if(event.target.tagName.toLowerCase() === 'a') {
+      if(event.target.tagName.toLowerCase() === 'a') {
       if( !(location.hostname === event.target.hostname || !event.target.hostname.length) ) {
         window.open(event.target.href, "_blank");
         event.preventDefault();
       }
+    }
+
+    if ($(event.target).hasClass("refLink") && $(event.target).attr("data-ref")) {
+      event.preventDefault();
+      let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
+      this.props.handleClick(ref, event);
+      event.stopPropagation();
+      Sefaria.track.event("Reader", "Citation Link Click", ref);
     }
 
     else {
@@ -348,12 +367,11 @@ class SheetSource extends Component {
                                                     <span className="en"><span className="linkCountDot" style={style}></span></span>
                                                     <span className="he"><span className="linkCountDot" style={style}></span></span>
                                                   </div>);
-
       var containerClasses = classNames("sheetItem",
           "segment",
-          this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
-          this.props.source.text && this.props.source.text.en && this.props.source.text.en == "..." ? "heOnly" : null,
-          this.props.source.text && this.props.source.text.he && this.props.source.text.he == "..." ? "enOnly" : null,
+          this.props.highlighted ? "highlight" : null,
+          (this.props.source.text && this.props.source.text.en && this.props.source.text.en == "...") || (this.props.source.text && !this.props.source.text.en) ? "heOnly" : null,
+          (this.props.source.text && this.props.source.text.he && this.props.source.text.he == "...") || (this.props.source.text && !this.props.source.text.he) ? "enOnly" : null,
           this.props.source.options ? this.props.source.options.indented : null,
           this.props.source.options && this.props.source.options.refDisplayPosition ? "ref-display-"+ this.props.source.options.refDisplayPosition : null
       );
@@ -375,8 +393,8 @@ class SheetSource extends Component {
           {linkCountElement}
 
         {this.props.source.text && this.props.source.text.he && this.props.source.text.he != "" ?
-          <div className="he">
-            <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
+            <div className="he">{this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
+            <div className="ref">{this.props.source.options && this.props.source.options.PrependRefWithHe ? this.props.source.options.PrependRefWithHe : null}<a href={"/" + this.props.source.ref} onClick={(e) => {
               this.props.handleClick(this.props.source.ref, e)
             } }>{this.props.source.heRef}</a></div>
             <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.he))} }></div>
@@ -384,8 +402,8 @@ class SheetSource extends Component {
 
 
         {this.props.source.text && this.props.source.text.en && this.props.source.text.en != "" ?
-          <div className="en">
-            <div className="ref"><a href={"/" + this.props.source.ref} onClick={(e) => {
+          <div className="en">{this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
+            <div className="ref">{this.props.source.options && this.props.source.options.PrependRefWithEn ? this.props.source.options.PrependRefWithEn : null}<a href={"/" + this.props.source.ref} onClick={(e) => {
               this.props.handleClick(this.props.source.ref, e)
             } }>{this.props.source.ref}</a></div>
             <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: (this.props.cleanHTML(this.props.source.text.en))} }></div>
@@ -410,6 +428,14 @@ class SheetComment extends Component {
         window.open(event.target.href, "_blank");
         event.preventDefault();
       }
+    }
+
+    if ($(event.target).hasClass("refLink") && $(event.target).attr("data-ref")) {
+      event.preventDefault();
+      let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
+      this.props.handleClick(ref, event);
+      event.stopPropagation();
+      Sefaria.track.event("Reader", "Citation Link Click", ref);
     }
 
     else {
@@ -455,6 +481,14 @@ class SheetOutsideText extends Component {
       }
     }
 
+    if ($(event.target).hasClass("refLink") && $(event.target).attr("data-ref")) {
+      event.preventDefault();
+      let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
+      this.props.handleClick(ref, event);
+      event.stopPropagation();
+      Sefaria.track.event("Reader", "Citation Link Click", ref);
+    }
+
     else {
         this.props.onSegmentClick(this.props.source);
     }
@@ -477,7 +511,7 @@ class SheetOutsideText extends Component {
               <span className="he"> <span
                 className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
             </div>
-        <div className={lang}>
+        <div className={lang}>{this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
             <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideText)} }></div>
         </div>
         <div className="clearFix"></div>
@@ -500,6 +534,14 @@ class SheetOutsideBiText extends Component {
       }
     }
 
+    if ($(event.target).hasClass("refLink") && $(event.target).attr("data-ref")) {
+      event.preventDefault();
+      let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
+      this.props.handleClick(ref, event);
+      event.stopPropagation();
+      Sefaria.track.event("Reader", "Citation Link Click", ref);
+    }
+
     else {
         this.props.onSegmentClick(this.props.source);
     }
@@ -508,18 +550,29 @@ class SheetOutsideBiText extends Component {
   render() {
       var containerClasses = classNames("sheetItem",
           "segment",
+          this.props.source.outsideBiText.en == "..." || !this.props.source.outsideBiText.en ? "heOnly" : null,
+          this.props.source.outsideBiText.he == "..." || !this.props.source.outsideBiText.he ? "enOnly" : null,
           this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
           this.props.source.options ? this.props.source.options.indented : null
       )
     return (
       <div className={containerClasses} onClick={this.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
             <div className="segmentNumber sheetSegmentNumber sans">
-              <span className="en"> <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span> </span>
-              <span className="he"> <span
-                className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
+              <span className="en">
+                  <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span>
+              </span>
+              <span className="he">
+                  <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span>
+              </span>
             </div>
-        <div className="he sourceContentText" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideBiText.he)} }></div>
-        <div className="en sourceContentText" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideBiText.en)} }></div>
+          <div className="he">
+            {this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
+            <div className="sourceContentText outsideBiText" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideBiText.he)} }></div>
+          </div>
+          <div className="en">
+            {this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
+            <div className="sourceContentText outsideBiText" dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.outsideBiText.en)} }></div>
+          </div>
         <div className="clearFix"></div>
         {this.props.source.addedBy ?
             <div className="addedBy"><small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.userLink)} }></span></em></small></div>
@@ -541,24 +594,36 @@ class SheetMedia extends Component {
       }
     }
 
+    if ($(event.target).hasClass("refLink") && $(event.target).attr("data-ref")) {
+      event.preventDefault();
+      let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
+      this.props.handleClick(ref, event);
+      event.stopPropagation();
+      Sefaria.track.event("Reader", "Citation Link Click", ref);
+    }
     else {
-        this.props.onSegmentClick(this.props.source);
+      this.props.onSegmentClick(this.props.source);
     }
   }
 
-  makeMediaEmbedLink(mediaURL) {
+  makeMediaEmbedContent() {
     var mediaLink;
+    var mediaCaption = "";
+    var mediaClass = "media fullWidth";
+    var mediaURL = this.props.source.media;
+    var caption  = this.props.source.caption;
 
     if (mediaURL.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
       mediaLink = '<img class="addedMedia" src="' + mediaURL + '" />';
+      mediaClass = "media"
     }
 
     else if (mediaURL.toLowerCase().indexOf('youtube') > 0) {
-      mediaLink = '<div class="youTubeContainer"><iframe width="100%" height="100%" src=' + mediaURL + ' frameborder="0" allowfullscreen></iframe></div>'
+      mediaLink = '<div class="youTubeContainer"><iframe width="100%" height="100%" src=' + mediaURL + ' frameborder="0" allowfullscreen></iframe></div>';
     }
 
     else if (mediaURL.toLowerCase().indexOf('soundcloud') > 0) {
-      mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="' + mediaURL + '"></iframe>'
+      mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="' + mediaURL + '"></iframe>';
     }
 
     else if (mediaURL.match(/\.(mp3)$/i) != null) {
@@ -569,7 +634,15 @@ class SheetMedia extends Component {
       mediaLink = 'Error loading media...';
     }
 
-    return mediaLink
+    if (caption && (caption.en || caption.he) ) {
+      var cls = caption.en && caption.he ? "" : caption.en ? "enOnly" : "heOnly";
+      var mediaCaption = "<div class='mediaCaption " + cls + "'><div class='mediaCaptionInner'>" +
+                "<div class='en'>" + (caption.en || "") + "</div>" + 
+                "<div class='he'>" + (caption.he || "") + "</div>" + 
+                 "</div></div>";
+    }
+
+    return "<div class='" + mediaClass + "'>" + mediaLink + mediaCaption + "</div>";
   }
 
   render() {
@@ -586,7 +659,7 @@ class SheetMedia extends Component {
                 className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
             </div>
 
-        <div className="sourceContentText centeredSheetContent" dangerouslySetInnerHTML={ {__html: this.makeMediaEmbedLink(this.props.source.media)} }></div>
+        <div className="sourceContentText centeredSheetContent" dangerouslySetInnerHTML={ {__html: this.makeMediaEmbedContent()} }></div>
         <div className="clearFix"></div>
         {this.props.source.addedBy ?
             <div className="addedBy"><small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: this.props.cleanHTML(this.props.source.userLink)} }></span></em></small></div>

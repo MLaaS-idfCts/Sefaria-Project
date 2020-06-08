@@ -37,7 +37,6 @@ class SearchPage extends Component {
                           initialQuery = { this.props.query }
                           updateQuery = { this.props.onQueryChange } />
                       </div>
-                      <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
                     </div>)}
                   <div className={contentClasses}>
                     <div className="contentInner">
@@ -47,6 +46,7 @@ class SearchPage extends Component {
                           </h1>
                           <div className="searchContent" style={style}>
                               <SearchResultList
+                                interfaceLang={this.props.interfaceLang}
                                 query={this.props.query}
                                 tab={this.props.tab}
                                 textSearchState={this.props.textSearchState}
@@ -57,20 +57,18 @@ class SearchPage extends Component {
                                 updateAppliedOptionField={this.props.updateAppliedOptionField}
                                 updateAppliedOptionSort={this.props.updateAppliedOptionSort}
                                 registerAvailableFilters={this.props.registerAvailableFilters}
+                                openProfile={this.props.openProfile}
                               />
                           </div>
                       </div>
                     </div>
-                    { this.props.panelsOpen === 1 ?
-                      <footer id="footer" className={`interface-${this.props.interfaceLang} static sans`}>
-                        <Footer />
-                      </footer>
-                      : null }
+                    { this.props.panelsOpen === 1 ? <Footer /> : null }
                   </div>
                 </div>);
     }
 }
 SearchPage.propTypes = {
+    interfaceLang:            PropTypes.oneOf(["english", "hebrew"]),
     query:                    PropTypes.string,
     tab:                      PropTypes.oneOf(["text", "sheet"]),
     textSearchState:          PropTypes.object,
@@ -86,6 +84,7 @@ SearchPage.propTypes = {
     updateAppliedOptionSort:  PropTypes.func,
     registerAvailableFilters: PropTypes.func,
     hideNavHeader:            PropTypes.bool,
+    openProfile:              PropTypes.func.isRequired,
 };
 
 

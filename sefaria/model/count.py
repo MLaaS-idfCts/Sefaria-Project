@@ -38,7 +38,7 @@ class Count(abst.AbstractMongoRecord):
                 indx = text.library.get_index(self.title)
                 attrs = indx.contents()
                 #del attrs["_id"]
-                self.index_attr_keys = attrs.keys()
+                self.index_attr_keys = list(attrs.keys())
                 self.__dict__.update(attrs)
             except BookNameError as e:
                 logger.warning("Count object failed to get Index for {} : {} Normal right after Index name change.".format(self.title, e))

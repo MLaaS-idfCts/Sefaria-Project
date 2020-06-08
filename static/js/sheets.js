@@ -31,7 +31,7 @@ sjs.openRequests = 0;
 sjs.current.nextNode = sjs.current.nextNode || 1;
 
 // Track last edits, in case they need to be reapplied after
-// another user updates the currently loaded sheet. 
+// another user updates the currently loaded sheet.
 sjs.lastEdit = null;
 
 // Make sure that we're using the s2 Sefaria utils, and not the s1/utils
@@ -51,7 +51,7 @@ $(window).on("beforeunload", function() {
 	}
 });
 
-//hide 
+//hide
 $(window).scroll(function() {
   var fixedBottom = $("#fileControls");
   if ($('body').height() <= ($(window).height() + $(window).scrollTop())) {
@@ -76,8 +76,8 @@ window.onerror = function (errorMsg, url, lineNumber) {
 $(function() {
 
 	// ------------- Top Controls -------------------
-	
-	
+
+
 		$( ".circleButton" ).hover(
 	  function() {
 		$('.cke_editable').each(function() {
@@ -85,7 +85,7 @@ $(function() {
 	  });
 	  },
 	  function() {
-	  
+
 	  }
 	);
 
@@ -144,7 +144,7 @@ $(function() {
 				var q = parseRef(ref);
 				$("#closeAddSource").trigger("click");
 				addSource(q, undefined, "insert", $target);
-				sjs.track.sheets("Add Source", ref);
+				Sefaria.track.sheets("Add Source", ref);
         cleanupActiveSource($target);
 
 			}
@@ -160,7 +160,7 @@ $(function() {
 	$(document).on("click", "#inlineAddSourceOK", function() {
 		var $target = $("#addInterface").prev(".sheetItem");
         var ref = $("#inlineAdd").val();
-		Sefaria.lookupRef(ref, function(q) {
+		Sefaria.getName(ref, true).then(function(q) {
             addSource(q, undefined, "insert", $target);
             $('#inlineAdd').val('');
             $("#inlineTextPreview").html("");
@@ -169,7 +169,7 @@ $(function() {
             $("#inlineAddSourceOK").addClass("disabled");
             $("#sheet").click();
         });
-		sjs.track.sheets("Add Source", ref);
+		Sefaria.track.sheets("Add Source", ref);
 	});
 	$(document).on("keydown", "#inlineAddSourceOK", function(e) {
 		if (e.which == 13) {
@@ -279,17 +279,20 @@ $(function() {
 
     // This object is instantiated and sets up its own events.
     // It doesn't need to be interacted with from the outside.
-    var validator = new Sefaria.util.RefValidator($("#inlineAdd"), $("#inlineAddDialogTitle"), $("#inlineAddSourceOK"), $("#inlineTextPreview"));
-
+    var validator = new Sefaria.util.RefValidator($("#inlineAdd"),
+    	$("#inlineAddDialogTitle"),
+    	$("#inlineAddSourceOK"),
+    	$("#inlineTextPreview"),
+    	{interfaceLang: sjs.interfaceLang});
 
 	// Printing
 	$("#print").click(function(){
-		sjs.track.sheets("Print Sheet");
-		window.print() 
+		Sefaria.track.sheets("Print Sheet");
+		window.print()
 	});
 
 
-	// General Options 
+	// General Options
 	$("#options .optionItem,#formatMenu .optionItem, #assignmentsModal .optionItem").click(function() {
 		if($(this).parent().hasClass('languageToggleOption')||
 			$(this).parent().hasClass('layoutToggleOption') ||
@@ -302,7 +305,7 @@ $(function() {
 			$check.removeClass("hidden");
 		} else {
 			$("#sheet").removeClass($(this).attr("id"));
-			$check.addClass("hidden");			
+			$check.addClass("hidden");
 		}
 		if (sjs.can_edit) {
 			autoSave(); // Don't bother sending options changes from adders
@@ -508,56 +511,20 @@ $(function() {
 		}
 	});
 
-	// Group Options
-	$(".groupOption").unbind("click").click(function() {
-		$(".groupOption .fa-check").addClass("hidden");
-		$(".fa-check", $(this)).removeClass("hidden");
-		var group = $(this).attr("data-group");
-		if (group != "None") {
-			sjs.track.sheets("Share with Group", group);
-			var groupUrl = group.replace(/ /g, "-");
-			$("#groupLogo").attr("src", $(this).attr("data-image")).show()
-				.closest("a").attr("href", "/groups/" + groupUrl );
-			$("#sheetHeader").show();
-			
-			$(".groupSharing").show();
-			$(".groupName").text(group);
-			$(".individualSharing").hide();
-
-
-
-			
-		} else {
-			sjs.track.sheets("Unshare Sheet with Group", group);
-			$("#sheetHeader").hide();
-
-			$(".groupSharing").hide();
-			$(".individualSharing").show();
-
-		}
-		autoSave(); 
-	});
-;
-	
-
-	
-	
 	// Divine Names substitution Options
 	$(".divineNamesOption").unbind("click").click(function() {
 		$(".divineNamesOption .fa-check").addClass("hidden");
 		$(".fa-check", $(this)).removeClass("hidden");
 
 		if (sjs.current.options.divineNames !== this.id) {
-			sjs.current.options.divineNames = this.id;			
+			sjs.current.options.divineNames = this.id;
 			substituteAllExistingDivineNames();
-			autoSave();			
+			autoSave();
 		}
 
 	});
 
-
 	// Reset Text
-
 	$("#resetText").click(function() {
 			options = {
 			message: "Reset text of Hebrew, English or both?<br><small>Any edits you have made to this source will be lost.</small>",
@@ -567,12 +534,11 @@ $(function() {
 		var resetSource = function(option) {
 			var loadClosure = function(data) {
 				loadSource(data, $target, option);
-        		sjs.track.sheets("Reset Source", data.ref);
+        		Sefaria.track.sheets("Reset Source", data.ref);
 			};
 			var getStr = "/api/texts/" + normRef($target.attr("data-ref")) + "?commentary=0&context=0&pad=0";
 			$.getJSON(getStr, loadClosure);
 			sjs.openRequests += 1;
-
 		};
 		sjs.alert.options(options, resetSource);
 
@@ -581,14 +547,14 @@ $(function() {
 	$("#removeNikkudot").click(function() {
 		var $target = $(".activeSource").find(".text").find(".he");
 		$target.html(stripNikkud($target.html()));
-		sjs.track.sheets("Remove Nikkudot");
+		Sefaria.track.sheets("Remove Nikkudot");
 		autoSave();
 	});
 
 	$("#splitSourceToSegment").click(function() {
 		var $target = $(".activeSource").find(".text");
 		$($target.find(".segment")).replaceWith(function() { return '<p>'+$(this).html()+'</p>'; });
-		sjs.track.sheets("Auto Split Segments");
+		Sefaria.track.sheets("Auto Split Segments");
 	});
 
 	$("#addSourceTitle").click(function() {
@@ -604,7 +570,7 @@ $(function() {
 			.closest(".sheetItem")
 			.addClass("hasCustom");
 
-		sjs.track.sheets("Edit Source Title", ref);
+		Sefaria.track.sheets("Edit Source Title", ref);
 	});
 
 
@@ -657,7 +623,7 @@ $(function() {
 			{name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript']},
 			{name: "justify", items: ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock']},
 			{name: 'paragraph', items: ['NumberedList', 'BulletedList']},
-			{name: 'styles', items: ['Font', 'FontSize']},
+			// {name: 'styles', items: ['Font', 'FontSize']},
 			{name: 'colors', items: ['TextColor', 'BGColor']},
 			{name: 'links', items: ['Link', 'Unlink']},
 			{name: 'insert', items: ['Image', 'Table', 'HorizontalRule']},
@@ -672,27 +638,27 @@ $(function() {
 
 			var modified = editor.checkDirty();
 			var text = $el.text();
-			
+
 			// always check when text is empty, to be sure we aren't stuck with empty fields
 			if (!text.length) { modified = true; }
 			// always check custom title, so we don't get stuck with init value of "Source Title"
-			if ($el.hasClass("customTitle")) { modified = true; } 
-			
+			if ($el.hasClass("customTitle")) { modified = true; }
+
 			if (modified) {
-				
+
 				// Special cases for fields left empty
 				if (!text.length) {
 					// Title
 					if ($el.prop("id") === "title") {
 						$el.text(_("Untitled Source Sheet"));
-					
+
 					// Comment
 					} else if ($el.hasClass("comment")) {
 						if ($el.find("img").length == 0) {
 							// Don't remove a comment that just has an image
 							$el.parent().remove();
 						}
-					
+
 					// Outside (monolingual)
 					} else if ($el.hasClass("outside")) {
 						$el.parent().remove();
@@ -717,7 +683,7 @@ $(function() {
 				if ($el.hasClass("he") || $el.hasClass("outside")) {
 					if (sjs.current.options.divineNames !== "noSub") {
 						substituteDivineNamesInNode($el[0]);
-					}					
+					}
 				}
 				// Mark author as customized
 				if ($el.attr("id") === "author") {
@@ -776,7 +742,7 @@ $(function() {
 				$(this).on('key', function(e) {
 					if (e.data.keyCode == 13) {
 						sjs.removeCKEditor(e);
-						e.cancel();						
+						e.cancel();
 					}
 
 				});
@@ -798,7 +764,7 @@ $(function() {
 				e.stopPropagation();
 			 });
 
-		// Destroy editor on outside clicks 
+		// Destroy editor on outside clicks
 		// Without this, CKEeditor was not consistently closing itself
 		$("html").on("mousedown", function(e) {
 			if ($(e.target).closest(".cke_editable").length || $(e.target).closest(".cke").length || $(e.target).closest(".cke_dialog").length || $(e.target).closest(".cke_dialog_background_cover").length) {
@@ -875,7 +841,7 @@ $(function() {
 	$("#highlightToggle").click(toggleHighlighter);
 
 	// ------- Sheet Tags --------------
-	sjs.sheetTagger.init(sjs.current.id, sjs.current.tags);
+	sjs.sheetTagger.init();
 	$("#editTags").click(showShareModal);
 
 
@@ -891,25 +857,25 @@ $(function() {
 	$("#likeButton").click(function(e) {
 		e.preventDefault();
 		if (!sjs._uid) { return sjs.loginPrompt(); }
-		
+
 		var likeCount = parseInt($("#likeCount").text());
 		if ($(this).hasClass("liked")) {
 			$(this).removeClass("liked").text(_("Like"));
 			likeCount -= 1;
 			$("#likeCount").text(likeCount);
 			$.post("/api/sheets/" + sjs.current.id + "/unlike");
-    		sjs.track.sheets("Unlike", sjs.current.id);
+    		Sefaria.track.sheets("Unlike", sjs.current.id);
 		} else {
 			$(this).addClass("liked").text(_("Unlike"));
 			$.post("/api/sheets/" + sjs.current.id + "/like");
 			likeCount += 1;
 			$("#likeCount").text(likeCount);
-    		sjs.track.sheets("Like", sjs.current.id);
+    		Sefaria.track.sheets("Like", sjs.current.id);
 		}
 	});
 	$(".likes").click(function(e) {
 		$.getJSON("/api/sheets/" + sjs.current.id + "/likers", function(data) {
-			if (data.likers.length == 0) { 
+			if (data.likers.length == 0) {
 				var title = _("No one has liked this sheet yet. Will you be the first?");
 			} else if (data.likers.length == 1) {
 				var title = _("1 Person Likes This Sheet");
@@ -952,7 +918,7 @@ $(function() {
 
 
 	// ----------- Sorting ---------------
-		
+
 	if (sjs.can_edit || sjs.can_add) {
 
 		sjs.sortStart = function(e, ui) {
@@ -1248,7 +1214,7 @@ $(function() {
       }
     });
 
-    $("#addmediaDiv").on("click", ".button", function(e) {
+    $("#addmediaDiv").on("click", ".button:first", function(e) {
       var $target = $("#addInterface").prev(".sheetItem");
       var source = {media: "", isNew: true};
       if (sjs.can_add) {
@@ -1474,9 +1440,9 @@ $(function() {
   }
 
 	$("#sheet").on( "mouseenter", ".sheetItem", function(e) {
-	
+
 	if ($(".cke_editable").length) { return; }
-		
+
 		var isOwner = sjs.is_owner || $(this).attr("data-added-by") == String(sjs._uid);
 		var controlsHtml = "";
 		if (isOwner||sjs.can_edit) {
@@ -1580,7 +1546,7 @@ $(function() {
 				autoSave();
 				setSourceNumbers();
 			}
-			sjs.track.sheets("Remove Source");
+			Sefaria.track.sheets("Remove Source");
 
 		 });
 
@@ -1620,11 +1586,11 @@ $(function() {
 			.addClass("hasCustom");
 
 		e.stopPropagation();
-		sjs.track.sheets("Edit Source Title", ref);
+		Sefaria.track.sheets("Edit Source Title", ref);
 	});
 
 
-	// Reset Source Text 
+	// Reset Source Text
 	$(".resetSource").on("click", function() {
 		var options = {
 			message: _("Reset text of Hebrew, English or both?")+"<br><small>"+_("Any edits you have made to this source will be lost")+".</small>",
@@ -1632,12 +1598,12 @@ $(function() {
 		};
 		var $target = $(this).closest(".source");
 		var resetSource = function(option) {
-			var loadClosure = function(data) { 
+			var loadClosure = function(data) {
 				loadSource(data, $target, option);
-        		sjs.track.sheets("Reset Source", data.ref);
+        		Sefaria.track.sheets("Reset Source", data.ref);
 			};
 			var getStr = "/api/texts/" + normRef($target.attr("data-ref")) + "?commentary=0&context=0&pad=0";
-			$.getJSON(getStr, loadClosure);	
+			$.getJSON(getStr, loadClosure);
 			sjs.openRequests += 1;
 		};
 
@@ -1659,7 +1625,7 @@ $(function() {
 					};
 					buildSource($("#sources"), source);
 				}
-        		sjs.track.sheets("Add Parasha", parasha);
+        		Sefaria.track.sheets("Add Parasha", parasha);
 			}
 		});
 
@@ -1687,24 +1653,16 @@ $(function() {
 		$(".s2Modal, #overlay").hide();
 	});
 
-
 	$("#shareWithOthers .ok").click(function(){
 		$("#shareWithOthers, #overlay").hide();
 		$("#sheetSummary").text($("#sheetSummaryInput").val());
 
-		var curTagsHTML = "";
-    for (var i = 0; i < sjs.sheetTagger.tags().length; i++) {
-    	curTagsHTML = curTagsHTML + '<a class="button" role="button" href="/sheets/tags/'+sjs.sheetTagger.tags()[i]+'">'+sjs.sheetTagger.tags()[i]+'</a>';
-    }
-		$("#sheetTags").html(curTagsHTML);
-
     //save whole sheet if possible, otherwise, just save sheet tags:
     if (sjs.can_save) {
 			autoSave();
-		}
-    else {
-    	var tags = JSON.stringify(sjs.sheetTagger.tags());
-    	$.post("/api/sheets/" + sjs.current.id + "/tags", {"tags": tags});
+	} else {
+    	var topics = JSON.stringify(sjs.sheetTagger.topics());
+    	$.post("/api/sheets/" + sjs.current.id + "/topics", {"topics": topics});
     }
 	});
 
@@ -1714,19 +1672,14 @@ $(function() {
 			$(this).height(heightToSwitch);
 	}).find("#sheetSummaryInput").change();
 
-	$("#tags").on("focus", "input", function() {
-		$("#tags .addTagMsg").hide();
-	});
-
-
 	$("#sourceSheetGroupSelect").change(function() {
 		if ($(this).val()!="None") {
 			var $el = $("#sourceSheetGroupSelect option:selected");
 			var groupUrl = $(this).val().replace(/ /g, "-");
-			$("#groupLogo").attr("src", $el.attr("data-image")).show()
+			var groupLogo = $el.attr("data-image");
+			$("#groupLogo").attr("src", groupLogo)
 				.closest("a").attr("href", "/groups/" + groupUrl);
-			$("#sheetHeader").show();
-			$(".groupName").text($(this).val());
+			if (groupLogo) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
 			if (parseInt($el.attr("data-can-publish"))) {
 				$("#sourceSheetsAccessOptions").show();
 			} else {
@@ -1735,19 +1688,10 @@ $(function() {
 		}
 		else {
 			$("#sheetHeader").hide();
-			$(".groupName").text("your group");
 			$("#sourceSheetsAccessOptions").show();
 		}
 	});
 
-
-
-	$("#suggestedTags").on('click', '.tagButton', function() {
-		$("#tags").tagit("createTag",$(this).text());
-		$("#tags .addTagMsg").hide()
-		$(this).hide();
-	});
-	
 
 	$("#highlightMenu .optionsMenu").on('click', '.resetHighlighter', function() {
 		var curHighlighter = $(".activeSource").find(".highlighter");
@@ -1934,7 +1878,7 @@ $(function() {
 
 
 	$("#overrideLayoutModal .ok").click(function(){
-		
+
 		//check to see if current source layout matches sheet layout -- if so, remove classes & let the parent be in charge
 		if (
 		$("#sheetLayoutToggle").find(".active").attr("id") == $("#sheetLayoutToggleSource").find(".active").attr("id").replace("Source","")
@@ -1944,16 +1888,16 @@ $(function() {
 			var $target = $("#overrideLayoutModal").data("target");
 			$target.removeClass("bilingual english hebrew sideBySide heLeft heRight stacked");
 		}
-		
+
 		$("#overrideLayoutModal, #overlay").hide();
 		autoSave();
 	});
- 
- 
- 
+
+
+
 
 	// Change Source Layout via modal
-	
+
 	$("#sideBySideSource, #stackedSource").click(function(){
 		var $target = $("#overrideLayoutModal").data("target");
 		$("#sheetLayoutToggleSource .toggleOption").removeClass("active");
@@ -1967,7 +1911,7 @@ $(function() {
 		} else {
 			$("#biLayoutToggleSource").removeClass("disabled");
 		}
-		sjs.track.sheets("Change Source Layout Button");
+		Sefaria.track.sheets("Change Source Layout Button");
 	});
 
 
@@ -1976,7 +1920,7 @@ $(function() {
 		var $target = $("#overrideLayoutModal").data("target");
 		$target.removeClass("english bilingual hebrew")
 			.addClass($(this).attr("id").replace("Source",""));
-		$("#languageToggleSource .toggleOption").removeClass("active");			
+		$("#languageToggleSource .toggleOption").removeClass("active");
 		$(this).addClass("active");
 		if ($(this).attr("id") != "bilingualSource") {
 			$("#stackedSource").click();
@@ -1988,21 +1932,21 @@ $(function() {
 				$("#biLayoutToggleSource").removeClass("disabled");
 			}
 		}
-		sjs.track.sheets("Change Source Language Button");
+		Sefaria.track.sheets("Change Source Language Button");
 	});
-	
+
 	// Change Language Layout via modal
 		$("#hebLeftSource, #hebRightSource").click(function(){
 		var $target = $("#overrideLayoutModal").data("target");
-		$("#biLayoutToggleSource .toggleOption").removeClass("active");			
+		$("#biLayoutToggleSource .toggleOption").removeClass("active");
 		$(this).addClass("active");
 		$target.removeClass("heLeft heRight")
 			.addClass($(this).attr("id").replace("Source",""));
-		sjs.track.sheets("Change Source Language Layout Button");
+		Sefaria.track.sheets("Change Source Language Layout Button");
 	});
 
-	
-	
+
+
 
 	// Remove all custom source language/layout overrides:
 	$("#resetToDefaults").on("click", function() {
@@ -2010,12 +1954,12 @@ $(function() {
 		$target.removeClass("bilingual english hebrew sideBySide heLeft heRight stacked");
 		$("#overrideLayoutModal, #overlay").hide();
 		autoSave();
-		sjs.track.sheets("Reset Source Layout to Default");
+		Sefaria.track.sheets("Reset Source Layout to Default");
 	});
 
 
 
-	// Add All Connections 
+	// Add All Connections
     function SortBySourceRef(x,y) {
 		  if (x.collectiveTitle['en'] < y.collectiveTitle['en']) return -1;
 		  if (x.collectiveTitle['en'] > y.collectiveTitle['en']) return 1;
@@ -2111,13 +2055,13 @@ $(function() {
 			sjs.current.promptedToPublish = Date();
 			$("#sourceSheetShareSelect").val('public');
 			autoSave();
-			sjs.track.sheets("Publish Prompt Accept");
+			Sefaria.track.sheets("Publish Prompt Accept");
 		});
 		$("#publishPromptModal .later").click(function(){
 			$("#publishPromptModal #prompt").hide();
 			$("#publishPromptModal #notPublished").show();
 			sjs.current.promptedToPublish = Date();
-			sjs.track.sheets("Publish Prompt Decline");
+			Sefaria.track.sheets("Publish Prompt Decline");
 
 		});
 		$("#publishPromptModal .ok").click(function(){
@@ -2199,31 +2143,111 @@ if( navigator.userAgent.match(/iPhone|iPad|iPod/i) ) {
 
 
 sjs.sheetTagger = {
-	init: function(id, tags, callback) {
-		this.id       = id;
-		this.initTags = tags;
-		this.callback = callback;
-
-
-		// Init with tagit and with its tags
+	init: function() {
 		$("#tags").tagit({ allowSpaces: true });
-		this.setTags(tags);
-		if (tags && tags.length>0) {
-			$("#tags .addTagMsg").hide();
-		}
-
+		$("#suggestedTags").on('click', '.tagButton', function() {
+			$("#tags").tagit("createTag",$(this).text());
+			$(this).hide();
+		});
+		const dropdownAnchorSide = sjs.interfaceLang == "he" ? "right" : "left";
+		$("#addTag")
+		.keydown(function(e) {
+			if (e.shiftKey && (e.keyCode == 50 || e.keyCode == 51)) {
+				// Don't allow # or @ in tags
+				return false;
+			}
+			if (e.keyCode == 13 || e.key == ",") {
+				// Let enter or , trigger enter
+				sjs.sheetTagger.addTagFromInput($("#addTag").val());
+				return false;
+			}
+		})
+		.autocomplete({
+			source: function(request, response) {
+			Sefaria.getName(request.term, false, 0)
+				.then(function(d) {
+					var topics = [];
+					d.completion_objects.map(function(obj) {
+						if (obj.type == "Topic") {
+							topics.push(obj.title);
+							if (!(obj.title in sjs.sheetTagger.tagSlugs)) {
+								// Cache slug / title pair, but don't overwrite so more popular slug is kept in case of collision
+								sjs.sheetTagger.tagSlugs[obj.title] = obj.key;
+							}
+						}
+					});
+					return topics;
+				})
+				.then(response);
+			},
+			position: {my: dropdownAnchorSide + " top", at: dropdownAnchorSide + " bottom"},
+			select: function(event, ui) {
+				sjs.sheetTagger.addTagFromInput(ui.item.value);
+			},
+			minLength: 3
+		});
 	},
 	tags: function() {
 		return sjs.tagitTags("#tags");
 	},
-	setTags: function(tags) {
+	topics: function() {
+		return sjs.sheetTagger.tags().map(function(tag){
+			return {
+				slug: sjs.sheetTagger.tagSlugs[tag],
+				asTyped: tag
+			};
+		})
+	},
+	setTags: function(topics) {
 		$("#tags").tagit("removeAll");
-		if (tags && tags.length) {
-			for (var i=0; i < tags.length; i++) {
-				$("#tags").tagit("createTag", tags[i]);
+		if (topics && topics.length) {
+			for (var i=0; i < topics.length; i++) {
+				sjs.sheetTagger.tagSlugs[topics[i].asTyped] = topics[i].slug;
+				$("#tags").tagit("createTag", topics[i].asTyped);
 			}
 		}
+		var html = "";
+		for (var i = 0; i < topics.length; i++) {
+			html = html + '<a class="button" role="button" href="/topics/'+topics[i].slug+'">'+topics[i].asTyped+'</a>';
+	    }
+		$("#sheetTags").html(html);
 	},
+	addTagFromInput: function(tag) {
+		$("#tags").tagit("createTag", tag);
+		$("#addTag").val("").autocomplete("close");
+	},
+	suggestTags: function() {
+		var suggestedTagsLookup = [];
+		var sources = readSources($("#sources"));
+		for (var i = 0; i < sources.length; i++) {
+			if (sources[i].ref) {
+				suggestedTagsLookup.push(sources[i].ref);
+			}
+		}
+
+		if (suggestedTagsLookup.length) {
+			$.getJSON("/api/recommend/topics/" + suggestedTagsLookup.join("+"), function(data) {
+				var suggestedTags = [];
+				$("#suggestedTags").html('');
+				for (var i = 0; i < data.topics.length; i++) {
+					Object.keys(data.topics[i].titles).map(function(lang) {
+						sjs.sheetTagger.tagSlugs[data.topics[i]["titles"][lang]] = data.topics[i].slug;
+					});
+					if (data.topics[i]["count"] > 1 ) { // only suggest tag if it has more than one topic link
+						suggestedTags.push(data.topics[i]["titles"][sjs.interfaceLang]);
+					}
+				}
+				suggestedTags = suggestedTags.filter(function(tag) { return sjs.sheetTagger.tags().indexOf(tag) == -1});
+				suggestedTags = suggestedTags.slice(0,3);
+				var placeholderText = sjs.interfaceLang == "he" ? "הוספת תיוגים... כמו " : "Add Tags... like ";
+				if (suggestedTags.length) {
+					placeholderText += '"' + suggestedTags.join('", "') + '".';
+				}
+				$("#addTag").attr("placeholder", placeholderText);
+			});
+		}
+	},
+	tagSlugs: {} /* cache mapping typed tags to their slugs */
 };
 
 
@@ -2285,8 +2309,19 @@ function addSource(q, source, appendOrInsert, $target) {
 
 	var refLink = badRef == true ? "#" : "/"+makeRef(q).replace(/'/g, "&apos;");
 
+	var additionalRefData = ""
 
-	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'>"
+	if (source && ("options" in source) && ("sourcePrefix" in source["options"]) && (source["options"]["sourcePrefix"] != "")) {
+		additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
+	}
+	if ((source && ("options" in source) && "PrependRefWithEn" in source["options"]) && (source["options"]["PrependRefWithEn"] != "")) {
+		additionalRefData = additionalRefData + " data-prependrefwithen='"+source["options"]["PrependRefWithEn"]+"'";
+	}
+	if ((source && ("options" in source) && "PrependRefWithHe" in source["options"]) && (source["options"]["PrependRefWithHe"] != "")) {
+		additionalRefData = additionalRefData + " data-prependrefwithhe='"+source["options"]["PrependRefWithHe"]+"'";
+	}
+
+	var newsource = "<li " + attributionData + "data-ref='" + enRef.replace(/'/g, "&apos;") + "'" + " data-heRef='" + heRef.replace(/'/g, "&apos;") + "'" + " data-node='" + node + "'"+additionalRefData+">"
 		+"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>"
 		+"<div class='customTitle'></div>"
 		+"<div class='he'>" +
@@ -2348,7 +2383,7 @@ function placed_segment_mapper(lang, segmented, includeNumbers, s) {
 }
 
 function loadSource(data, $target, optionStr) {
-	
+
 	sjs.openRequests -= 1;
 
 	if (data.error) {
@@ -2357,8 +2392,8 @@ function loadSource(data, $target, optionStr) {
 		return;
 	}
 
-	$target.attr("data-ref", data.ref);	
-	$target.attr("data-heRef", data.heRef);	
+	$target.attr("data-ref", data.ref);
+	$target.attr("data-heRef", data.heRef);
 	var $enTitle = $target.find(".en .title a").eq(0);
 	var $heTitle = $target.find(".he .title a").eq(0);
 	$enTitle.html(humanRef(data.ref).replace(/([0-9][b|a]| ב| א):.+/,"$1") ).attr("href", "/" + normRef(data.ref));
@@ -2387,7 +2422,7 @@ function loadSource(data, $target, optionStr) {
 	}
 	if (optionStr !== "English") {
 		heStr = substituteDivineNames(heStr);
-		$target.find(".text .he").first().html(heStr);		
+		$target.find(".text .he").first().html(heStr);
 	}
 
 	if (sjs.openRequests == 0) {
@@ -2411,7 +2446,7 @@ function setSourceNumbers() {
 
 function readSheet() {
 	// Create a JS Object representing the sheet as it stands in the DOM
-	// One day I will get my truth out of the DOM. 
+	// One day I will get my truth out of the DOM.
 	var sheet = {};
 	if (sjs.current.id) {
 		sheet.id = sjs.current.id;
@@ -2424,13 +2459,8 @@ function readSheet() {
 	sheet.options  = {};
 	sheet.status   = "unlisted";
 	sheet.nextNode = sjs.current.nextNode;
-	sheet.tags     = sjs.sheetTagger.tags();
+	sheet.topics   = sjs.sheetTagger.topics();
 	sheet.summary  = $("#sheetSummaryInput").val();
-
-	sheet.includedRefs = [];
-	$('.sheetItem.source').map(function(){
-	  sheet.includedRefs.push($(this).attr('data-ref'));
-	});
 
 	if ($("#author").hasClass("custom")) {
 		sheet.attribution = $("#author").html();
@@ -2460,7 +2490,7 @@ function readSheet() {
 		sheet["status"] = $("#sheetPublicToggle").is(':checked') ? "public" : "unlisted";
 
 		if (sjs.current.status == "unlisted" && sheet["status"] == "public" ) {
-				sjs.track.sheets("Sheet Published");
+				Sefaria.track.sheets("Sheet Published");
 		}
 
 		switch ($("#sourceSheetShareSelect").val()) {
@@ -2474,7 +2504,7 @@ function readSheet() {
 				sheet.options.collaboration = ($("#sourceSheetGroupSelect").val() && $("#sourceSheetGroupSelect").val() !== "None") || (sjs.current.group && sjs.current.group !== "" && !sjs.is_owner) ? "group-can-edit" : "anyone-can-edit";
 				break;
 		}
-		
+
 		if ($(".sheetHighlighterTags").first().children()) {
 			sheet.highlighterTags = [];
 			$(".sheetHighlighterTags").first().children().each(function( i ) {
@@ -2517,6 +2547,7 @@ function readSources($target) {
 	// Used recursively to read sub-sources
 	var sources = [];
 	$target.children().each(function() {
+		if ($(this).hasClass("addInterface")) { return; }
 		var source = readSource($(this));
 		sources.push(source);
 	});
@@ -2530,7 +2561,7 @@ function readSource($target) {
 	if ($target.hasClass("source")) {
 		source["ref"] = $target.attr("data-ref");
 		source["heRef"] = $target.attr("data-heRef");
-		source["text"] = {en: $target.find(".text").find(".en").html(), 
+		source["text"] = {en: $target.find(".text").find(".en").html(),
 						  he: $target.find(".text").find(".he").html()};
 
 		if ($target.find(".highlighter").find(".en").html() != "" || $target.find(".highlighter").find(".he").html() != "") {
@@ -2562,9 +2593,9 @@ function readSource($target) {
 		} else {
 			var sourceLayout = ""
 		}
-		
-		
-		//Set source language layout		
+
+
+		//Set source language layout
 		if ($target.hasClass("heLeft")) {
 			var sourceLangLayout = "heLeft"
 		} else if ($target.hasClass("heRight")) {
@@ -2573,7 +2604,7 @@ function readSource($target) {
 			var sourceLangLayout = ""
 		}
 
-		
+
 		//Set source language
 		if ($target.hasClass("bilingual")) {
 			var sourceLanguage = "bilingual"
@@ -2600,13 +2631,16 @@ function readSource($target) {
 							 sourceLanguage: sourceLanguage,
 							 sourceLayout: sourceLayout,
 							 sourceLangLayout: sourceLangLayout,
-							 indented: sourceIndentLevel
+							 indented: sourceIndentLevel,
+							 PrependRefWithEn: $target.attr("data-prependrefwithen") ? $target.attr("data-prependrefwithen") : "",
+							 PrependRefWithHe: $target.attr("data-prependrefwithhe") ? $target.attr("data-prependrefwithhe") : "",
+							 sourcePrefix: $target.attr("data-sourceprefix") ? $target.attr("data-sourceprefix") : "",
 		};
-		
-		
+
+
 		var title = $(".customTitle", $target).eq(0).html();
-		if (title) { 
-			source["title"] = title; 
+		if (title) {
+			source["title"] = title;
 		}
 	} else if ($target.hasClass("commentWrapper")) {
 		source["comment"] = $target.find(".comment").html();
@@ -2623,7 +2657,8 @@ function readSource($target) {
 		}
 
 		source["options"] = {
-							 indented: sourceIndentLevel
+							 indented: sourceIndentLevel,
+							 sourcePrefix: $target.attr("data-sourceprefix") ? $target.attr("data-sourceprefix") : "",
 		};
 	} else if ($target.hasClass("outsideBiWrapper")) {
 		source["outsideBiText"] = {
@@ -2642,7 +2677,8 @@ function readSource($target) {
 		}
 
 		source["options"] = {
-							 indented: sourceIndentLevel
+							 indented: sourceIndentLevel,
+							 sourcePrefix: $target.attr("data-sourceprefix") ? $target.attr("data-sourceprefix") : "",
 		};
 
 	} else if ($target.hasClass("outsideWrapper")) {
@@ -2660,11 +2696,12 @@ function readSource($target) {
 		}
 
 		source["options"] = {
-							 indented: sourceIndentLevel
+							 indented: sourceIndentLevel,
+							 sourcePrefix: $target.attr("data-sourceprefix") ? $target.attr("data-sourceprefix") : "",
 		};
 
 	}
-	
+
 	 else if ($target.hasClass("mediaWrapper")) {
 		source["media"] = $target.find(".media iframe, .media img, .media audio").attr("src");
 
@@ -2680,11 +2717,18 @@ function readSource($target) {
 		}
 
 		source["options"] = {
-            indented: sourceIndentLevel
+            indented: sourceIndentLevel,
+        	sourcePrefix: $target.attr("data-sourceprefix") ? $target.attr("data-sourceprefix") : "",
 		};
 
+		if ($target.find(".mediaCaption").length) {
+			source["caption"] = {
+				"en": $target.find(".mediaCaption .en").html(),
+				"he": $target.find(".mediaCaption .he").html()
+			}
+		}
 	}
-	
+
 
 	// Add attributions info if present
 	var addedBy = $target.attr("data-added-by");
@@ -2697,21 +2741,21 @@ function readSource($target) {
 
 
 function validateSheet(sheet) {
-	// Srsly!	
+	// Srsly!
 }
 
 
 function handleSave() {
 	if (!sjs._uid) {
-		sjs.track.sheets("Logged out Save Attempt");
-		return alert("Sorry I can't save what you've got here: you need to be signed in to save."); 
+		Sefaria.track.sheets("Logged out Save Attempt");
+		return alert("Sorry I can't save what you've got here: you need to be signed in to save.");
 	}
 	sjs.loading = false;
 	$("#save").data("mode", "saving").find("#inSave").show().siblings().hide();
 
 	var sheet = readSheet();
 	saveSheet(sheet, true);
-	sjs.track.sheets("Save New Sheet");
+	Sefaria.track.sheets("Save New Sheet");
 }
 
 
@@ -2737,15 +2781,20 @@ function saveSheet(sheet, reload) {
 			}
 			sjs.current = data;
 			sjs.lastEdit = null;    // save was succesful, won't need to replay
+			sjs.sheetTagger.setTags(data.topics);
 			startPollingIfNeeded(); // Start or stop polling if collab/group status has changed
 			promptToPublish();      // If conditions are right, prompt to publish
 			var $lastSaved = $("#lastSaved");
 			$lastSaved.find(".lastSavedConfirmed").show().siblings().hide();
-		} 
+		}
 
-		if ("error" in data) {
+		if (!!data.error) {
 			sjs.alert.flash(data.error);
 			$("#save").data("mode", "editing").find("#doSave").show().siblings().hide();
+			if (data.errorAction === 'loginRedirect') {
+				// redirect to login page
+				window.location.href = "/login?next=/sheets/" + sjs.current.id + "?editor=1";
+			}
 		}
 	})
 }
@@ -2774,9 +2823,9 @@ function buildSheet(data){
 	// Set options with binary value
 	$("#sheet").removeClass("numbered bsd boxed assignable");
 	$("#numbered, #bsd, #boxed, #assignable").find(".fa-check").addClass("hidden");
-	if (data.options.numbered) { $("#numbered").trigger("click"); } 
-	if (data.options.bsd)      { $("#bsd").trigger("click"); } 
-	if (data.options.boxed)    { $("#boxed").trigger("click"); } 
+	if (data.options.numbered) { $("#numbered").trigger("click"); }
+	if (data.options.bsd)      { $("#bsd").trigger("click"); }
+	if (data.options.boxed)    { $("#boxed").trigger("click"); }
 	if (data.options.highlightMode)    { $("#highlightToggle").trigger("click"); }
 	if (data.options.assignable)    { $("#makeSheetAssignableButton").trigger("click"); }
 	else {$("#StopCollectingAssignmentsButton").trigger("click");}
@@ -2808,35 +2857,27 @@ function buildSheet(data){
 
 	// Set Sheet Group
 	if (data.group) {
-		$(".groupOption .fa-check").addClass("hidden");	
-		$(".groupOption[data-group='"+ data.group + "'] .fa-check").removeClass("hidden");
-		$(".groupSharing").show();
-		$(".groupName").text(data.group);
-		$(".individualSharing").hide();
 		$("#sourceSheetGroupSelect").val(data.group);
 		var $el = $("#sourceSheetGroupSelect option:selected");
-		var groupImage = $el.attr("data-image"); 
-
-		$("#groupLogo").attr("src", groupImage).show();
+		var groupImage = $el.attr("data-image");
+		$("#groupLogo").attr("src", groupImage);
+		if (groupImage) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
 		if (parseInt($el.attr("data-can-publish")) || sjs.can_publish) {
 			$("#sourceSheetsAccessOptions").show();
 		} else {
 			$("#sourceSheetsAccessOptions").hide();
 		}
 	} else {
-		$(".groupSharing").hide();
 		$("#sourceSheetsAccessOptions").show();
-		$(".individualSharing").show();
 	}
 
 	if (sjs.is_owner) {
 		$("#sourceSheetGroupOptions").show();
-	} else {		
+	} else {
 		$("#sourceSheetGroupOptions").hide();
 	}
 
-
-	sjs.sheetTagger.init(data.id, data.tags);
+	sjs.sheetTagger.setTags(data.topics);
 
 	buildSources($("#sources"), data.sources);
 	setSourceNumbers();
@@ -2863,7 +2904,7 @@ function buildSheet(data){
 	}
 
 }
-	
+
 
 function buildSources($target, sources) {
 	// Recursive function to build sources into target
@@ -2876,26 +2917,26 @@ function buildSource($target, source, appendOrInsert) {
 	appendOrInsert = typeof appendOrInsert !== 'undefined' ? appendOrInsert : 'append';
 
 	// Build a single source in $target. May call buildSources recursively if sub-sources present.
-		
+
 	if (!("node" in source)) {
 		source.node = sjs.current.nextNode;
 		sjs.current.nextNode++;
 	}
-	
+
 	else if (source.node == null) {
 		source.node = sjs.current.nextNode;
-		sjs.current.nextNode++;	
+		sjs.current.nextNode++;
 	}
-	
+
 	if (("ref" in source) && (source.ref != null)  ) {
 		var q = parseRef(source.ref);
 		addSource(q, source, appendOrInsert, $target);
-		
+
 		if ("options" in source) {
 			$(".sheetItem").last().addClass(source.options.sourceLayout+" "+source.options.sourceLanguage+" "+source.options.sourceLangLayout+" "+source.options.indented)
 		}
 
-		
+
 		if (source.title) {
 			$(".customTitle").last().html(source.title).css('display', 'inline-block');
 			$(".sheetItem").last().addClass("hasCustom");
@@ -2936,7 +2977,12 @@ function buildSource($target, source, appendOrInsert) {
 	} else if ("comment" in source) {
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "commentWrapper");
 
-		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'><span class='commentIcon'><i class='fa fa-comment-o fa'></i></span>" +
+		additionalRefData = "";
+		if (source && ("options" in source) && ("sourcePrefix" in source["options"]) && (source["options"]["sourcePrefix"] != "")) {
+			additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
+		}
+
+		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'"+additionalRefData+"><span class='commentIcon'><i class='fa fa-comment-o fa'></i></span>" +
 			("userLink" in source ? "<div class='addedBy s2AddedBy'>" + source.userLink + "</div>" : "")	+
 			"<div class='comment " + (isHebrew(source.comment) ? "he " : "") + (sjs.loading ? "" : "new") + " '>" + source.comment + "</div>" +
 			appendInlineAddButton() + "</div>";
@@ -2952,12 +2998,16 @@ function buildSource($target, source, appendOrInsert) {
 			$(".sheetItem").last().addClass(source.options.indented);
 		}
 	} else if ("outsideBiText" in source) {
+		additionalRefData = "";
+		if (source && ("options" in source) && ("sourcePrefix" in source["options"]) && (source["options"]["sourcePrefix"] != "")) {
+			additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
+		}
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideBiWrapper");
-		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
-							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
-							"<div class='outsideBi " + (sjs.loading ? "" : "new") + "'><div class='text'>" + 
-								"<div class='he'>" + source.outsideBiText.he + "</div>" + 
-								"<div class='en'>" + source.outsideBiText.en + "</div>" + 
+		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'"+additionalRefData+">"+
+							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +
+							"<div class='outsideBi " + (sjs.loading ? "" : "new") + "'><div class='text'>" +
+								"<div class='he'>" + source.outsideBiText.he + "</div>" +
+								"<div class='en'>" + source.outsideBiText.en + "</div>" +
 								"<div class='clear'></div>" +
 							"</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
@@ -2973,9 +3023,13 @@ function buildSource($target, source, appendOrInsert) {
 			$(".sheetItem").last().addClass(source.options.indented);
 		}
 	} else if ("outsideText" in source) {
+		additionalRefData = "";
+		if (source && ("options" in source) && ("sourcePrefix" in source["options"]) && (source["options"]["sourcePrefix"] != "")) {
+			additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
+		}
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideWrapper");
-		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
-							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
+		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'"+additionalRefData+">"+
+							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +
 							"<div class='outside " + (sjs.loading ? "" : "new ") + (isHebrew(source.outsideText.stripHtml()) ? "he" : "en") + "'>" + source.outsideText + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
 							appendInlineAddButton() +
@@ -2992,31 +3046,45 @@ function buildSource($target, source, appendOrInsert) {
 	}
 	else if ("media" in source) {
 		var mediaLink;
-		
+		var mediaClass = "media";
+
 		if (source.media.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
 			mediaLink = '<img class="addedMedia" src="'+source.media+'" />';
+			mediaClass = "media";
 		}
-		
 		else if (source.media.toLowerCase().indexOf('youtube') > 0) {
 			mediaLink = '<iframe width="560" height="315" src='+source.media+' frameborder="0" allowfullscreen></iframe>'
 		}
-
 		else if (source.media.toLowerCase().indexOf('soundcloud') > 0) {
 			mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="'+source.media+'"></iframe>'
+			mediaClass = "media fullWidth";
 		}
-
 		else if (source.media.match(/\.(mp3)$/i) != null) {
 			mediaLink = '<audio src="'+source.media+'" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';
+			mediaClass = "media fullWidth";
 		}
-		
 		else {
 			mediaLink = '';
 		}
-		
+
+		var additionalRefData = "";
+		if (source && ("options" in source) && ("sourcePrefix" in source["options"])) {
+			additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
+		}
+		var mediaCaption = "";
+		if (source.caption && (source.caption.en || source.caption.he) ) {
+			var cls = source.caption.en && source.caption.he ? "" :
+						source.caption.en ? "enOnly" : "heOnly";
+			var mediaCaption = "<div class='mediaCaption " + cls + "'><div class='mediaCaptionInner'>" +
+								"<div class='en'>" + (source.caption.en || "") + "</div>" +
+								"<div class='he'>" + (source.caption.he || "") + "</div>" +
+							   "</div></div>";
+		}
+
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "mediaWrapper");
-		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
-							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
-							"<div class='media " + (sjs.loading ? "" : "new") + "'>" + mediaLink + "</div>" +
+		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'"+additionalRefData+">"+
+							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +
+							"<div class='" + mediaClass + (sjs.loading ? "" : " new") + "'>" + mediaLink + mediaCaption + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
 							appendInlineAddButton() +
 						  "</li>";
@@ -3031,15 +3099,15 @@ function buildSource($target, source, appendOrInsert) {
 			$(".sheetItem").last().addClass(source.options.indented);
 		}
 	}
-	
+
 	else if ("text" in source) {
 
 		var attributionData = attributionDataString(source.addedBy, source.isNew, "outsideBiWrapper");
-		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+ 
-							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" + 
-							"<div class='outsideBi " + (sjs.loading ? "" : "new") + "'><div class='text'>" + 
-								"<div class='he'>" + source.text.he + "</div>" + 
-								"<div class='en'>" + source.text.en + "</div>" + 
+		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'>"+
+							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +
+							"<div class='outsideBi " + (sjs.loading ? "" : "new") + "'><div class='text'>" +
+								"<div class='he'>" + source.text.he + "</div>" +
+								"<div class='en'>" + source.text.en + "</div>" +
 								"<div class='clear'></div>" +
 							"</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
@@ -3083,19 +3151,19 @@ function attributionDataString(uid, newItem, classStr) {
 	// e.g., 'class="source addedByMe" data-added-by="54"'
 	var addedBy = null;
 	var addedByMe = false;
-	
+
 	if (newItem && sjs.can_add) {
 		addedByMe = true;
 		addedBy = sjs._uid;
 	} else if (!newItem && uid) {
 		addedBy = uid;
-		addedByMe = (uid == sjs._uid && !sjs.can_edit); 
+		addedByMe = (uid == sjs._uid && !sjs.can_edit);
 	}
 
 	var str = "class='" + classStr + " sheetItem" +
-		      (addedByMe ? " addedByMe" : "") + "'" + 
+		      (addedByMe ? " addedByMe" : "") + "'" +
 		      (addedBy ? " data-added-by='" + addedBy + "'" : "");
- 
+
 	return str;
 }
 
@@ -3126,7 +3194,7 @@ sjs.saveLastEdit = function($el) {
 	}
 
 	$el.removeClass("new");
-	
+
 
 };
 
@@ -3136,7 +3204,7 @@ sjs.replayLastEdit = function() {
 	// remotely and needed to be reloaded before applying edits.
 	if (!sjs.lastEdit) { return; }
 
-	var $target = sjs.lastEdit.parent ? 
+	var $target = sjs.lastEdit.parent ?
 					$($(".source[data-node="+sjs.lastEdit.parent+"]")).eq(0) :
 					$("#sources");
 
@@ -3174,9 +3242,9 @@ sjs.replayLastEdit = function() {
 			$(".outside", ".outsideWrapper[data-node='" + sjs.lastEdit.node + "']").eq(0).html(sjs.lastEdit.html);
 			break;
 	}
-	
 
-	
+
+
 	if (source) {
 		if (sjs.can_add) {
 			source.userLink = sjs._userLink;
@@ -3232,7 +3300,7 @@ function stopPolling(){
 	sjs.pollingStopped = true;
 	if (sjs.pollTimer) {
 		clearTimeout(sjs.pollTimer);
-	}	
+	}
 }
 
 
@@ -3246,11 +3314,11 @@ function startPollingIfNeeded() {
 		if (sjs.current.options.collaboration && sjs.current.options.collaboration === "anyone-can-add") {
 			needed = true;
 		}
-		// Poll if sheet is in a group 
+		// Poll if sheet is in a group
 		else if  (sjs.current.options.collaboration && sjs.current.options.collaboration === "anyone-can-edit") {
 			needed = true;
 		}
-	}	
+	}
 	if (needed) {
 		startPolling();
 	} else {
@@ -3261,10 +3329,10 @@ function startPollingIfNeeded() {
 
 function rebuildUpdatedSheet(data) {
 	// When data is returned from the save API indicating an update has occurred
-	// Rebuild the current sheet and 
+	// Rebuild the current sheet and
 	if (data.dateModified < sjs.current.dateModified) {
 		// If the update is older than the timestamp on the current sheet, ignore it
-		sjs.track.event("Sheets", "Error", "Out of sequence update request.");
+		Sefaria.track.event("Sheets", "Error", "Out of sequence update request.");
 		return;
 	}
 
@@ -3331,7 +3399,7 @@ function rebuildUpdatedSheet(data) {
 function copyToSheet(source) {
 	if (!sjs._uid) { return sjs.loginPrompt(); }
 	sjs.copySource = source;
-	
+
 	// Get sheet list if necessary
 	if (!$("#sheetList .sheet").length) {
 		$("#sheetList").html(Sefaria._("Loading..."));
@@ -3351,7 +3419,7 @@ function copyToSheet(source) {
 				$(this).addClass("selected");
 				return false;
 			})
-		})			
+		})
 	}
 	var name = source.ref ? source.ref :
 				(source.comment ? Sefaria._("this comment") : Sefaria._("this source"));
@@ -3359,7 +3427,7 @@ function copyToSheet(source) {
 	$("#addToSheetModal .sourceName").text(name);
 
 	$("#overlay").show();
-	$("#addToSheetModal").show().position({ of: $(window) });	
+	$("#addToSheetModal").show().position({ of: $(window) });
 }
 
 $("#addToSheetModal .cancel").click(function() {
@@ -3394,7 +3462,7 @@ $("#addToSheetModal .ok").click(function(){
 		var title = selected.html();
 		var url = "/api/sheets/" + selected.attr("data-id") + "/add";
 		sjs.flags.saving = true;
-		$.post(url, {source: JSON.stringify(sjs.copySource)}, addToSheetCallback);	
+		$.post(url, {source: JSON.stringify(sjs.copySource)}, addToSheetCallback);
 	}
 
 	function addToSheetCallback(data) {
@@ -3412,11 +3480,11 @@ $("#addToSheetModal .ok").click(function(){
 		if ("error" in data) {
 			sjs.alert.message(data.error)
 		} else {
-			var name = data.ref ? data.ref : 
+			var name = data.ref ? data.ref :
 				(data.comment ? Sefaria._("This comment") : Sefaria._("This source"));
 			//sjs.alert.message(`${name} ${Sefaria._("was added to")} "${title}".<br><br><a target="_blank" href="/sheets/${data.id}">${Sefaria._("View sheet")}</a>`);
 			sjs.alert.message(name + " " + Sefaria._("was added to") + " \"" + title + "\".<br><br><a target=\"_blank\" href=\"/sheets/" + data.id + "\">" + Sefaria._("View sheet") + "</a>");
-			sjs.track.sheets("Source Copied");
+			Sefaria.track.sheets("Source Copied");
 		}
 	}
 
@@ -3451,7 +3519,7 @@ function copySheet() {
 function exportToDrive() {
 	$("#overlay").show();
 	sjs.alert.message('<span class="int-en">Syncing with Google Docs...</span><span class="int-he">מייצא לגוגל דרייב...</span>');
-	sjs.track.sheets("Export to Google Drive");
+	Sefaria.track.sheets("Export to Google Drive");
 
 	$.ajax({
 	  type: "POST",
@@ -3532,34 +3600,7 @@ function showShareModal(){
 	}
 	$("#overlay").show();
 
-	var suggestedTagsLookup = [];
-
-	var sources = readSources($("#sources"));
-
-	for (var i = 0; i < sources.length; i++) {
-		if (sources[i].ref) {
-			suggestedTagsLookup.push(sources[i].ref);
-		}
-	}
-
-	if (suggestedTagsLookup.length) {
-		$.getJSON("/api/recommend/topics/" + suggestedTagsLookup.join("+"), function(data) {
-			var suggestedTags = [];
-			$("#suggestedTags").html('');
-			for (var i = 0; i < data.topics.length; i++) {
-				if (data.topics[i][1] > 1 ){ //only add tag if it's included on more than one sheet. Creates better suggestions.
-					suggestedTags.push(data.topics[i][0]);
-				}
-			}
-
-			for (var i = 0; i < suggestedTags.length; i++) {
-				if ($("#suggestedTags .tagButton").length < 5 && sjs.sheetTagger.tags().indexOf(suggestedTags[i]) == -1) {
-					$("#suggestedTags").append("<span class='tagButton'>"+suggestedTags[i]+"</span>");
-				}
-			}
-		});
-	}
-
+	sjs.sheetTagger.suggestTags();
 }
 
 
@@ -3678,7 +3719,7 @@ function promptToPublish() {
 
 	$("#publishPromptModal").show();
 	$("#overlay").show();
-	sjs.track.sheets("Publish Prompt");
+	Sefaria.track.sheets("Publish Prompt");
 
 
 }
@@ -3734,7 +3775,7 @@ var addmediaUploadImageToImgur = function(imageData) {
       type: "base64"
     },
     success: function(result) {
-			var imageUrl = "https://i.imgur.com/" + result.data.id + ".png";
+	  var imageUrl = "https://i.imgur.com/" + result.data.id + ".png";
       $("#inlineAddMediaInput").val(imageUrl);
       $("#addmediaDiv").find(".button").first().trigger("click");
 			$("#inlineAddMediaInput").val("");

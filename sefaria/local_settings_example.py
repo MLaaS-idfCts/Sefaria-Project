@@ -1,6 +1,7 @@
 # An example of settings needed in a local_settings.py file.
 # copy this file to sefaria/local_settings.py and provide local info to run.
 import os.path
+from datetime import timedelta
 relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
                                os.path.realpath(__file__)), *x)
 
@@ -30,8 +31,17 @@ DATABASES = {
     }
 }"""
 
+# Map domain to an interface language that the domain should be pinned to.
+# Leave as {} to prevent language pinning, in which case one domain can serve either Hebrew or English
+DOMAIN_LANGUAGES = {
+    "http://hebrew.example.org": "hebrew",
+    "http://english.example.org": "english",
+}
+
 
 ################ These are things you can change! ###########################################################################
+#SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
+
 ALLOWED_HOSTS = ["localhost", "127.0.0.1","0.0.0.0"]
 
 ADMINS = (
@@ -64,6 +74,7 @@ CACHES = {
     }
 }"""
 
+SITE_PACKAGE = "sites.sefaria"
 
 
 
@@ -80,11 +91,12 @@ MAINTENANCE_MESSAGE = ""
 GLOBAL_WARNING = False
 GLOBAL_WARNING_MESSAGE = ""
 
-GLOBAL_INTERRUPTING_MESSAGE = None
+# GLOBAL_INTERRUPTING_MESSAGE = None
 """
 GLOBAL_INTERRUPTING_MESSAGE = {
     "name":       "messageName",
     "repetition": 1,
+    "style":      "modal" # "modal" or "banner"
     "condition":  {"returning_only": True}
 }
 """
@@ -113,6 +125,7 @@ SEFARIA_DB = 'sefaria'
 # Leave user and password blank if not using Mongo Auth
 SEFARIA_DB_USER = ''
 SEFARIA_DB_PASSWORD = ''
+APSCHEDULER_NAME = "apscheduler"
 
 # ElasticSearch server
 SEARCH_HOST = "http://localhost:9200"
@@ -130,18 +143,16 @@ SEARCH_INDEX_NAME_MERGED = 'merged'
 USE_NODE = False
 NODE_HOST = "http://localhost:4040"
 NODE_TIMEOUT = 10
-NODE_TIMEOUT_MONITOR = relative_to_abs_path("../log/forever/timeouts")
+# NODE_TIMEOUT_MONITOR = relative_to_abs_path("../log/forever/timeouts")
 
 SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data' # used for Data
 SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting texts
 
-# Map domain to an interface language that the domain should be pinned to.
-# Leave as {} to prevent language pinning, in which case one domain can serve either Hebrew or English
-DOMAIN_LANGUAGES = {
-    "http://hebrew.example.org": "hebrew",
-    "http://english.example.org": "english",
-}
 
+# DafRoulette server
+RTC_SERVER = '' # Root URL/IP of the server
+
+GOOGLE_TAG_MANAGER_CODE = 'you tag manager code here'
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
 GOOGLE_MAPS_API_KEY = None  # currently used for shavuot map
 MIXPANEL_CODE = 'you mixpanel code here'
@@ -189,8 +200,24 @@ GOOGLE_OAUTH2_CLIENT_SECRET = ""
 # This is the field that is actually used
 GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH = ""
 
+GOOGLE_APPLICATION_CREDENTIALS_FILEPATH = ""
+
 GEOIP_DATABASE = 'data/geoip/GeoLiteCity.dat'
 GEOIPV6_DATABASE = 'data/geoip/GeoLiteCityv6.dat'
+
+PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE = None
+
+# Simple JWT
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=90),
+    'ROTATE_REFRESH_TOKENS': True,
+    'SIGNING_KEY': 'a signing key: at least 256 bits',
+}
+
+# Key which identifies the Sefaria app as opposed to a user
+# using our API outside of the app. Mainly for registration
+MOBILE_APP_KEY = "MOBILE_APP_KEY"
 
 """ to use logging, in any module:
 # import the logging library
@@ -294,4 +321,3 @@ LOGGING = {
         },
     }
 }
-

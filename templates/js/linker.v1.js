@@ -18,7 +18,7 @@
     /* Adapted from: https://plainjs.com/javascript/manipulation/unwrap-a-dom-element-35/ */
     function unwrap(el) { var parent = el.parentNode; while (el.firstChild) parent.insertBefore(el.firstChild, el); parent.removeChild(el);}
 
-    var base_url = 'https://www.sefaria.org/';
+    var base_url = '{% if DEBUG %}http://localhost:8000/{% else %}https://www.sefaria.org/{% endif %}';
     var bookTitles = {{ book_titles }};
     var popUpElem;
     var heBox;
@@ -53,6 +53,8 @@
                 'font-size: 16px;'+
                 'text-align: center;' +
                 'text-decoration: underline;' +
+                'margin: 0;' +
+                'padding: 0;' +
             '}';
 
         if (mode == "popup-click") {
@@ -83,7 +85,7 @@
             '<div class = "sefaria-notice" style="font-size: 10px; margin-top: 10px;">';
 
         if (mode == "popup-click") {
-            html += '<div class="en">Text from Sefaria.org.  <a class = "sefaria-popup-ref" href = "">Click here</a> for full context and commentary.</div>' +
+            html += '<div class="en">Text from Sefaria.org.  <a class = "sefaria-popup-ref" target="_blank" href = "">Click here</a> for full context and commentary.</div>' +
             '<div class="he" dir="rtl">תוכן מספריא. ' +
                 ' <a class = "sefaria-popup-ref" href = "">' + 'ליחצו' + '</a> ' + 'לראות הקשר ופרושים' +
             '</div>';
@@ -277,7 +279,7 @@
                     }
                 }
                 if (ns.matches.length == 0) {
-                    console.log("No references found to link to Sefaria.");
+                    // console.log("No references found to link to Sefaria.");
                     return;
                 }
                 atomic.get(base_url + "api/bulktext/" + ns.matches.join("|"))
@@ -292,7 +294,7 @@
                                 return;
                             }
                             var source = ns.sources[e.getAttribute('data-ref')];
-                            e.setAttribute('href', base_url + source.url + "?lang=" + (source.lang == "en"?"he-en":"he"));
+                            e.setAttribute('href', base_url + source.url + "?lang=" + (source.lang == "en"?"he-en":"he") + "&utm_source=sef_linker");
                             if (mode == "popup-hover") {
                                 e.addEventListener('mouseover', function(event) {
                                     showPopup(this, mode);
@@ -309,9 +311,41 @@
                         });
                     })
                     .error(function (data, xhr) { });  // api/bulktext
+
+                ns._trackPage();
             })
             .error(function (data, xhr) { });  // api/regexs
     };
+
+    ns._trackPage = function() {
+        var robots = document.head.querySelector("meta[name~=robots]");
+        if (robots && robots.content.includes("noindex")) { return; }
+
+        var canonical = document.head.querySelector("link[rel~=canonical]");
+        var url = canonical ? canonical.href : window.location.href;
+        var meta = document.head.querySelector("meta[name~=description]")
+                   || document.head.querySelector("meta[property~=description]")
+                   || document.head.querySelector("meta[name~='og:description']")
+                   || document.head.querySelector("meta[property~='og:description']")
+                   || document.head.querySelector("meta[name~='twitter:description']")
+                   || document.head.querySelector("meta[property~='twitter:description']");
+        var description = meta ? meta.content : "";
+        var data = {
+            "url": url,
+            "title": document.title,
+            "description": description,
+            "refs": ns.matches,
+        };
+        // console.log("TRACK");
+        // console.log(data);
+        var json = JSON.stringify(data);
+        var postData = encodeURIComponent("json") + '=' + encodeURIComponent(json);
+        atomic.post(base_url + "api/linker-track", postData)
+            .success(function (data, xhr) {
+                //console.log(data);
+            });
+    }
+
 
 }(this.sefaria = this.sefaria || {}));
 

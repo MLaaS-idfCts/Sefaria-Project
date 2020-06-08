@@ -3,9 +3,9 @@ import uuid
 
 from django.core.exceptions import MiddlewareNotUsed
 
-from sefaria.local_settings import MULTISERVER_ENABLED, MULTISERVER_REDIS_EVENT_CHANNEL, MULTISERVER_REDIS_CONFIRM_CHANNEL
+from sefaria.settings import MULTISERVER_ENABLED, MULTISERVER_REDIS_EVENT_CHANNEL, MULTISERVER_REDIS_CONFIRM_CHANNEL
 
-from messaging import MessagingNode
+from .messaging import MessagingNode
 
 import logging
 logger = logging.getLogger("multiserver")
@@ -35,7 +35,7 @@ class ServerCoordinator(MessagingNode):
             "obj": obj,
             "method": method,
             "args": args or [],
-            "id": uuid.uuid4().get_hex()
+            "id": uuid.uuid4().hex
         }
         msg_data = json.dumps(payload)
 
@@ -76,7 +76,7 @@ class ServerCoordinator(MessagingNode):
             "obj": obj,
             "method": method,
             "args": args or [],
-            "id": uuid.uuid4().get_hex()
+            "id": uuid.uuid4().hex
           }
           'pattern': None,
           'type': 'message',
@@ -90,7 +90,6 @@ class ServerCoordinator(MessagingNode):
         from sefaria.model import library
         import sefaria.system.cache as scache
         import sefaria.model.text as text
-        import sefaria.model.topic as topic
 
         import socket
         import os
@@ -114,14 +113,14 @@ class ServerCoordinator(MessagingNode):
             }
 
         except Exception as e:
-            logger.error("Processing failed for {} on {}:{} - {}".format(self.event_description(data), host, pid, e.message))
+            logger.error("Processing failed for {} on {}:{} - {}".format(self.event_description(data), host, pid, str(e)))
 
             confirm_msg = {
                 'event_id': data["id"],
                 'host': host,
                 'pid': pid,
                 'status': 'error',
-                'error': e.message
+                'error': str(e)
             }
 
         # Send confirmation
@@ -131,7 +130,7 @@ class ServerCoordinator(MessagingNode):
 
 
 class MultiServerEventListenerMiddleware(object):
-    delay = 0  # Will check for library updates every X requests.  0 means every request.
+    delay = 20  # Will check for library updates every X requests.  0 means every request.
 
     def __init__(self, get_response):
         self.get_response = get_response

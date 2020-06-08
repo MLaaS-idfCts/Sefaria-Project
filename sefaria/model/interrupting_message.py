@@ -6,14 +6,16 @@ class InterruptingMessage(object):
     if attrs is None:
       attrs = {}
     self.name        = attrs.get("name", None)
+    self.style       = attrs.get("style", "modal")
     self.repetition  = attrs.get("repetition", 0)
     self.condition   = attrs.get("condition", {})
     self.request     = request
     self.cookie_name = "%s_%d" % (self.name, self.repetition)
+    self.should_show = self.check_condition()
 
   def check_condition(self):
     """Returns true if this interrupting message should be shown given its conditions"""
-    
+
     # Always show to debug
     if self.condition.get("debug", False):
       return True
@@ -41,6 +43,16 @@ class InterruptingMessage(object):
       if self.request.LANGUAGE_CODE != "en":
         return False
 
+    # Filter non Hebrew interface traffic
+    if self.condition.get("hebrew_only", False):
+      if self.request.LANGUAGE_CODE != 'he':
+        return False
+
+    # Filter logged out users
+    if self.condition.get("logged_in_only", False):
+      if not self.request.user.is_authenticated:
+        return False
+
     return True
 
   def json(self):
@@ -48,9 +60,10 @@ class InterruptingMessage(object):
     Returns JSON for this interrupting message which may be just `null` if the
     message should not be shown.
     """
-    if self.check_condition():
+    if self.should_show:
       return json.dumps({
           "name": self.name,
+          "style": self.style,
           "html": render_to_string("messages/%s.html" % self.name),
           "repetition": self.repetition
         })

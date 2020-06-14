@@ -1,3 +1,6 @@
+import time
+start = time.time()
+
 import django
 django.setup()
 
@@ -35,3 +38,5 @@ ranked_talmudic_topics = sorted(talmudic_topic_hits.items(), key=lambda x: x[1],
 
 for topic in ranked_talmudic_topics[:10]:
     print(topic)
+
+print('It took', time.time()-start, 'seconds.')

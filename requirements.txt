@@ -36,7 +36,7 @@ pyyaml
 ua-parser
 user-agents
 django-user-agents
-psycopg2
+
 djangorestframework
 djangorestframework_simplejwt==3.3.0
 undecorated

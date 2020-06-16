@@ -57,3 +57,5 @@ unidecode
 pandas
 numpy
 matplotlib
+nltk
+wordcloud

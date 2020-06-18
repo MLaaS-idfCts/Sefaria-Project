@@ -1,10 +1,45 @@
-#%%
+# %matplotlib inline
+import re
+import matplotlib
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+from tqdm import tqdm
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score
+from sklearn.multiclass import OneVsRestClassifier
+from nltk.corpus import stopwords
+stop_words = set(stopwords.words('english'))
+from sklearn.svm import LinearSVC
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
+import seaborn as sns
+# import tqdm
 import matplotlib.pyplot as plt
 import pandas as pd 
 from gensim.parsing.preprocessing import STOPWORDS
 from bs4 import BeautifulSoup
 import sklearn
+import sklearn.model_selection
+
 import re
+
+pipelines = {
+    "MultNB":Pipeline([
+        ('tfidf', TfidfVectorizer(stop_words=stop_words)),
+        ('clf', OneVsRestClassifier(MultinomialNB(fit_prior=True, class_prior=None))),
+        ]),
+    "LinSVC":Pipeline([
+        ('tfidf', TfidfVectorizer(stop_words=stop_words)),
+        ('clf', OneVsRestClassifier(LinearSVC(), n_jobs=1)),
+        ]),
+    "LogReg":Pipeline([
+        ('tfidf', TfidfVectorizer(stop_words=stop_words)),
+        ('clf', OneVsRestClassifier(LogisticRegression(solver='sag'), n_jobs=1)),
+        ])
+}
 
 class DataManager:
     """
@@ -36,8 +71,9 @@ class DataManager:
         - test topics (df)
         - unlabeled passages (df)
     """
-    def __init__(self, raw):
+    def __init__(self, raw, num_topics):
         self.raw = raw
+        self.num_topics = num_topics
 
     def _select_columns(self):
         df = self.raw
@@ -48,7 +84,7 @@ class DataManager:
         rows_before = df.shape[0]
         df = df.dropna(subset=['Ref', 'En'])
         rows_after = df.shape[0]
-        print(f"Dropped {rows_before - rows_after} nulls!")
+        # print(f"Dropped {rows_before - rows_after} nulls!")
         return df
 
     def _remove_duplicates(self):
@@ -56,7 +92,7 @@ class DataManager:
         rows_before = df.shape[0]
         df = df.drop_duplicates()
         rows_after = df.shape[0]
-        print(f"Dropped {rows_before - rows_after} duplicates!")
+        # print(f"Dropped {rows_before - rows_after} duplicates!")
         return df
 
     def _get_ref_features(self,input_string):
@@ -122,52 +158,35 @@ class DataManager:
         df_topics = df.drop(['Ref', 'ref_features','En','Topics'], axis=1)
         counts = []
         topics = list(df_topics.columns.values)
-        for topic in topics:
+        # for topic in topics:
+        for topic in tqdm(topics):
             counts.append((topic, df_topics[topic].sum()))
         df_stats = pd.DataFrame(counts, columns=['topic', 'occurrences'])
         df_stats = df_stats.sort_values(by=['occurrences'], ascending=False)#[:10,:]
-        return df_stats[:6]
-        # df_stats.plot(x='topic', y='occurrences', kind='bar', legend=False, grid=True, figsize=(8, 5))
-        # plt.title("Number of comments per category")
-        # plt.ylabel('# of Occurrences', fontsize=12)
-        # plt.xlabel('category', fontsize=12)
-        # plt.show
+        return df_stats[:self.num_topics]
 
     def _get_labeled(self):
         df = self._add_topic_columns()
-        print('labeled')
+        print('Shape of labeled data:',df.shape)
         return df[df.Topics.notnull()]
         
     def _get_unlabeled(self):
         df = self._add_topic_columns()
-        print('unlabeled')
+        print('Shape of unlabeled data:',df.shape)
         return df[df.Topics.isnull()]
 
-    def train_test_split(self,labeled):
-        labeled_data = self._labeled_unlabeled_split()['labeled']
-        return sklearn.model_selection.train_test_split(labeled_data)
+    def train_test_split(self):
+        labeled_data = self._get_labeled()
+        return sklearn.model_selection.train_test_split(labeled_data,random_state=42, test_size=0.33, shuffle=True)
 
 
-class Trainer:
-    """
-    2 inputs:
-        - training set
-        - model untrained
+class CustomPipeline:
+    def __init__(self, model_code):
+        self.model_code = model_code
 
-    what this class does:
-        - trains model to fit training data
-
-    1 output:
-        - trained model
-    """
-    def __init__(self, train_df, model):
-        self.train_df = train_df
-        self.model = model
-
-    def _select_columns(self):
-        df = self.raw
-        return df[['Ref','En','Topics']]
+    def _get_pipeline(self):
+        return pipelines[self.model_code]
 
 
-# class Classifier
-# class Evaluator
+# # class Classifier
+# # class Evaluator

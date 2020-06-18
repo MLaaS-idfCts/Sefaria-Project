@@ -2,27 +2,49 @@ import sklearn
 import re
 
 class DataManager:
+    """
+    1 input: 
+    - raw data: pandas dataframe (heneforth "df")
 
+    3 tasks:
+
+    - clean data
+        - keep only three columns: Ref, En, and Topics
+        - remove rows with null Ref or En
+        - remove duplicated rows
+        - add paresed_Ref column to show just relevant subject
+            - e.g. "Mishna Torah, Shabbat, 4:7" --> "shabbat"
+        - clean En column
+
+    - convert topics list into one-hot-encoded columns
+
+    -divide data
+        - divide labeled from unlabeled.
+        - within labeled, split into train and test set.
+
+    5 outputs: 
+        - train passages (df) 
+        - train topics (df) 
+        - test passages (df)
+        - test topics (df)
+        - unlabeled passages (df)
+    """
     def __init__(self, raw):
         self.raw = raw
 
-    def is_labeled(item):
-        result = None
-        topics = item["Topics"]
-        if topics:
-            result = topics
-        return result
+    def _select_columns(self):
+        df = self.raw
+        return df[['Ref','En','Topics']]
 
-    def is_labeled_split(self, raw):
-        return {
-            'labeled':[item for item in raw if is_labeled(item)],
-            'unlabeled':[item for item in raw if not is_labeled(item)]
-        }
+    def _remove_null(self):
+        df = self._select_columns()
+        return df.dropna(axis=0, subset=[['Ref', 'En']])
 
-    def train_test_split(self,labeled):
-        return sklearn.model_selection.train_test_split(labeled)
+    def _remove_duplicates(self):
+        df = self._remove_null()
+        return df.drop_duplicates()
 
-    def clean_text(sentence):
+    def _clean_text(sentence):
 
         # HTML decoding
         sentence = BeautifulSoup(sentence, "lxml").text 
@@ -44,9 +66,43 @@ class DataManager:
 
         return sentence
 
-    def clean(self,df_col):
-        return df_col.apply(clean_text)
+    def _clean_columns(self):
+        df = self._remove_duplicates()
+        df.Ref = self._clean_text(df.Ref)
+        df.En = self._clean_text(df.En)
+        return df
+
+    def _labeled_unlabeled_split(self):
+        df = self._clean_columns()
+        return {
+            'labeled':df[df.Topics.notnull()],
+            'unlabeled':df[df.Topics.isnull()]
+        }
+
+    def train_test_split(self,labeled):
+        labeled_data = self._labeled_unlabeled_split()['labeled']
+        return sklearn.model_selection.train_test_split(labeled_data)
 
 class Trainer
+    """
+    2 inputs:
+        - training set
+        - model untrained
+
+    what this class does:
+        - trains model to fit training data
+
+    1 output:
+        - trained model
+    """
+    def __init__(self, train_df, model):
+        self.train_df = train_df
+        self.model = model
+
+    def _select_columns(self):
+        df = self.raw
+        return df[['Ref','En','Topics']]
+
+
 class Classifier
 class Evaluator

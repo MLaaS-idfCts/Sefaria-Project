@@ -132,7 +132,16 @@ class DataManager:
 
     def _add_topic_columns(self):
         df = self._clean_columns()
-        return df.join(pd.get_dummies(df['Topics'],' '))
+        df = pd.concat([df, df['Topics'].str.get_dummies(sep=' ')], axis=1)
+        # df.Topics = df.Topics.astype(str)
+        # df.Topics = df.Topics.str.split(' ')
+        # return df.join(pd.get_dummies(df['Topics']))
+
+        # df = df.join(pd.get_dummies(df['Topics'],' '))
+
+        # print(df.columns)
+        # print(df[['moav','david-and-saul']].tail(1))
+        return df
 
     def topic_stats(self):
         df = self._add_topic_columns()

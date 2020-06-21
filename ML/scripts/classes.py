@@ -26,24 +26,11 @@ import sklearn.model_selection
 
 import re
 
-pipelines = {
-    "MultNB":Pipeline([
-        ('tfidf', TfidfVectorizer(stop_words=stop_words)),
-        ('clf', OneVsRestClassifier(MultinomialNB(fit_prior=True, class_prior=None))),
-        ]),
-    "LinSVC":Pipeline([
-        ('tfidf', TfidfVectorizer(stop_words=stop_words)),
-        ('clf', OneVsRestClassifier(LinearSVC(), n_jobs=1)),
-        ]),
-    "LogReg":Pipeline([
-        ('tfidf', TfidfVectorizer(stop_words=stop_words)),
-        ('clf', OneVsRestClassifier(LogisticRegression(solver='sag'), n_jobs=1)),
-        ])
-}
 
 class DataManager:
     """
-    1 input: 
+    1 input:
+
     - raw data: pandas dataframe (heneforth "df")
 
     3 tasks:
@@ -64,12 +51,6 @@ class DataManager:
         - divide labeled from unlabeled.
         - within labeled, split into train and test set.
 
-    5 outputs: 
-        - train passages (df) 
-        - train topics (df) 
-        - test passages (df)
-        - test topics (df)
-        - unlabeled passages (df)
     """
     def __init__(self, raw, num_topics):
         self.raw = raw
@@ -151,9 +132,9 @@ class DataManager:
 
     def _add_topic_columns(self):
         df = self._clean_columns()
-        return df.join(pd.get_dummies(df['Topics']))
+        return df.join(pd.get_dummies(df['Topics'],' '))
 
-    def _topic_stats(self):
+    def topic_stats(self):
         df = self._add_topic_columns()
         df_topics = df.drop(['Ref', 'ref_features','En','Topics'], axis=1)
         counts = []
@@ -177,15 +158,34 @@ class DataManager:
 
     def train_test_split(self):
         labeled_data = self._get_labeled()
-        return sklearn.model_selection.train_test_split(labeled_data,random_state=42, test_size=0.33, shuffle=True)
+        return labeled_data[:-1],labeled_data[-1:]
+        # return sklearn.model_selection.train_test_split(labeled_data,random_state=42, test_size=0.33, shuffle=True)
 
 
-class CustomPipeline:
+class PipelineFactory:
+
+
     def __init__(self, model_code):
         self.model_code = model_code
+        self.pipelines = {
+            "MultNB":Pipeline([
+                ('tfidf', TfidfVectorizer(stop_words=stop_words)),
+                ('clf', OneVsRestClassifier(MultinomialNB(fit_prior=True, class_prior=None))),
+                ]),
+            
+            "LinSVC":Pipeline([
+                ('tfidf', TfidfVectorizer(stop_words=stop_words)),
+                ('clf', OneVsRestClassifier(LinearSVC(), n_jobs=1)),
+                ]),
+            
+            "LogReg":Pipeline([
+                ('tfidf', TfidfVectorizer(stop_words=stop_words)),
+                ('clf', OneVsRestClassifier(LogisticRegression(solver='sag'), n_jobs=1)),
+                ])
+        }
 
-    def _get_pipeline(self):
-        return pipelines[self.model_code]
+    def get_pipeline(self):
+        return self.pipelines[self.model_code]
 
 
 # # class Classifier

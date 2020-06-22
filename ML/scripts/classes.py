@@ -1,31 +1,29 @@
 # %matplotlib inline
 import re
+import sklearn
 import matplotlib
 import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
+import seaborn as sns
+import sklearn.model_selection
+import matplotlib.pyplot as plt
+
 from tqdm import tqdm
+from bs4 import BeautifulSoup
+from datetime import datetime
+from nltk.corpus import stopwords
+from sklearn.svm import LinearSVC
+from sklearn.pipeline import Pipeline
+from sklearn.metrics import accuracy_score
+from sklearn.naive_bayes import MultinomialNB
+from gensim.parsing.preprocessing import STOPWORDS
+from sklearn.multiclass import OneVsRestClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.metrics import accuracy_score
-from sklearn.multiclass import OneVsRestClassifier
-from nltk.corpus import stopwords
-stop_words = set(stopwords.words('english'))
-from sklearn.svm import LinearSVC
-from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import Pipeline
-import seaborn as sns
-# import tqdm
-import matplotlib.pyplot as plt
-import pandas as pd 
-from gensim.parsing.preprocessing import STOPWORDS
-from bs4 import BeautifulSoup
-import sklearn
-import sklearn.model_selection
 
-import re
-
+# my_example_topics = ['prayer', 'procedures-for-judges-and-conduct-towards-them', 'learning', 'kings', 'hilchot-chol-hamoed', 'laws-of-judges-and-courts', 'laws-of-animal-sacrifices', 'financial-ramifications-of-marriage', 'idolatry', 'laws-of-transferring-between-domains']
+my_example_topics = ['prayer', 'procedures-for-judges-and-conduct-towards-them']
 
 class DataManager:
     """
@@ -58,7 +56,9 @@ class DataManager:
 
     def _select_columns(self):
         df = self.raw
-        return df[['Ref','En','Topics']]
+        return df[[
+            'Ref',
+            'En','Topics']]
 
     def _remove_null(self):
         df = self._select_columns()
@@ -132,28 +132,35 @@ class DataManager:
 
     def _add_topic_columns(self):
         df = self._clean_columns()
+        start_time = datetime.now()
         df = pd.concat([df, df['Topics'].str.get_dummies(sep=' ')], axis=1)
-        # df.Topics = df.Topics.astype(str)
-        # df.Topics = df.Topics.str.split(' ')
-        # return df.join(pd.get_dummies(df['Topics']))
-
-        # df = df.join(pd.get_dummies(df['Topics'],' '))
-
-        # print(df.columns)
-        # print(df[['moav','david-and-saul']].tail(1))
+        cols = ['Ref', 
+        # 'ref_features',
+        'En','Topics'] + my_example_topics
+        df = df[cols]
+        df = df.loc[df['prayer'] + df['procedures-for-judges-and-conduct-towards-them'] > 0]
         return df
 
-    def topic_stats(self):
+
+    def get_top_topics(self):
+
         df = self._add_topic_columns()
-        df_topics = df.drop(['Ref', 'ref_features','En','Topics'], axis=1)
+        df_topics = df.drop(['Ref', 'ref_features','En','Topics',
+        # 'Extended-topics'
+        ], axis=1)
+
         counts = []
         topics = list(df_topics.columns.values)
-        # for topic in topics:
+
+        print("\nCounting occurrences of each topic")
         for topic in tqdm(topics):
             counts.append((topic, df_topics[topic].sum()))
+
         df_stats = pd.DataFrame(counts, columns=['topic', 'occurrences'])
-        df_stats = df_stats.sort_values(by=['occurrences'], ascending=False)#[:10,:]
-        return df_stats[:self.num_topics]
+        df_stats_sorted = df_stats.sort_values(by=['occurrences'], ascending=False)
+        top_topics_df = df_stats_sorted[:self.num_topics]
+        return top_topics_df
+
 
     def _get_labeled(self):
         df = self._add_topic_columns()
@@ -165,10 +172,13 @@ class DataManager:
         print('Shape of unlabeled data:',df.shape)
         return df[df.Topics.isnull()]
 
-    def train_test_split(self):
+    def get_train_and_test(self):
         labeled_data = self._get_labeled()
-        return labeled_data[:-1],labeled_data[-1:]
-        # return sklearn.model_selection.train_test_split(labeled_data,random_state=42, test_size=0.33, shuffle=True)
+        train, test = labeled_data[:-1], labeled_data[-5:]
+        train, test = sklearn.model_selection.train_test_split(labeled_data,random_state=42, test_size=0.33, 
+        shuffle=True
+        )
+        return train, test
 
 
 class PipelineFactory:
@@ -176,19 +186,18 @@ class PipelineFactory:
 
     def __init__(self, model_code):
         self.model_code = model_code
+        self.stop_words = set(stopwords.words('english'))
         self.pipelines = {
             "MultNB":Pipeline([
-                ('tfidf', TfidfVectorizer(stop_words=stop_words)),
+                ('tfidf', TfidfVectorizer(stop_words=self.stop_words)),
                 ('clf', OneVsRestClassifier(MultinomialNB(fit_prior=True, class_prior=None))),
                 ]),
-            
             "LinSVC":Pipeline([
-                ('tfidf', TfidfVectorizer(stop_words=stop_words)),
+                ('tfidf', TfidfVectorizer(stop_words=self.stop_words)),
                 ('clf', OneVsRestClassifier(LinearSVC(), n_jobs=1)),
                 ]),
-            
             "LogReg":Pipeline([
-                ('tfidf', TfidfVectorizer(stop_words=stop_words)),
+                ('tfidf', TfidfVectorizer(stop_words=self.stop_words)),
                 ('clf', OneVsRestClassifier(LogisticRegression(solver='sag'), n_jobs=1)),
                 ])
         }

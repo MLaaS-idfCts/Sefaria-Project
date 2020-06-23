@@ -8,6 +8,7 @@ from datetime import datetime
 from sklearn.metrics import accuracy_score
 from classes import DataManager, PipelineFactory, my_example_topics
 
+start_time = datetime.now()
 
 NUM_TOPICS = 5
 NUM_DATA_POINTS = 1000
@@ -37,7 +38,7 @@ X_train = train.En
 X_test = test.En
 
 # MY_INDEX = 1
-MY_INDEX_LIST = range(5)
+MY_INDEX_LIST = range(2)
 for MY_INDEX in MY_INDEX_LIST:
     print('\nACTUAL PASSAGE:',X_test.iloc[MY_INDEX])
     print('\nACTUAL TOPICS:',
@@ -46,6 +47,10 @@ for MY_INDEX in MY_INDEX_LIST:
     (test.iloc[MY_INDEX] == 1).idxmax(axis=1)
     )
 
+finish_time = datetime.now()
+
+total_time = finish_time - start_time
+print('\n>>> Total runtime:',total_time)
 sys.exit()
 
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -81,6 +86,7 @@ for category in categories:
     # calculating test accuracy
     prediction = LogReg_pipeline.predict(x_test)
     print('Test accuracy is {}'.format(accuracy_score(test[category], prediction)))
+
 
 sys.exit()
 

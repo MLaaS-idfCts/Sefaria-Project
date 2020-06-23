@@ -199,7 +199,6 @@ class DataManager:
 
 class PipelineFactory:
 
-
     def __init__(self, model_code):
         self.model_code = model_code
         self.stop_words = set(stopwords.words('english'))
@@ -214,7 +213,7 @@ class PipelineFactory:
                 ]),
             "LogReg":Pipeline([
                 ('tfidf', TfidfVectorizer(stop_words=self.stop_words)),
-                ('clf', OneVsRestClassifier(LogisticRegression(solver='sag'), n_jobs=1)),
+                ('clf', OneVsRestClassifier(LogisticRegression(solver='sag',max_iter=1000), n_jobs=1)),
                 ])
         }
 

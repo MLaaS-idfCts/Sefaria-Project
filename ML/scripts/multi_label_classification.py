@@ -1,5 +1,4 @@
 import sys
-
 import numpy as np
 import pandas as pd
 
@@ -8,10 +7,16 @@ from datetime import datetime
 from sklearn.metrics import accuracy_score
 from classes import DataManager, PipelineFactory, my_example_topics
 
+def finish_now(start_time):
+    finish_time = datetime.now()
+    total_time = finish_time - start_time
+    print('\n>>> Total runtime:',total_time)
+    sys.exit()
+
 start_time = datetime.now()
 
 NUM_TOPICS = 3
-NUM_DATA_POINTS = 1000
+NUM_DATA_POINTS = 5000
 pd.options.display.max_colwidth = 50
 
 # import data
@@ -28,11 +33,11 @@ df = pd.read_pickle('data\single_class_df.pkl')[:NUM_DATA_POINTS]
 #     inplace=True)
 
 # init data manager class
-data_manager = DataManager(raw = df, num_topics = NUM_TOPICS, 
-should_clean = False,
-should_stem = False
-# should_stem = True
-)
+data_manager = DataManager(
+    raw = df, num_topics = NUM_TOPICS, 
+    should_clean = True,
+    should_stem = True
+    )
 
 # split train and test data
 train, test = data_manager.get_train_and_test()
@@ -48,11 +53,6 @@ for MY_INDEX in MY_INDEX_LIST:
     (test.iloc[MY_INDEX] == 1).idxmax(axis=1)
     )
 
-finish_time = datetime.now()
-
-total_time = finish_time - start_time
-print('\n>>> Total runtime:',total_time)
-sys.exit()
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 vectorizer = TfidfVectorizer(strip_accents='unicode', analyzer='word', ngram_range=(1,3), norm='l2')
@@ -72,11 +72,10 @@ from sklearn.linear_model import LogisticRegression
 
 # Using pipeline for applying logistic regression and one vs rest classifier
 LogReg_pipeline = Pipeline([
-                ('clf', OneVsRestClassifier(LogisticRegression(solver='sag'), n_jobs=-1)),
+                ('clf', OneVsRestClassifier(LogisticRegression(solver='sag',max_iter=500), n_jobs=-1)),
             ])
 
 categories = my_example_topics
-
 
 for category in categories:
     print('\n**Processing {} comments...**'.format(category))
@@ -86,31 +85,31 @@ for category in categories:
     
     # calculating test accuracy
     prediction = LogReg_pipeline.predict(x_test)
-    print('Test accuracy is {}'.format(accuracy_score(test[category], prediction)))
+    print(f'Test accuracy is {accuracy_score(test[category], prediction)}')
+    
+    for i in range(15):
+        print('\ntext:',test['En'].iloc[i])
+        print('prediction:',prediction[i])
+        print('actual label:',test[category].iloc[i])
+    
+finish_now(start_time)
 
 
-sys.exit()
-
-# get shape
-print('\ntraining passages',X_train.shape[0])
-print('testing passages',X_test.shape[0])
-
-# get most poular topics
-top_topics_df = data_manager.get_top_topics()
-top_topics_list = list(top_topics_df['topic']) # + ['ammon']
-print(top_topics_list)
-# top_topics = 'laws-of-judges-and-courts judgements1 laws-of-setting-the-months-and-leap-years sanhedrin'.split()
-# top_topics = 'ammon'.split()
-# top_topics = 'fate-of-the-nations-of-the-world punishment'.split()
-
+if False:
+    # get most poular topics
+    top_topics_df = data_manager.get_top_topics()
+    top_topics_list = list(top_topics_df['topic']) # + ['ammon']
+    print(top_topics_list)
+    # top_topics = 'laws-of-judges-and-courts judgements1 laws-of-setting-the-months-and-leap-years sanhedrin'.split()
+    # top_topics = 'ammon'.split()
+    # top_topics = 'fate-of-the-nations-of-the-world punishment'.split()
 
 # select a model: Linear SVC, Multinimial Naive-Bayes, or Logistic Regression
 pipeline = PipelineFactory(
-    # 'LinSVC'
-    'LogReg'
+    'LinSVC'
+    # 'LogReg'
     # 'MultNB' # seems buggy! predicts all zeroes!
     ).get_pipeline()
-
 
 # init
 topic_accuracies_testing = {}
@@ -118,6 +117,7 @@ topic_accuracies_training = {}
 
 # for each topic, train (i.e. "fit") and classify ("predict") and evaulate
 print(f'For each topic, the model is: training, predicting, and evaluating.')
+
 # for topic in tqdm(top_topics_list):
 for topic in top_topics_list:
     

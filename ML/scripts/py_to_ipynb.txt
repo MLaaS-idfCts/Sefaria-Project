@@ -1,0 +1,6 @@
+# stype this into command line
+# ipynb-py-convert py_file_path notebook_file_path
+
+# for example
+# ipynb-py-convert scripts/py_to_ipynb.py notebooks/py_to_ipynb.ipynb
+# ipynb-py-convert scripts/multi_label_classification.py notebooks/multi_label_classification.ipynb

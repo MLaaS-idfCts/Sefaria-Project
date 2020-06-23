@@ -10,7 +10,7 @@ from classes import DataManager, PipelineFactory, my_example_topics
 
 start_time = datetime.now()
 
-NUM_TOPICS = 5
+NUM_TOPICS = 3
 NUM_DATA_POINTS = 1000
 pd.options.display.max_colwidth = 50
 
@@ -18,8 +18,8 @@ pd.options.display.max_colwidth = 50
 # df = pd.read_csv('/root/Sefaria-Project/ML/data/yishai_data.csv')[:NUM_DATA_POINTS]
 # df = pd.read_pickle('data/1k.pkl')
 # df = pd.read_pickle('data/full_df.pkl')[:NUM_DATA_POINTS]
+# df = pd.read_pickle('data\single_class_df.pkl')[:NUM_DATA_POINTS]
 df = pd.read_pickle('data\single_class_df.pkl')[:NUM_DATA_POINTS]
-
 # df = pd.read_pickle('data\small_version_OHE_df.pkl')[:NUM_DATA_POINTS]
 
 # df.to_pickle('/root/Sefaria-Project/ML/data/1k.pkl')
@@ -28,7 +28,11 @@ df = pd.read_pickle('data\single_class_df.pkl')[:NUM_DATA_POINTS]
 #     inplace=True)
 
 # init data manager class
-data_manager = DataManager(raw = df, num_topics = NUM_TOPICS)
+data_manager = DataManager(raw = df, num_topics = NUM_TOPICS, 
+should_clean = False,
+should_stem = False
+# should_stem = True
+)
 
 # split train and test data
 train, test = data_manager.get_train_and_test()
@@ -37,13 +41,10 @@ train, test = data_manager.get_train_and_test()
 X_train = train.En
 X_test = test.En
 
-# MY_INDEX = 1
 MY_INDEX_LIST = range(2)
 for MY_INDEX in MY_INDEX_LIST:
     print('\nACTUAL PASSAGE:',X_test.iloc[MY_INDEX])
     print('\nACTUAL TOPICS:',
-    # test.iloc[MY_INDEX]
-    # test.columns[(test == 1).iloc[MY_INDEX]]
     (test.iloc[MY_INDEX] == 1).idxmax(axis=1)
     )
 

@@ -1,5 +1,5 @@
-# %matplotlib inline
 import re
+import nltk
 import sklearn
 import matplotlib
 import numpy as np
@@ -13,6 +13,7 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 from nltk.corpus import stopwords
 from sklearn.svm import LinearSVC
+from nltk.stem import SnowballStemmer
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import accuracy_score
 from sklearn.naive_bayes import MultinomialNB
@@ -24,6 +25,9 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 # my_example_topics = ['prayer', 'procedures-for-judges-and-conduct-towards-them', 'learning', 'kings', 'hilchot-chol-hamoed', 'laws-of-judges-and-courts', 'laws-of-animal-sacrifices', 'financial-ramifications-of-marriage', 'idolatry', 'laws-of-transferring-between-domains']
 my_example_topics = ['prayer', 'procedures-for-judges-and-conduct-towards-them']
+# my_example_topics = ['prayer']
+
+stemmer = SnowballStemmer('english')
 
 class DataManager:
     """
@@ -50,9 +54,11 @@ class DataManager:
         - within labeled, split into train and test set.
 
     """
-    def __init__(self, raw, num_topics):
+    def __init__(self, raw, num_topics, should_clean = True, should_stem = False):
         self.raw = raw
         self.num_topics = num_topics
+        self.should_clean = should_clean
+        self.should_stem = should_stem
 
     def _select_columns(self):
         df = self.raw
@@ -103,31 +109,40 @@ class DataManager:
         return df
 
     def _clean_text(self, sentence):
-
         # HTML decoding
         sentence = BeautifulSoup(sentence, "lxml").text 
-        
         # lowercase text
         sentence = sentence.lower() 
-
         # Remove punctuations and numbers
         sentence = re.sub('[^a-zA-Z]', ' ', sentence)
-
         # Single character removal
         sentence = re.sub(r"\s+[a-zA-Z]\s+", ' ', sentence)
-
         # Removing multiple spaces
         sentence = re.sub(r'\s+', ' ', sentence)
-
         # Removing stopwords
         sentence = ' '.join(word for word in sentence.split() if word not in STOPWORDS) # delete stopwors from text
-
         return sentence
 
+
+    def _stem_text(self, sentence):
+        # instantiate stemmer class
+        # stemmer = SnowballStemmer('english')
+
+        # stem sentence
+        sentence = ' '.join(stemmer.stem(word) for word in sentence.split())
+        return sentence
+
+
     def _clean_columns(self):
+        
         df = self._add_ref_features()
-        df.En = df.En.apply(self._clean_text)
-        # df.En = self._clean_text(df.En)
+        
+        if self.should_clean:
+            df.En = df.En.apply(self._clean_text)
+        
+        if self.should_stem:
+            df.En = df.En.apply(self._stem_text)
+        
         return df
 
     def _add_topic_columns(self):
@@ -139,6 +154,7 @@ class DataManager:
         'En','Topics'] + my_example_topics
         df = df[cols]
         df = df.loc[df['prayer'] + df['procedures-for-judges-and-conduct-towards-them'] > 0]
+        # df = df.loc[df['prayer'] > 0]
         return df
 
 

@@ -1,2 +1,10 @@
 sklearn
 seaborn
+gensim
+nltk
+bs4
+matplotlib
+tqdm
+pandas
+numpy
+lxml

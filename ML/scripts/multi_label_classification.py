@@ -9,13 +9,18 @@ from sklearn.metrics import accuracy_score
 from classes import DataManager, PipelineFactory, my_example_topics
 
 
-NUM_TOPICS = 20
+NUM_TOPICS = 5
 NUM_DATA_POINTS = 1000
 pd.options.display.max_colwidth = 50
 
 # import data
 # df = pd.read_csv('/root/Sefaria-Project/ML/data/yishai_data.csv')[:NUM_DATA_POINTS]
-df = pd.read_pickle('/root/Sefaria-Project/ML/data/1k.pkl')
+# df = pd.read_pickle('data/1k.pkl')
+# df = pd.read_pickle('data/full_df.pkl')[:NUM_DATA_POINTS]
+df = pd.read_pickle('data\single_class_df.pkl')[:NUM_DATA_POINTS]
+
+# df = pd.read_pickle('data\small_version_OHE_df.pkl')[:NUM_DATA_POINTS]
+
 # df.to_pickle('/root/Sefaria-Project/ML/data/1k.pkl')
 # df.set_index('Ref',
 #     drop=False,

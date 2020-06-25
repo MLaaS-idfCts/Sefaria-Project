@@ -23,8 +23,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-# my_example_topics = ['prayer', 'procedures-for-judges-and-conduct-towards-them', 'learning', 'kings', 'hilchot-chol-hamoed', 'laws-of-judges-and-courts', 'laws-of-animal-sacrifices', 'financial-ramifications-of-marriage', 'idolatry', 'laws-of-transferring-between-domains']
-my_example_topics = ['prayer', 'procedures-for-judges-and-conduct-towards-them']
+my_example_topics = ['prayer', 'procedures-for-judges-and-conduct-towards-them', 'learning', 'kings', 'hilchot-chol-hamoed', 'laws-of-judges-and-courts', 'laws-of-animal-sacrifices', 'financial-ramifications-of-marriage', 'idolatry', 'laws-of-transferring-between-domains']
+# my_example_topics = ['prayer', 'procedures-for-judges-and-conduct-towards-them']
 # my_example_topics = ['prayer']
 
 stemmer = SnowballStemmer('english')
@@ -153,7 +153,7 @@ class DataManager:
         # 'ref_features',
         'En','Topics'] + my_example_topics
         df = df[cols]
-        df = df.loc[df['prayer'] + df['procedures-for-judges-and-conduct-towards-them'] > 0]
+        # df = df.loc[df['prayer'] + df['procedures-for-judges-and-conduct-towards-them'] > 0]
         # df = df.loc[df['prayer'] > 0]
         return df
 

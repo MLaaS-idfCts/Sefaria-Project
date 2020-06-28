@@ -6,12 +6,12 @@ sys.path.insert(1, '/persistent/Sefaria-Project/')
 
 import csv
 import django
+django.setup()
 
 from tqdm import tqdm
 from sefaria.model import *
 from sefaria.system.database import db
 
-django.setup()
 
 rows = []
 aggregated_passages = db.topic_links.aggregate(

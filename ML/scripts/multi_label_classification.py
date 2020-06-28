@@ -15,8 +15,8 @@ def finish_now(start_time):
 
 start_time = datetime.now()
 
-NUM_TOPICS = 3
-NUM_DATA_POINTS = 5000
+NUM_TOPICS = 10
+NUM_DATA_POINTS = 500
 pd.options.display.max_colwidth = 50
 
 # import data
@@ -25,6 +25,7 @@ pd.options.display.max_colwidth = 50
 # df = pd.read_pickle('data/full_df.pkl')[:NUM_DATA_POINTS]
 # df = pd.read_pickle('data\single_class_df.pkl')[:NUM_DATA_POINTS]
 df = pd.read_pickle('data\single_class_df.pkl')[:NUM_DATA_POINTS]
+# df = pd.read_pickle('yishai_data.csv')[:NUM_DATA_POINTS]
 # df = pd.read_pickle('data\small_version_OHE_df.pkl')[:NUM_DATA_POINTS]
 
 # df.to_pickle('/root/Sefaria-Project/ML/data/1k.pkl')

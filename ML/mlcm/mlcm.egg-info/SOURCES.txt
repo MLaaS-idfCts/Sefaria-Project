@@ -1,0 +1,11 @@
+LICENSE
+MANIFEST.in
+README.md
+setup.py
+mlcm/__init__.py
+mlcm/conf_matrx.py
+mlcm.egg-info/PKG-INFO
+mlcm.egg-info/SOURCES.txt
+mlcm.egg-info/dependency_links.txt
+mlcm.egg-info/not-zip-safe
+mlcm.egg-info/top_level.txt

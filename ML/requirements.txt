@@ -10,3 +10,4 @@ numpy
 lxml
 ipynb-py-convert
 scikit-multilearn
+itertools

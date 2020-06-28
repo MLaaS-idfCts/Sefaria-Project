@@ -1,0 +1,694 @@
+[I 11:30:08.092 NotebookApp] Serving notebooks from local directory: /persistent/Sefaria-Project/ML/notebooks
+[I 11:30:08.092 NotebookApp] The Jupyter Notebook is running at:
+[I 11:30:08.093 NotebookApp] http://yishai-remotedocker-0:7890/?token=0af7518d6ae6c3105c1f6b7fee77dc3edcdd8732a37995c6
+[I 11:30:08.093 NotebookApp]  or http://127.0.0.1:7890/?token=0af7518d6ae6c3105c1f6b7fee77dc3edcdd8732a37995c6
+[I 11:30:08.093 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[C 11:30:08.096 NotebookApp] 
+    
+    To access the notebook, open this file in a browser:
+        file:///root/.local/share/jupyter/runtime/nbserver-127-open.html
+    Or copy and paste one of these URLs:
+        http://yishai-remotedocker-0:7890/?token=0af7518d6ae6c3105c1f6b7fee77dc3edcdd8732a37995c6
+     or http://127.0.0.1:7890/?token=0af7518d6ae6c3105c1f6b7fee77dc3edcdd8732a37995c6
+[I 12:36:01.991 NotebookApp] 302 GET / (10.8.0.1) 0.77ms
+[I 12:51:31.056 NotebookApp] 302 GET / (10.142.15.194) 0.94ms
+[I 12:51:31.274 NotebookApp] 302 GET /tree? (10.142.15.194) 0.80ms
+[I 12:53:05.608 NotebookApp] 302 GET / (10.142.15.194) 0.56ms
+[I 12:53:06.230 NotebookApp] 302 GET / (10.8.0.1) 0.64ms
+[I 12:53:06.409 NotebookApp] 302 GET /tree? (10.8.0.1) 0.72ms
+[I 12:53:24.264 NotebookApp] 302 GET / (10.8.0.1) 0.69ms
+[I 12:53:24.429 NotebookApp] 302 GET /tree? (10.8.0.1) 0.76ms
+[I 12:53:31.660 NotebookApp] 302 GET / (10.142.15.199) 0.64ms
+[I 12:53:31.835 NotebookApp] 302 GET /tree? (10.142.15.199) 0.72ms
+[I 12:55:16.746 NotebookApp] 302 GET /?token=0af7518d6ae6c3105c1f6b7fee77dc3edcdd8732a37995c6 (10.142.15.194) 0.63ms
+[I 12:55:24.348 NotebookApp] 302 GET /?token=0af7518d6ae6c3105c1f6b7fee77dc3edcdd8732a37995c6 (10.142.15.196) 0.61ms
+[I 13:01:38.783 NotebookApp] Writing notebook-signing key to /root/.local/share/jupyter/notebook_secret
+[W 13:01:38.783 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 13:01:40.265 NotebookApp] Kernel started: 62bea6c6-19a2-4062-819a-f6a2a1a015de
+[W 13:03:37.488 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:559926795ab74c0b82f21f66b40f8659
+[I 13:03:42.492 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:559926795ab74c0b82f21f66b40f8659
+[I 13:03:42.494 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:559926795ab74c0b82f21f66b40f8659
+[W 13:03:48.964 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:559926795ab74c0b82f21f66b40f8659
+[I 13:03:49.184 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 13:03:53.968 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:559926795ab74c0b82f21f66b40f8659
+[I 13:03:53.969 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:559926795ab74c0b82f21f66b40f8659
+[W 13:04:41.595 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:559926795ab74c0b82f21f66b40f8659
+[I 13:04:46.597 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:559926795ab74c0b82f21f66b40f8659
+[I 13:04:46.598 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:559926795ab74c0b82f21f66b40f8659
+[W 13:05:01.536 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:559926795ab74c0b82f21f66b40f8659
+[I 13:05:06.539 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:559926795ab74c0b82f21f66b40f8659
+[I 13:05:06.541 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:559926795ab74c0b82f21f66b40f8659
+[I 13:06:17.980 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:559926795ab74c0b82f21f66b40f8659
+[I 13:06:55.964 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 13:09:24.575 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[I 13:09:24.773 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 13:09:29.577 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[I 13:09:29.579 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[W 13:12:49.271 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[I 13:12:54.274 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[I 13:12:54.277 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[W 13:13:12.441 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[I 13:13:15.688 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 13:13:17.443 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[I 13:13:17.445 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[I 13:17:14.353 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 13:18:12.083 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[I 13:18:17.087 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[I 13:18:17.088 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[W 13:18:22.230 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[I 13:18:27.234 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[I 13:18:27.235 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[W 13:18:31.312 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[I 13:18:36.316 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[I 13:18:36.318 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[W 13:26:19.274 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[I 13:26:24.278 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[I 13:26:24.281 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[W 13:29:40.820 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[I 13:29:45.824 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[I 13:29:45.826 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[I 13:35:14.371 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 13:37:14.374 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 13:39:14.505 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 13:41:14.542 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 13:43:14.362 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 13:45:14.403 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 13:46:03.814 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 13:46:04.899 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 13:50:15.232 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[I 13:50:20.236 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[I 13:50:20.237 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[W 14:03:18.695 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[I 14:03:23.698 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[I 14:03:23.699 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[I 14:05:48.620 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 14:05:50.988 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 14:05:51.037 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 14:05:53.154 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:59b5f00514eb4614a3e37dd065262d7c
+[W 14:07:30.809 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:07:35.812 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:07:35.814 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 14:08:27.332 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:08:32.335 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:08:32.336 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 14:08:53.201 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:08:58.206 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:08:58.208 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:09:00.868 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 14:09:26.738 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:09:31.741 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:09:31.742 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 14:10:15.262 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:10:20.265 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:10:20.267 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 14:10:55.207 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:11:00.209 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:11:00.211 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:11:00.898 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 14:11:16.602 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:11:21.604 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:11:21.606 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 14:11:58.896 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:12:03.898 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:12:03.900 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 14:12:46.281 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:12:51.286 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:12:51.288 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:13:00.922 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 14:13:07.346 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:13:12.350 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:13:12.351 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 14:13:23.983 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:13:28.985 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:13:28.987 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 14:13:40.642 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:13:45.645 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:13:45.647 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 14:14:11.984 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:14:16.986 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:14:16.987 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 14:14:37.398 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:14:42.402 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:14:42.404 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 14:15:47.077 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:15:51.852 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:15:52.081 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 14:15:58.705 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 14:16:23.388 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:16:28.390 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:16:28.392 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 14:16:50.599 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:16:55.601 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:16:55.603 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 14:17:00.756 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:17:05.759 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:17:05.760 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 14:18:27.600 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:18:32.602 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:18:32.604 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 14:20:31.330 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:20:36.334 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:20:36.338 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:23:00.922 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 14:23:52.147 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:23:57.151 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:23:57.153 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 14:25:14.396 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:25:19.397 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:25:19.400 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 14:27:00.126 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:27:05.129 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:27:05.131 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 14:30:46.127 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:30:51.130 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:30:51.132 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 14:31:50.703 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:31:55.705 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:31:55.707 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:37:00.889 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 14:57:16.742 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:57:21.747 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:57:21.749 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 14:58:29.078 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:58:34.082 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:58:34.084 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 14:58:41.568 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:58:46.570 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:58:46.571 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 14:59:01.443 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:59:06.446 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 14:59:06.448 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 15:01:07.152 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 15:01:12.157 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 15:01:12.158 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 15:01:28.559 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 15:01:33.563 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 15:01:33.564 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 15:03:00.334 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 15:03:05.338 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 15:03:05.340 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 15:04:28.560 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 15:04:33.565 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 15:04:33.566 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 15:08:26.838 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 15:08:31.841 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 15:08:31.843 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 15:09:23.019 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 15:09:28.022 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 15:09:28.024 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[I 15:19:34.829 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b23884902a734b978b8be4ed32a71d5c
+[W 15:20:31.355 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:20:36.359 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:20:36.361 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:21:26.346 NotebookApp] Kernel interrupted: 62bea6c6-19a2-4062-819a-f6a2a1a015de
+[W 15:21:26.359 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[W 15:21:26.380 NotebookApp] zmq message arrived on closed channel
+[W 15:21:26.383 NotebookApp] zmq message arrived on closed channel
+[W 15:21:26.385 NotebookApp] zmq message arrived on closed channel
+[W 15:21:26.386 NotebookApp] zmq message arrived on closed channel
+[W 15:21:26.388 NotebookApp] zmq message arrived on closed channel
+[W 15:21:26.389 NotebookApp] zmq message arrived on closed channel
+[W 15:21:26.390 NotebookApp] zmq message arrived on closed channel
+[W 15:21:26.391 NotebookApp] zmq message arrived on closed channel
+[W 15:21:26.392 NotebookApp] zmq message arrived on closed channel
+[W 15:21:26.393 NotebookApp] zmq message arrived on closed channel
+[W 15:21:26.394 NotebookApp] zmq message arrived on closed channel
+[W 15:21:26.395 NotebookApp] zmq message arrived on closed channel
+[W 15:21:26.396 NotebookApp] zmq message arrived on closed channel
+[W 15:21:26.397 NotebookApp] zmq message arrived on closed channel
+[W 15:21:26.398 NotebookApp] zmq message arrived on closed channel
+[W 15:21:26.400 NotebookApp] zmq message arrived on closed channel
+[W 15:21:26.401 NotebookApp] zmq message arrived on closed channel
+[W 15:21:26.402 NotebookApp] zmq message arrived on closed channel
+[W 15:21:26.402 NotebookApp] zmq message arrived on closed channel
+[W 15:21:26.403 NotebookApp] zmq message arrived on closed channel
+[W 15:21:26.404 NotebookApp] zmq message arrived on closed channel
+[I 15:21:31.361 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:21:31.362 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:21:49.239 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 15:22:39.724 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:22:44.727 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:22:44.728 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[W 15:22:49.708 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:22:54.711 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:22:54.713 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[W 15:23:15.344 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:23:20.347 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:23:20.348 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[W 15:23:44.146 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:23:49.148 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:23:49.150 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:23:49.187 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 15:24:18.960 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:24:23.963 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:24:23.965 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[W 15:24:40.420 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:24:45.424 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:24:45.425 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[W 15:25:01.207 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:25:06.210 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:25:06.212 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[W 15:30:04.723 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:30:09.726 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:30:09.728 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[W 15:33:28.197 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:33:33.201 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:33:33.203 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[W 15:34:05.219 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:34:10.224 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:34:10.225 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[W 15:39:01.210 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:39:06.213 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:39:06.215 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[W 15:40:32.356 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:40:37.358 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:40:37.359 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[W 15:45:01.514 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:45:06.519 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:45:06.520 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[W 15:46:00.070 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:46:05.072 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:46:05.073 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[W 15:49:58.909 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:50:03.912 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:50:03.914 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[W 15:50:09.958 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:50:14.961 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:50:14.963 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[W 15:50:18.192 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:50:23.194 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:50:23.196 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[W 15:50:33.134 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:50:38.137 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:50:38.139 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[W 15:51:04.469 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:51:09.472 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:51:09.474 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[W 15:51:12.964 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:51:17.968 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:51:17.969 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[W 15:52:00.832 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:52:05.835 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:52:05.837 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:55:49.439 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 15:56:13.846 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:56:18.850 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:56:18.852 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[W 15:56:35.095 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:56:40.099 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:56:40.101 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 15:57:49.230 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 15:59:49.343 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 16:01:54.958 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 16:02:08.403 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 16:02:09.171 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 16:02:40.080 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 16:05:21.438 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 16:05:26.441 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 16:05:26.443 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:7214e0fe3c5f496f94cd831cae501063
+[I 16:05:29.187 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 16:12:45.784 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 16:12:56.491 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:82f36949b4004c46812c18a5d8a679d4
+[I 16:13:22.401 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:e9f15d4155cf40af8638ab4e912338f3
+[W 16:14:33.278 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:aeca842cdaaf40f28368bf24afba8074
+[W 16:14:57.522 NotebookApp] WebSocket ping timeout after 90003 ms.
+[I 16:16:09.411 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 16:18:09.382 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 16:20:09.391 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 16:22:09.381 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 16:25:30.376 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:aeca842cdaaf40f28368bf24afba8074
+[I 16:28:37.906 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 16:28:50.919 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:b986af741e1c47348008607faccee733
+[I 16:29:03.196 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 16:29:36.274 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:8776255c569b4fac8e10d72e9387c4f9
+[I 16:30:55.410 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 16:30:56.294 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:0e9a25b47e484b8cb9af2cc18ad2a5de
+[W 16:31:38.626 NotebookApp] 400 GET /api/contents/test.ipynb?type=notebook&_=1593102696592 (10.142.15.195): Unreadable Notebook: /persistent/Sefaria-Project/ML/notebooks/test.ipynb NotJSONError("Notebook does not appear to be JSON: ''...")
+[W 16:31:38.626 NotebookApp] Unreadable Notebook: /persistent/Sefaria-Project/ML/notebooks/test.ipynb NotJSONError("Notebook does not appear to be JSON: ''...")
+[W 16:31:38.628 NotebookApp] 400 GET /api/contents/test.ipynb?type=notebook&_=1593102696592 (10.142.15.195) 3.31ms referer=http://34.75.61.174:7890/notebooks/test.ipynb
+[I 16:33:34.916 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:aed4caf7e19843258018261f77731350
+[I 16:34:21.631 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 16:35:37.650 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 16:36:04.968 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:a79c30ea3a7a4383804f0cc2eb0ed638
+[W 16:36:10.328 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 16:37:37.945 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 16:39:37.821 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 16:41:58.365 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[W 16:42:03.723 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:a79c30ea3a7a4383804f0cc2eb0ed638
+/usr/local/lib/python3.7/site-packages/sklearn/linear_model/_sag.py:330: ConvergenceWarning: The max_iter was reached which means the coef_ did not converge
+  "the coef_ did not converge", ConvergenceWarning)
+/usr/local/lib/python3.7/site-packages/sklearn/linear_model/_sag.py:330: ConvergenceWarning: The max_iter was reached which means the coef_ did not converge
+  "the coef_ did not converge", ConvergenceWarning)
+/usr/local/lib/python3.7/site-packages/sklearn/linear_model/_sag.py:330: ConvergenceWarning: The max_iter was reached which means the coef_ did not converge
+  "the coef_ did not converge", ConvergenceWarning)
+/usr/local/lib/python3.7/site-packages/sklearn/linear_model/_sag.py:330: ConvergenceWarning: The max_iter was reached which means the coef_ did not converge
+  "the coef_ did not converge", ConvergenceWarning)
+[W 16:42:52.962 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:a79c30ea3a7a4383804f0cc2eb0ed638
+[W 16:42:58.323 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 16:43:37.986 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 16:45:25.615 NotebookApp] Kernel interrupted: 62bea6c6-19a2-4062-819a-f6a2a1a015de
+[I 16:45:37.912 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 16:46:28.186 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 16:46:33.189 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 16:46:33.192 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 16:47:37.954 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 16:49:37.954 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 16:51:37.978 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 16:53:42.171 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 16:53:46.440 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 16:53:47.173 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 16:53:47.174 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[W 16:54:24.018 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 16:54:29.020 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 16:54:29.022 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[W 16:54:47.235 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 16:54:52.239 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 16:54:52.240 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 16:55:38.281 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 16:55:47.161 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 16:55:52.165 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 16:55:52.166 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 16:57:38.268 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 16:59:37.587 NotebookApp] Kernel interrupted: 62bea6c6-19a2-4062-819a-f6a2a1a015de
+[I 16:59:38.243 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 17:00:08.019 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:00:13.023 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:00:13.025 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[W 17:00:20.180 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:00:25.185 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:00:25.186 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[W 17:00:49.149 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:00:54.153 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:00:54.154 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:01:38.187 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 17:02:44.497 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:02:49.499 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:02:49.500 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[W 17:03:38.878 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:03:43.880 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:03:43.881 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[W 17:03:44.728 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:03:49.730 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:03:49.732 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[W 17:03:59.665 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:04:04.667 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:04:04.668 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:05:38.152 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 17:07:43.961 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:07:48.965 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:07:48.967 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[W 17:07:54.714 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:07:59.716 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:07:59.718 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[W 17:08:05.039 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:08:10.045 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:08:10.047 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[W 17:08:24.922 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:08:25.841 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 17:08:29.924 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:08:29.926 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:08:49.584 NotebookApp] Kernel interrupted: 62bea6c6-19a2-4062-819a-f6a2a1a015de
+[I 17:09:38.142 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 17:11:09.963 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 17:16:21.522 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:16:26.525 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:16:26.528 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[W 17:21:03.898 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:21:08.901 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:21:08.902 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[W 17:28:49.624 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:28:54.627 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:28:54.629 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[W 17:30:12.999 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:30:18.002 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:30:18.004 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[W 17:31:58.922 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:32:03.928 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:32:03.930 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[W 17:34:46.936 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:34:51.941 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:34:51.943 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[W 17:36:05.846 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:36:10.847 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:36:10.849 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[W 17:42:08.089 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:42:13.093 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:42:13.094 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[W 17:46:57.362 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:47:02.365 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:47:02.367 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 17:47:03.616 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 20:36:09.842 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[W 20:37:15.290 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 20:37:20.293 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 20:37:20.294 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[W 20:37:46.063 NotebookApp] Replacing stale connection: 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 20:37:51.066 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 20:37:51.067 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 20:37:54.110 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 18:27:08.571 NotebookApp] Restoring connection for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 18:30:01.951 NotebookApp] Starting buffering for 62bea6c6-19a2-4062-819a-f6a2a1a015de:3c1e27d4d61346ae976dc462d4b62f41
+[I 19:04:25.253 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 19:06:25.861 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 19:10:24.911 NotebookApp] Saving file at /multi_label_classification.ipynb
+[I 06:30:33.940 NotebookApp] Serving notebooks from local directory: /persistent/Sefaria-Project/ML/notebooks
+[I 06:30:33.962 NotebookApp] The Jupyter Notebook is running at:
+[I 06:30:33.962 NotebookApp] http://yishai-remotedocker-0:7890/?token=b2386a74f7421888a79ba55b32c61b45e25254c701fc40ad
+[I 06:30:33.962 NotebookApp]  or http://127.0.0.1:7890/?token=b2386a74f7421888a79ba55b32c61b45e25254c701fc40ad
+[I 06:30:33.962 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[C 06:30:33.966 NotebookApp] 
+    
+    To access the notebook, open this file in a browser:
+        file:///root/.local/share/jupyter/runtime/nbserver-1402-open.html
+    Or copy and paste one of these URLs:
+        http://yishai-remotedocker-0:7890/?token=b2386a74f7421888a79ba55b32c61b45e25254c701fc40ad
+     or http://127.0.0.1:7890/?token=b2386a74f7421888a79ba55b32c61b45e25254c701fc40ad
+[I 06:30:59.864 NotebookApp] 302 GET /?token=b2386a74f7421888a79ba55b32c61b45e25254c701fc40ad (10.142.0.60) 0.67ms
+[I 06:32:49.073 NotebookApp] 302 GET /?token=b2386a74f7421888a79ba55b32c61b45e25254c701fc40ad (10.142.15.193) 0.63ms
+[I 06:33:05.098 NotebookApp] 302 GET /?token=b2386a74f7421888a79ba55b32c61b45e25254c701fc40ad (10.142.15.193) 0.64ms
+[I 06:33:36.401 NotebookApp] 302 GET /?token=b2386a74f7421888a79ba55b32c61b45e25254c701fc40ad (10.142.0.61) 0.56ms
+[I 06:34:57.574 NotebookApp] Writing notebook-signing key to /root/.local/share/jupyter/notebook_secret
+[W 06:34:57.576 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 06:34:59.587 NotebookApp] Kernel started: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83
+[W 06:36:59.051 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 06:37:04.054 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 06:37:04.056 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[W 06:44:49.976 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 06:44:54.979 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 06:44:54.981 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[W 06:45:19.753 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 06:47:00.211 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 06:47:00.212 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 06:49:03.453 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 06:49:03.454 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 07:07:00.920 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 07:07:00.921 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 07:09:00.204 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 07:09:00.205 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 07:11:00.399 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 07:11:00.400 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 07:13:08.563 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 07:13:08.564 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 07:15:00.363 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 07:15:00.364 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 07:17:00.315 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 07:17:00.316 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 07:19:00.346 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 07:19:00.347 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 07:21:00.347 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 07:21:00.348 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 07:23:00.434 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 07:23:00.435 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 07:25:00.514 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 07:25:00.515 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 07:27:03.898 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 07:27:03.899 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 07:29:00.666 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 07:29:00.667 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 07:31:00.646 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 07:31:00.646 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 07:33:00.134 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 07:33:00.135 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 07:34:59.913 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 07:34:59.913 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 07:37:00.074 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 07:37:00.075 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 07:39:00.039 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 07:39:00.040 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 07:41:01.232 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 07:41:01.234 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 07:43:00.034 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 07:43:00.035 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 07:44:49.720 NotebookApp] Kernel interrupted: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83
+[I 07:44:53.331 NotebookApp] Kernel interrupted: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83
+[I 07:45:00.549 NotebookApp] Kernel interrupted: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83
+[I 07:45:25.049 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 07:45:34.805 NotebookApp] Kernel restarted: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83
+[I 07:45:36.138 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 07:45:36.139 NotebookApp] Replaying 2 buffered messages
+[I 07:46:59.917 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 07:46:59.918 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 07:49:00.386 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 07:49:00.386 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 07:51:02.048 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 07:51:02.049 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 07:53:01.671 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 07:53:01.672 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 07:55:01.716 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 07:55:01.717 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 07:57:01.385 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 07:57:01.388 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 07:59:01.616 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 07:59:01.661 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 08:01:01.611 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 08:01:01.614 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 08:07:01.616 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 08:07:01.618 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 08:13:01.665 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 08:13:01.667 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 08:15:01.436 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 08:15:01.438 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[W 08:16:13.057 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 08:16:18.060 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 08:16:18.061 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[W 08:16:32.484 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 08:16:37.486 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 08:16:37.488 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 08:17:01.433 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 08:17:01.435 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[W 08:17:13.597 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 08:17:18.600 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 08:17:18.602 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 08:19:02.387 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 08:19:02.389 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[W 08:20:20.191 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 08:20:25.194 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 08:20:25.196 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 08:21:01.429 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 08:21:01.431 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 08:23:04.779 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 08:23:04.781 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 08:25:01.584 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 08:25:01.587 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 08:27:01.609 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 08:27:01.612 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 08:29:01.633 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 08:29:01.636 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[W 08:31:10.542 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 08:31:15.545 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 08:31:15.547 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 08:33:01.054 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 08:33:01.056 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 08:34:46.487 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 08:34:46.489 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[W 08:50:35.571 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 08:50:40.574 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 08:50:40.577 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[W 08:53:17.645 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 08:53:22.650 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 08:53:22.652 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[W 08:56:10.717 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 08:56:15.720 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 08:56:15.722 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[W 08:58:12.612 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 08:58:17.614 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 08:58:17.616 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[I 09:21:01.767 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 09:21:01.769 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 09:23:01.623 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 09:23:01.625 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 09:23:38.634 NotebookApp] Kernel interrupted: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83
+[I 09:24:31.938 NotebookApp] Kernel interrupted: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83
+[I 09:24:32.447 NotebookApp] Kernel interrupted: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83
+[I 09:24:32.635 NotebookApp] Kernel interrupted: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83
+[I 09:24:32.836 NotebookApp] Kernel interrupted: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83
+[I 09:24:33.014 NotebookApp] Kernel interrupted: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83
+[I 09:25:00.742 NotebookApp] Kernel interrupted: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83
+[I 09:25:00.902 NotebookApp] Kernel interrupted: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83
+[I 09:25:00.911 NotebookApp] Kernel interrupted: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83
+[I 09:25:01.070 NotebookApp] Kernel interrupted: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83
+[I 09:25:01.245 NotebookApp] Kernel interrupted: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83
+[I 09:25:01.414 NotebookApp] Kernel interrupted: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83
+[I 09:25:03.696 NotebookApp] Kernel interrupted: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83
+[I 09:25:03.872 NotebookApp] Kernel interrupted: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83
+[I 09:25:04.079 NotebookApp] Kernel interrupted: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83
+[I 09:27:01.313 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 09:27:01.316 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 09:29:01.348 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 09:29:01.350 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 09:31:01.341 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 09:31:01.343 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 09:33:01.639 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 09:33:01.642 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 09:35:01.473 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 09:35:01.475 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 09:39:12.947 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 09:39:12.949 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 09:39:59.021 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 09:39:59.024 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 09:41:35.094 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 09:41:35.096 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 09:42:12.326 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 09:42:12.329 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 09:43:55.153 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 09:43:55.155 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 09:46:15.288 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 09:46:15.290 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 09:48:35.150 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 09:48:35.153 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 09:53:15.026 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 09:53:15.028 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 09:55:34.894 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 09:55:34.896 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 09:57:54.949 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 09:57:54.952 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 10:00:14.899 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 10:00:14.902 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 10:02:35.019 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 10:02:35.022 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 10:04:54.860 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 10:04:54.862 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 10:07:14.876 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 10:07:14.879 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 10:09:34.857 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 10:09:34.860 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 10:11:54.900 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 10:11:54.902 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 10:14:15.005 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 10:14:15.007 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 10:16:34.942 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 10:16:34.945 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 10:18:54.871 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 10:18:54.874 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 10:21:17.217 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 10:21:17.220 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 10:23:35.039 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 10:23:35.042 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 10:25:55.092 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 10:25:55.094 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 10:28:14.982 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 10:28:14.985 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 10:30:34.885 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 10:30:34.887 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 10:35:15.032 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 10:35:15.036 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 10:37:34.891 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 10:37:34.894 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 10:39:54.984 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 10:39:54.987 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 10:47:42.703 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 10:47:42.705 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 11:05:43.143 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 11:05:43.146 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 11:10:15.030 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 11:10:15.033 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 11:12:34.950 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 11:12:34.953 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 11:21:55.025 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 11:21:55.028 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 11:29:14.728 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 11:29:14.731 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 11:31:09.263 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 11:31:09.266 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 12:12:15.159 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 12:12:15.162 NotebookApp] Notebook multi_label_classification.ipynb is not trusted

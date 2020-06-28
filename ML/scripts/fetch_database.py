@@ -1,9 +1,18 @@
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'sefaria.settings'
+
+import sys
+sys.path.insert(1, '/persistent/Sefaria-Project/')
+
+import csv
 import django
 django.setup()
-from sefaria.model import *
-import csv
+
 from tqdm import tqdm
+from sefaria.model import *
 from sefaria.system.database import db
+
+
 rows = []
 aggregated_passages = db.topic_links.aggregate(
     [
@@ -32,7 +41,11 @@ passage_list = list(aggregated_passages)
 topic_cache = {}
 parent_cache = {}
 for passage in tqdm(passage_list):
-    ref = Ref(passage['_id'])
+    try:
+        ref = Ref(passage['_id'])
+    except:
+        print(f"Problem reading Ref(passage['_id']) for this passage --> {passage}.")
+        continue
     topics = []
     for slug in passage['topics']:
         if slug in topic_cache:

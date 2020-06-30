@@ -10,4 +10,8 @@ numpy
 lxml
 ipynb-py-convert
 scikit-multilearn
-itertools
+# itertools
+virtualenv
+ipykernel
+Unidecode
+mplcursors

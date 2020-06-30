@@ -692,3 +692,1031 @@
 [W 11:31:09.266 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
 [I 12:12:15.159 NotebookApp] Saving file at /multi_label_classification.ipynb
 [W 12:12:15.162 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 12:44:28.196 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 12:44:28.200 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[W 12:44:37.608 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 12:46:17.925 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:b1472ebcb95740c282026334b7611f90
+[W 12:46:57.114 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[W 12:47:12.279 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:75a4bc5b7e84414283aca06b41feecc8
+[I 12:47:17.282 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:75a4bc5b7e84414283aca06b41feecc8
+[I 12:47:17.284 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:75a4bc5b7e84414283aca06b41feecc8
+[I 12:49:05.637 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 12:49:05.640 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[W 12:49:28.669 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:75a4bc5b7e84414283aca06b41feecc8
+[I 12:49:33.671 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:75a4bc5b7e84414283aca06b41feecc8
+[I 12:49:33.673 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:75a4bc5b7e84414283aca06b41feecc8
+[I 12:51:05.457 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 12:51:05.459 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 12:55:05.424 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 12:55:05.426 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[W 12:55:58.833 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:75a4bc5b7e84414283aca06b41feecc8
+[I 12:56:03.834 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:75a4bc5b7e84414283aca06b41feecc8
+[I 12:56:03.836 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:75a4bc5b7e84414283aca06b41feecc8
+[W 12:56:24.276 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:75a4bc5b7e84414283aca06b41feecc8
+[I 12:56:29.278 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:75a4bc5b7e84414283aca06b41feecc8
+[I 12:56:29.279 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:75a4bc5b7e84414283aca06b41feecc8
+[W 12:56:33.741 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:75a4bc5b7e84414283aca06b41feecc8
+[I 12:56:38.743 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:75a4bc5b7e84414283aca06b41feecc8
+[I 12:56:38.745 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:75a4bc5b7e84414283aca06b41feecc8
+[I 12:57:05.524 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 12:57:05.583 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 13:00:06.972 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 13:00:06.975 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 13:00:07.779 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:75a4bc5b7e84414283aca06b41feecc8
+[W 13:00:23.282 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[W 13:01:01.295 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:7c8c5dfbf03247499fa97662d3580cc7
+[I 13:01:01.301 NotebookApp] Creating new notebook in 
+[I 13:01:04.417 NotebookApp] Kernel started: 60dafb38-fcd4-4ecd-9731-f303d95b9eee
+[I 13:01:06.297 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:7c8c5dfbf03247499fa97662d3580cc7
+[I 13:01:06.299 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:7c8c5dfbf03247499fa97662d3580cc7
+[I 13:02:30.160 NotebookApp] Saving file at /multi_label_classification.ipynb
+[W 13:02:30.163 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 13:03:06.219 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 13:03:06.222 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[W 13:05:04.323 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:05:06.286 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 13:05:06.289 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 13:05:09.327 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:05:09.329 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 13:05:09.675 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:7c8c5dfbf03247499fa97662d3580cc7
+[I 13:05:14.677 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:7c8c5dfbf03247499fa97662d3580cc7
+[I 13:05:14.680 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:7c8c5dfbf03247499fa97662d3580cc7
+[W 13:06:12.334 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:7c8c5dfbf03247499fa97662d3580cc7
+[I 13:06:17.336 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:7c8c5dfbf03247499fa97662d3580cc7
+[I 13:06:17.338 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:7c8c5dfbf03247499fa97662d3580cc7
+[W 13:06:17.681 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:06:22.682 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:06:22.683 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 13:09:14.774 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:7c8c5dfbf03247499fa97662d3580cc7
+[I 13:09:19.776 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:7c8c5dfbf03247499fa97662d3580cc7
+[I 13:09:19.778 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:7c8c5dfbf03247499fa97662d3580cc7
+[W 13:09:20.138 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:09:25.142 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:09:25.144 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 13:09:51.819 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:7c8c5dfbf03247499fa97662d3580cc7
+[I 13:09:56.822 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:7c8c5dfbf03247499fa97662d3580cc7
+[I 13:09:56.823 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:7c8c5dfbf03247499fa97662d3580cc7
+[W 13:09:57.178 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:10:02.180 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:10:02.181 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:11:06.293 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 13:11:06.296 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 13:12:00.370 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:7c8c5dfbf03247499fa97662d3580cc7
+[I 13:12:48.540 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 13:12:48.543 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 13:12:52.827 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 13:12:52.830 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 13:15:06.300 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 13:15:06.303 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 13:17:06.309 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 13:17:06.312 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[W 13:19:04.413 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:19:06.366 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 13:19:06.369 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 13:19:09.417 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:19:09.419 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 13:19:35.267 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:19:40.270 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:19:40.271 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:21:05.926 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 13:21:05.929 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[W 13:23:15.285 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:23:20.286 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:23:20.289 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 13:24:11.352 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:24:16.356 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:24:16.358 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 13:24:26.327 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:24:31.331 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:24:31.333 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:25:06.709 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 13:25:06.712 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[W 13:26:50.369 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:26:55.374 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:26:55.376 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 13:27:02.348 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:27:06.485 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 13:27:06.488 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 13:27:07.350 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:27:07.352 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:29:06.073 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 13:29:06.075 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[W 13:31:16.377 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:31:21.380 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:31:21.382 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:33:06.232 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 13:33:06.234 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 13:35:06.237 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 13:35:06.240 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 13:37:06.009 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 13:37:06.012 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[W 13:39:54.874 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:39:59.877 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:39:59.879 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:45:06.047 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 13:45:06.049 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 13:47:06.231 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 13:47:06.234 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[W 13:56:11.353 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:56:16.358 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:56:16.360 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 13:57:07.232 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 13:57:07.234 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 13:59:08.737 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 13:59:08.740 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 14:01:06.589 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 14:01:06.591 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 14:03:07.956 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 14:03:07.959 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 14:05:07.528 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 14:05:07.531 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[W 14:07:14.969 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:07:16.702 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 14:07:16.704 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 14:07:19.970 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:07:19.972 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:09:29.816 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 14:09:29.821 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[W 14:13:19.320 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:13:24.324 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:13:24.326 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 14:13:53.891 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:13:56.471 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 14:13:56.472 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 14:13:58.893 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:13:58.894 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 14:14:11.245 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:14:16.249 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:14:16.251 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 14:14:39.866 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:14:44.869 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:14:44.871 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:15:59.139 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 14:15:59.141 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 14:17:39.208 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 14:17:39.210 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[W 14:17:45.857 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:17:50.859 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:17:50.860 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 14:18:30.825 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:18:35.828 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:18:35.830 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:20:19.250 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 14:20:19.254 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 14:22:29.225 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 14:22:29.228 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[W 14:27:03.336 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:27:08.338 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:27:08.349 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 14:29:07.301 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:29:12.304 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:29:12.306 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 14:29:18.705 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:29:23.707 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:29:23.709 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 14:31:17.834 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:31:22.836 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:31:22.838 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:33:19.847 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 14:33:19.850 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 14:34:15.444 NotebookApp] Kernel interrupted: 60dafb38-fcd4-4ecd-9731-f303d95b9eee
+[I 14:34:20.786 NotebookApp] Kernel interrupted: 60dafb38-fcd4-4ecd-9731-f303d95b9eee
+[I 14:34:21.750 NotebookApp] Kernel interrupted: 60dafb38-fcd4-4ecd-9731-f303d95b9eee
+[I 14:34:21.931 NotebookApp] Kernel interrupted: 60dafb38-fcd4-4ecd-9731-f303d95b9eee
+[I 14:34:22.101 NotebookApp] Kernel interrupted: 60dafb38-fcd4-4ecd-9731-f303d95b9eee
+[I 14:34:26.169 NotebookApp] Kernel interrupted: 60dafb38-fcd4-4ecd-9731-f303d95b9eee
+[I 14:34:36.094 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:34:38.803 NotebookApp] Kernel restarted: 60dafb38-fcd4-4ecd-9731-f303d95b9eee
+[I 14:34:39.673 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:34:39.673 NotebookApp] Replaying 6 buffered messages
+[I 14:35:29.917 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 14:35:29.921 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 14:37:39.740 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 14:37:39.743 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[W 14:39:15.496 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:39:20.499 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:39:20.501 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:39:49.899 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 14:39:49.902 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[W 14:46:22.371 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:46:27.374 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:46:27.376 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 14:59:19.664 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 14:59:19.668 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 14:59:58.434 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 14:59:58.437 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 15:01:29.821 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 15:01:29.825 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 15:02:39.567 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 15:02:39.570 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 15:03:39.741 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 15:03:39.744 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 15:05:49.685 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 15:05:49.689 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 15:07:59.808 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 15:07:59.811 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 15:10:09.665 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 15:10:09.669 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 15:12:19.854 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 15:12:19.858 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 15:16:39.650 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 15:16:39.653 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 15:18:49.896 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 15:18:49.899 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 15:20:56.079 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 15:20:56.082 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 15:56:29.587 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 16:27:16.980 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 16:28:51.085 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 16:28:56.086 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 16:28:56.088 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 16:29:27.133 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 16:29:32.136 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 16:29:32.137 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 16:32:29.108 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 16:32:29.112 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 16:34:38.981 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 16:34:38.984 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 16:36:49.084 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 16:36:49.086 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 16:38:59.090 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 16:38:59.092 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 16:41:09.351 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 16:41:09.354 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 16:43:19.009 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 16:43:19.012 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 16:45:31.829 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 16:45:31.832 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 16:47:38.674 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 16:47:38.677 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 16:49:49.107 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 16:49:49.110 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[W 16:52:07.693 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 16:52:12.696 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 16:52:12.698 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 16:54:08.744 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 16:54:08.746 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 16:56:18.996 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 16:56:18.999 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 16:58:29.114 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 16:58:29.116 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 17:00:55.353 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 17:00:55.356 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 17:04:18.451 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 17:04:18.454 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[W 17:06:01.536 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 17:06:06.538 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 17:06:06.540 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 17:07:28.054 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 17:07:28.057 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 17:10:57.668 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 17:10:57.671 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 17:11:57.442 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 17:11:57.445 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[W 17:34:29.203 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 17:34:34.207 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 17:34:34.210 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 17:48:14.683 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 17:57:20.436 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 18:03:21.401 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 18:03:26.404 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 18:03:26.406 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 18:15:57.824 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 18:16:02.826 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 18:16:02.827 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 18:29:19.324 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 18:29:24.326 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 18:29:24.328 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 18:29:57.596 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 20:43:01.654 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 20:44:55.599 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 20:45:00.602 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 20:45:00.603 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 20:45:13.113 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 20:45:18.115 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 20:45:18.116 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 20:46:46.881 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 06:20:32.803 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 06:21:39.760 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 06:21:44.763 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 06:21:44.764 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 06:21:57.742 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 06:22:02.744 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 06:22:02.745 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 06:22:13.167 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 06:22:18.169 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 06:22:18.170 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 06:22:39.707 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 06:22:44.709 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 06:22:44.710 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 06:28:00.114 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 06:28:05.119 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 06:28:05.121 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 06:30:59.073 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 06:30:59.078 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 06:34:32.120 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 06:34:32.123 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 06:38:02.249 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 06:38:02.252 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 06:41:31.667 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 06:41:31.671 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[W 06:41:46.632 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 06:41:51.635 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 06:41:51.638 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 06:45:10.209 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 06:45:15.211 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 06:45:15.213 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 06:48:32.421 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 06:48:32.424 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 06:52:02.260 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 06:52:02.264 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[W 06:55:39.778 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 06:55:44.780 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 06:55:44.782 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 06:59:02.401 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 06:59:02.405 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 07:02:32.470 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 07:02:32.473 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 07:09:31.827 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 07:09:31.831 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 07:13:01.986 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 07:13:01.988 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[W 07:16:39.991 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 07:16:41.648 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 07:16:41.651 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 07:16:44.993 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 07:16:44.995 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 07:16:54.292 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 07:16:59.294 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 07:16:59.296 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 07:17:12.352 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 07:17:17.355 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 07:17:17.356 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 07:23:32.040 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 07:23:32.044 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 07:27:01.858 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 07:27:01.861 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 07:30:32.016 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 07:30:32.019 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 07:34:01.858 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 07:34:01.861 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 07:37:31.986 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 07:37:31.989 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 07:41:02.433 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 07:41:02.436 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 07:44:32.699 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 07:44:32.702 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+/usr/local/lib/python3.7/site-packages/sklearn/linear_model/_sag.py:330: ConvergenceWarning: The max_iter was reached which means the coef_ did not converge
+  "the coef_ did not converge", ConvergenceWarning)
+/usr/local/lib/python3.7/site-packages/sklearn/linear_model/_sag.py:330: ConvergenceWarning: The max_iter was reached which means the coef_ did not converge
+  "the coef_ did not converge", ConvergenceWarning)
+[I 07:48:01.855 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 07:48:01.859 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 07:51:31.997 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 07:51:32.000 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 08:02:02.590 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 08:02:02.593 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+/usr/local/lib/python3.7/site-packages/sklearn/linear_model/_sag.py:330: ConvergenceWarning: The max_iter was reached which means the coef_ did not converge
+  "the coef_ did not converge", ConvergenceWarning)
+/usr/local/lib/python3.7/site-packages/sklearn/linear_model/_sag.py:330: ConvergenceWarning: The max_iter was reached which means the coef_ did not converge
+  "the coef_ did not converge", ConvergenceWarning)
+/usr/local/lib/python3.7/site-packages/sklearn/linear_model/_sag.py:330: ConvergenceWarning: The max_iter was reached which means the coef_ did not converge
+  "the coef_ did not converge", ConvergenceWarning)
+/usr/local/lib/python3.7/site-packages/sklearn/linear_model/_sag.py:330: ConvergenceWarning: The max_iter was reached which means the coef_ did not converge
+  "the coef_ did not converge", ConvergenceWarning)
+[I 08:05:32.711 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 08:05:32.714 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 08:09:01.059 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 08:09:01.062 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 08:12:32.737 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 08:12:32.743 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 08:16:02.411 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 08:16:02.414 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 08:19:32.659 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 08:19:32.663 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 08:26:32.517 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 08:26:32.520 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 08:30:02.507 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 08:30:02.512 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 08:33:32.439 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 08:33:32.442 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 08:37:02.614 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 08:37:02.617 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 09:09:45.654 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 11:00:50.549 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 11:01:09.389 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 11:01:14.393 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 11:01:14.395 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 11:04:02.811 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 11:04:02.814 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 11:07:32.847 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 11:07:32.849 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 11:14:32.807 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 11:14:32.811 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 11:18:02.708 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 11:18:02.711 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 11:19:03.594 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 11:19:03.596 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[W 11:19:22.161 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 11:19:27.163 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 11:19:27.165 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[I 11:19:31.321 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:baf7cd4679e947558585c6205b930f09
+[W 11:41:26.908 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[W 11:42:11.223 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[W 11:42:11.304 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[I 11:42:16.226 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 11:42:16.228 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 11:43:52.408 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 11:43:52.411 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 11:45:52.185 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 11:45:52.189 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 11:53:52.318 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 11:53:52.322 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[W 11:55:45.668 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 11:55:50.670 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 11:55:50.672 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 11:55:53.421 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 11:55:53.425 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[W 11:56:52.555 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 11:56:57.558 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 11:56:57.560 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[W 11:58:01.872 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 11:58:03.987 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 11:58:03.989 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 11:58:06.874 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 11:58:06.876 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[W 11:58:07.242 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 11:58:12.245 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 11:58:12.247 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[W 12:00:38.859 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 12:00:41.214 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 12:00:41.217 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 12:00:43.861 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 12:00:43.863 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[W 12:00:44.208 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 12:00:49.212 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 12:00:49.214 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 12:01:42.928 NotebookApp] Kernel interrupted: 60dafb38-fcd4-4ecd-9731-f303d95b9eee
+[I 12:01:47.173 NotebookApp] Kernel interrupted: 60dafb38-fcd4-4ecd-9731-f303d95b9eee
+[I 12:01:52.214 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 12:01:54.144 NotebookApp] Kernel restarted: 60dafb38-fcd4-4ecd-9731-f303d95b9eee
+[I 12:01:55.147 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 12:01:55.148 NotebookApp] Replaying 5 buffered messages
+[I 12:03:42.186 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[I 12:06:43.746 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[I 12:09:43.514 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[I 12:15:43.114 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[I 12:18:42.877 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[I 12:21:42.556 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[I 12:24:42.524 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[I 12:27:42.456 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 12:28:46.948 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 12:28:51.950 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 12:28:51.952 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[W 12:28:52.293 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 12:28:57.295 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 12:28:57.297 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 12:30:43.329 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 12:31:21.132 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 12:31:26.135 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 12:31:26.136 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[W 12:31:26.485 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 12:31:31.487 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 12:31:31.489 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[W 12:32:35.975 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[W 12:32:36.954 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 12:32:40.976 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 12:32:40.978 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 12:32:41.957 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 12:32:41.958 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[W 12:32:45.653 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 12:32:50.656 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 12:32:50.658 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[W 12:32:57.773 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 12:33:02.776 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 12:33:02.777 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[W 12:33:18.847 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 12:33:23.850 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 12:33:23.852 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 12:33:43.303 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 12:33:57.741 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 12:34:02.743 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 12:34:02.744 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 12:39:43.360 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 12:46:30.763 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 12:46:35.767 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 12:46:35.769 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[W 12:46:36.102 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 12:46:41.104 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 12:46:41.106 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 12:51:43.249 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 12:57:16.008 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 12:57:21.011 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 12:57:21.012 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[W 12:57:21.374 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 12:57:26.376 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 12:57:26.378 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 12:57:43.369 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[I 13:00:43.566 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 13:01:12.543 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 13:01:17.545 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 13:01:17.547 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[W 13:01:17.912 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 13:01:22.914 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 13:01:22.916 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 13:03:44.248 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[I 13:06:42.954 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[I 13:09:43.588 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[I 13:12:42.669 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[I 13:15:42.678 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[I 13:21:42.963 NotebookApp] Saving file at /multi-label_2.0.ipynb
+/usr/local/lib/python3.7/site-packages/sklearn/linear_model/_sag.py:330: ConvergenceWarning: The max_iter was reached which means the coef_ did not converge
+  "the coef_ did not converge", ConvergenceWarning)
+/usr/local/lib/python3.7/site-packages/sklearn/linear_model/_sag.py:330: ConvergenceWarning: The max_iter was reached which means the coef_ did not converge
+  "the coef_ did not converge", ConvergenceWarning)
+[I 13:24:42.826 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[I 13:27:42.596 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 13:28:09.259 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 13:28:14.262 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 13:28:14.263 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[W 13:28:14.623 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 13:28:19.624 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 13:28:19.626 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 13:30:43.501 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[I 13:33:42.933 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 13:35:33.235 NotebookApp] Replacing stale connection: 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 13:35:38.238 NotebookApp] Starting buffering for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[I 13:35:38.239 NotebookApp] Restoring connection for 23ce8f6e-9e03-4af9-ad4f-1bfed242eb83:45d27f04377a4ee09a3f9cfc252d32ae
+[W 13:35:38.584 NotebookApp] Replacing stale connection: 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 13:35:43.587 NotebookApp] Starting buffering for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 13:35:43.588 NotebookApp] Restoring connection for 60dafb38-fcd4-4ecd-9731-f303d95b9eee:abfe27a920aa40ceb383cc6e91449f46
+[I 13:36:45.572 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[I 13:39:43.822 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[I 13:42:42.110 NotebookApp] Saving file at /multi-label_2.0.ipynb
+Traceback (most recent call last):
+  File "/usr/local/bin/jupyter", line 8, in <module>
+    sys.exit(main())
+  File "/usr/local/lib/python3.7/site-packages/jupyter_core/command.py", line 247, in main
+    command = _jupyter_abspath(subcommand)
+  File "/usr/local/lib/python3.7/site-packages/jupyter_core/command.py", line 134, in _jupyter_abspath
+    'Jupyter command `{}` not found.'.format(jupyter_subcommand)
+Exception: Jupyter command `jupyter-notebook` not found.
+[I 14:22:30.364 NotebookApp] Writing notebook server cookie secret to /root/.local/share/jupyter/runtime/notebook_cookie_secret
+[I 14:22:30.608 NotebookApp] Serving notebooks from local directory: /persistent/Sefaria-Project/ML/notebooks
+[I 14:22:30.609 NotebookApp] The Jupyter Notebook is running at:
+[I 14:22:30.609 NotebookApp] http://yishai-remotedocker-0:7890/?token=7fd141ad5f7957f5f634ecafa856062c45e787698d882619
+[I 14:22:30.609 NotebookApp]  or http://127.0.0.1:7890/?token=7fd141ad5f7957f5f634ecafa856062c45e787698d882619
+[I 14:22:30.609 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[C 14:22:30.613 NotebookApp] 
+    
+    To access the notebook, open this file in a browser:
+        file:///root/.local/share/jupyter/runtime/nbserver-167-open.html
+    Or copy and paste one of these URLs:
+        http://yishai-remotedocker-0:7890/?token=7fd141ad5f7957f5f634ecafa856062c45e787698d882619
+     or http://127.0.0.1:7890/?token=7fd141ad5f7957f5f634ecafa856062c45e787698d882619
+[I 14:23:36.779 NotebookApp] 302 GET /?token=7fd141ad5f7957f5f634ecafa856062c45e787698d882619 (10.142.15.194) 0.70ms
+[I 14:24:06.464 NotebookApp] 302 GET /?token=7fd141ad5f7957f5f634ecafa856062c45e787698d882619 (10.142.15.196) 0.70ms
+[I 14:24:25.643 NotebookApp] 302 GET /?token=7fd141ad5f7957f5f634ecafa856062c45e787698d882619 (10.142.0.63) 0.62ms
+[I 14:24:26.444 NotebookApp] 302 GET /?token=7fd141ad5f7957f5f634ecafa856062c45e787698d882619 (10.142.0.63) 0.44ms
+[I 14:24:36.162 NotebookApp] 302 GET /?token=7fd141ad5f7957f5f634ecafa856062c45e787698d882619 (10.142.0.63) 0.62ms
+[I 14:26:06.248 NotebookApp] Writing notebook-signing key to /root/.local/share/jupyter/notebook_secret
+[W 14:26:06.252 NotebookApp] Notebook multi_label_classification.ipynb is not trusted
+[W 14:26:16.306 NotebookApp] 404 GET /nbextensions/widgets/notebook/js/extension.js?v=20200629142230 (10.142.0.61) 7.87ms referer=http://35.196.229.122:7890/notebooks/multi_label_classification.ipynb
+[W 14:27:34.800 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 14:27:41.078 NotebookApp] Kernel started: 0f0f20a7-edd9-432a-be78-c6a6971c373b
+[I 14:29:41.645 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 14:32:26.390 NotebookApp] Replacing stale connection: 0f0f20a7-edd9-432a-be78-c6a6971c373b:8cf77c2a6bcf42c9854a61853b7f0ff1
+[I 14:32:31.393 NotebookApp] Starting buffering for 0f0f20a7-edd9-432a-be78-c6a6971c373b:8cf77c2a6bcf42c9854a61853b7f0ff1
+[I 14:32:31.395 NotebookApp] Restoring connection for 0f0f20a7-edd9-432a-be78-c6a6971c373b:8cf77c2a6bcf42c9854a61853b7f0ff1
+[I 14:33:42.635 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[IPKernelApp] WARNING | Parent appears to have exited, shutting down.
+[I 14:55:29.366 NotebookApp] Writing notebook server cookie secret to /root/.local/share/jupyter/runtime/notebook_cookie_secret
+[I 14:55:29.779 NotebookApp] Serving notebooks from local directory: /persistent/Sefaria-Project/ML/notebooks
+[I 14:55:29.779 NotebookApp] The Jupyter Notebook is running at:
+[I 14:55:29.779 NotebookApp] http://yishai-remotedocker-0:7890/?token=e9a7e0c322baf29c0515592957d0658e40eb9a8781bb5d2c
+[I 14:55:29.779 NotebookApp]  or http://127.0.0.1:7890/?token=e9a7e0c322baf29c0515592957d0658e40eb9a8781bb5d2c
+[I 14:55:29.780 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[C 14:55:29.784 NotebookApp] 
+    
+    To access the notebook, open this file in a browser:
+        file:///root/.local/share/jupyter/runtime/nbserver-442-open.html
+    Or copy and paste one of these URLs:
+        http://yishai-remotedocker-0:7890/?token=e9a7e0c322baf29c0515592957d0658e40eb9a8781bb5d2c
+     or http://127.0.0.1:7890/?token=e9a7e0c322baf29c0515592957d0658e40eb9a8781bb5d2c
+[W 14:56:02.291 NotebookApp] Clearing invalid/expired login cookie username-35-196-229-122-7890
+[W 14:56:02.292 NotebookApp] Clearing invalid/expired login cookie username-35-196-229-122-7890
+[I 14:56:02.293 NotebookApp] 302 GET /notebooks/multi-label_2.0.ipynb (10.142.15.192) 2.36ms
+[I 14:56:34.091 NotebookApp] 302 GET /?token=7fd141ad5f7957f5f634ecafa856062c45e787698d882619 (10.142.15.199) 1.14ms
+[W 14:56:34.267 NotebookApp] Clearing invalid/expired login cookie username-35-196-229-122-7890
+[W 14:56:34.268 NotebookApp] Clearing invalid/expired login cookie username-35-196-229-122-7890
+[I 14:56:34.268 NotebookApp] 302 GET /tree?token=7fd141ad5f7957f5f634ecafa856062c45e787698d882619 (10.142.15.199) 1.75ms
+[I 14:56:49.644 NotebookApp] 302 GET /?token=e9a7e0c322baf29c0515592957d0658e40eb9a8781bb5d2c (10.142.15.193) 0.74ms
+[I 14:57:41.617 NotebookApp] 302 GET /?token=e9a7e0c322baf29c0515592957d0658e40eb9a8781bb5d2c (10.142.15.195) 0.67ms
+[I 14:58:07.996 NotebookApp] 302 GET /?token=e9a7e0c322baf29c0515592957d0658e40eb9a8781bb5d2c (10.142.0.60) 0.58ms
+[I 14:58:15.250 NotebookApp] Writing notebook-signing key to /root/.local/share/jupyter/notebook_secret
+[W 14:58:15.254 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 14:58:22.595 NotebookApp] Kernel started: 3095f678-32a2-4f3b-b759-4611b96065c0
+[I 15:00:24.151 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 15:00:24.153 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 15:02:23.911 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 15:02:23.914 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[W 15:03:35.121 NotebookApp] Replacing stale connection: 3095f678-32a2-4f3b-b759-4611b96065c0:b9f949034e10480b8aa70bc5105b1701
+[I 15:03:40.124 NotebookApp] Starting buffering for 3095f678-32a2-4f3b-b759-4611b96065c0:b9f949034e10480b8aa70bc5105b1701
+[I 15:03:40.126 NotebookApp] Restoring connection for 3095f678-32a2-4f3b-b759-4611b96065c0:b9f949034e10480b8aa70bc5105b1701
+[I 15:04:24.436 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 15:04:24.438 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 15:06:24.639 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 15:06:24.641 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 15:08:23.975 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 15:08:23.977 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 15:10:23.638 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 15:10:23.640 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 15:12:23.705 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 15:12:23.707 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[W 15:12:37.549 NotebookApp] Replacing stale connection: 3095f678-32a2-4f3b-b759-4611b96065c0:b9f949034e10480b8aa70bc5105b1701
+[I 15:12:42.552 NotebookApp] Starting buffering for 3095f678-32a2-4f3b-b759-4611b96065c0:b9f949034e10480b8aa70bc5105b1701
+[I 15:12:42.553 NotebookApp] Restoring connection for 3095f678-32a2-4f3b-b759-4611b96065c0:b9f949034e10480b8aa70bc5105b1701
+[I 15:14:24.497 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 15:14:24.499 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[W 15:16:21.472 NotebookApp] Replacing stale connection: 3095f678-32a2-4f3b-b759-4611b96065c0:b9f949034e10480b8aa70bc5105b1701
+[I 15:16:26.312 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 15:16:26.313 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 15:16:26.473 NotebookApp] Starting buffering for 3095f678-32a2-4f3b-b759-4611b96065c0:b9f949034e10480b8aa70bc5105b1701
+[I 15:16:26.474 NotebookApp] Restoring connection for 3095f678-32a2-4f3b-b759-4611b96065c0:b9f949034e10480b8aa70bc5105b1701
+[I 15:18:24.342 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 15:18:24.344 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 15:20:23.954 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[IPKernelApp] WARNING | Parent appears to have exited, shutting down.
+[I 15:27:02.041 NotebookApp] Writing notebook server cookie secret to /root/.local/share/jupyter/runtime/notebook_cookie_secret
+[I 15:27:02.413 NotebookApp] Serving notebooks from local directory: /persistent/Sefaria-Project/ML/notebooks
+[I 15:27:02.413 NotebookApp] The Jupyter Notebook is running at:
+[I 15:27:02.413 NotebookApp] http://yishai-remotedocker-0:7890/?token=ea4f7a256b7eb8b390bc2f6afecb0c8cefe2513701da1bf4
+[I 15:27:02.413 NotebookApp]  or http://127.0.0.1:7890/?token=ea4f7a256b7eb8b390bc2f6afecb0c8cefe2513701da1bf4
+[I 15:27:02.413 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[C 15:27:02.416 NotebookApp] 
+    
+    To access the notebook, open this file in a browser:
+        file:///root/.local/share/jupyter/runtime/nbserver-215-open.html
+    Or copy and paste one of these URLs:
+        http://yishai-remotedocker-0:7890/?token=ea4f7a256b7eb8b390bc2f6afecb0c8cefe2513701da1bf4
+     or http://127.0.0.1:7890/?token=ea4f7a256b7eb8b390bc2f6afecb0c8cefe2513701da1bf4
+[I 15:27:52.890 NotebookApp] 302 GET /?token=ea4f7a256b7eb8b390bc2f6afecb0c8cefe2513701da1bf4 (10.142.15.195) 0.83ms
+[I 15:28:16.811 NotebookApp] 302 GET /?token=ea4f7a256b7eb8b390bc2f6afecb0c8cefe2513701da1bf4 (10.8.0.1) 0.69ms
+[W 15:28:22.765 NotebookApp] Clearing invalid/expired login cookie username-35-196-229-122-7890
+[W 15:28:22.766 NotebookApp] Forbidden
+[W 15:28:22.766 NotebookApp] 403 GET /api/contents/multi-label_2.0.ipynb?content=0&_=1593442694463 (10.8.0.1) 1.57ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[W 15:28:24.634 NotebookApp] Forbidden
+[W 15:28:24.635 NotebookApp] 403 PUT /api/contents/multi-label_2.0.ipynb (10.8.0.1) 1651.35ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[W 15:30:22.630 NotebookApp] Forbidden
+[W 15:30:22.631 NotebookApp] 403 GET /api/contents/multi-label_2.0.ipynb?content=0&_=1593442694464 (10.8.0.1) 1.82ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[W 15:30:24.220 NotebookApp] Forbidden
+[W 15:30:24.220 NotebookApp] 403 PUT /api/contents/multi-label_2.0.ipynb (10.8.0.1) 1379.06ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[W 15:32:22.632 NotebookApp] Forbidden
+[W 15:32:22.635 NotebookApp] 403 GET /api/contents/multi-label_2.0.ipynb?content=0&_=1593442694465 (10.8.0.1) 6.06ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[W 15:32:23.993 NotebookApp] Forbidden
+[W 15:32:23.994 NotebookApp] 403 PUT /api/contents/multi-label_2.0.ipynb (10.8.0.1) 1154.25ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[I 15:36:02.140 NotebookApp] Writing notebook server cookie secret to /root/.local/share/jupyter/runtime/notebook_cookie_secret
+[I 15:36:02.490 NotebookApp] Serving notebooks from local directory: /persistent/Sefaria-Project/ML/notebooks
+[I 15:36:02.490 NotebookApp] The Jupyter Notebook is running at:
+[I 15:36:02.490 NotebookApp] http://yishai-remotedocker-0:7890/?token=d7c1c8190638239a2129176944d2b4593b2ff0d0fd27a0f4
+[I 15:36:02.490 NotebookApp]  or http://127.0.0.1:7890/?token=d7c1c8190638239a2129176944d2b4593b2ff0d0fd27a0f4
+[I 15:36:02.490 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[C 15:36:02.494 NotebookApp] 
+    
+    To access the notebook, open this file in a browser:
+        file:///root/.local/share/jupyter/runtime/nbserver-119-open.html
+    Or copy and paste one of these URLs:
+        http://yishai-remotedocker-0:7890/?token=d7c1c8190638239a2129176944d2b4593b2ff0d0fd27a0f4
+     or http://127.0.0.1:7890/?token=d7c1c8190638239a2129176944d2b4593b2ff0d0fd27a0f4
+[W 15:36:22.829 NotebookApp] Forbidden
+[W 15:36:22.829 NotebookApp] 403 GET /api/contents/multi-label_2.0.ipynb?content=0&_=1593442694467 (10.142.15.196) 1.32ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[W 15:36:24.844 NotebookApp] Forbidden
+[W 15:36:24.845 NotebookApp] 403 PUT /api/contents/multi-label_2.0.ipynb (10.142.15.196) 1789.14ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[I 15:38:18.788 NotebookApp] 302 GET /?token=d7c1c8190638239a2129176944d2b4593b2ff0d0fd27a0f4 (10.142.15.199) 0.78ms
+[W 15:38:22.810 NotebookApp] Forbidden
+[W 15:38:22.811 NotebookApp] 403 GET /api/contents/multi-label_2.0.ipynb?content=0&_=1593442694468 (10.142.15.196) 1.54ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[W 15:38:24.767 NotebookApp] Forbidden
+[W 15:38:24.768 NotebookApp] 403 PUT /api/contents/multi-label_2.0.ipynb (10.142.15.196) 1746.50ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[I 15:39:11.897 NotebookApp] 302 GET /?token=d7c1c8190638239a2129176944d2b4593b2ff0d0fd27a0f4 (10.142.15.195) 0.69ms
+[I 15:39:21.252 NotebookApp] 302 GET /?token=d7c1c8190638239a2129176944d2b4593b2ff0d0fd27a0f4 (10.142.15.199) 0.65ms
+[W 15:40:22.639 NotebookApp] Forbidden
+[W 15:40:22.639 NotebookApp] 403 GET /api/contents/multi-label_2.0.ipynb?content=0&_=1593442694469 (10.142.15.196) 1.58ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[W 15:40:24.045 NotebookApp] Forbidden
+[W 15:40:24.045 NotebookApp] 403 PUT /api/contents/multi-label_2.0.ipynb (10.142.15.196) 1197.24ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[W 15:42:22.632 NotebookApp] Forbidden
+[W 15:42:22.632 NotebookApp] 403 GET /api/contents/multi-label_2.0.ipynb?content=0&_=1593442694470 (10.142.15.196) 1.40ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[W 15:42:23.600 NotebookApp] Forbidden
+[W 15:42:23.601 NotebookApp] 403 PUT /api/contents/multi-label_2.0.ipynb (10.142.15.196) 759.07ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[W 15:44:22.638 NotebookApp] Forbidden
+[W 15:44:22.639 NotebookApp] 403 GET /api/contents/multi-label_2.0.ipynb?content=0&_=1593442694471 (10.142.15.196) 1.52ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[W 15:44:23.601 NotebookApp] Forbidden
+[W 15:44:23.601 NotebookApp] 403 PUT /api/contents/multi-label_2.0.ipynb (10.142.15.196) 754.98ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[W 15:46:22.638 NotebookApp] Forbidden
+[W 15:46:22.638 NotebookApp] 403 GET /api/contents/multi-label_2.0.ipynb?content=0&_=1593442694472 (10.142.15.196) 1.45ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[W 15:46:23.595 NotebookApp] Forbidden
+[W 15:46:23.596 NotebookApp] 403 PUT /api/contents/multi-label_2.0.ipynb (10.142.15.196) 753.88ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[W 15:48:22.648 NotebookApp] Forbidden
+[W 15:48:22.649 NotebookApp] 403 GET /api/contents/multi-label_2.0.ipynb?content=0&_=1593442694473 (10.142.15.196) 1.53ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[W 15:48:23.614 NotebookApp] Forbidden
+[W 15:48:23.614 NotebookApp] 403 PUT /api/contents/multi-label_2.0.ipynb (10.142.15.196) 753.85ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[W 15:50:22.649 NotebookApp] Forbidden
+[W 15:50:22.650 NotebookApp] 403 GET /api/contents/multi-label_2.0.ipynb?content=0&_=1593442694474 (10.142.15.196) 1.38ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[W 15:50:23.609 NotebookApp] Forbidden
+[W 15:50:23.610 NotebookApp] 403 PUT /api/contents/multi-label_2.0.ipynb (10.142.15.196) 753.20ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[W 15:52:22.643 NotebookApp] Forbidden
+[W 15:52:22.643 NotebookApp] 403 GET /api/contents/multi-label_2.0.ipynb?content=0&_=1593442694475 (10.142.15.196) 1.26ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[W 15:52:23.607 NotebookApp] Forbidden
+[W 15:52:23.608 NotebookApp] 403 PUT /api/contents/multi-label_2.0.ipynb (10.142.15.196) 754.98ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[W 15:54:22.651 NotebookApp] Forbidden
+[W 15:54:22.652 NotebookApp] 403 GET /api/contents/multi-label_2.0.ipynb?content=0&_=1593442694476 (10.142.15.196) 1.27ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[W 15:54:23.600 NotebookApp] Forbidden
+[W 15:54:23.601 NotebookApp] 403 PUT /api/contents/multi-label_2.0.ipynb (10.142.15.196) 752.40ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[W 15:56:22.648 NotebookApp] Forbidden
+[W 15:56:22.649 NotebookApp] 403 GET /api/contents/multi-label_2.0.ipynb?content=0&_=1593442694477 (10.142.15.196) 1.31ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[W 15:56:23.616 NotebookApp] Forbidden
+[W 15:56:23.616 NotebookApp] 403 PUT /api/contents/multi-label_2.0.ipynb (10.142.15.196) 752.31ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[I 16:15:51.701 NotebookApp] 302 GET /?token=d7c1c8190638239a2129176944d2b4593b2ff0d0fd27a0f4 (10.142.15.198) 1.16ms
+[I 16:16:23.927 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[I 16:16:23.944 NotebookApp] Writing notebook-signing key to /root/.local/share/jupyter/notebook_secret
+[I 16:18:04.927 NotebookApp] Kernel started: 3c7663f3-79a1-42ac-b83f-7efc455f6991
+[W 16:18:04.943 NotebookApp] 404 GET /nbextensions/widgets/notebook/js/extension.js?v=20200629153602 (10.142.15.195) 11.23ms referer=http://35.196.229.122:7890/notebooks/multi-label_2.0.ipynb
+[W 16:20:02.667 NotebookApp] Replacing stale connection: 3c7663f3-79a1-42ac-b83f-7efc455f6991:87830eec80e54383836ed9f2324cc2b3
+[I 16:20:04.322 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[I 16:20:07.671 NotebookApp] Starting buffering for 3c7663f3-79a1-42ac-b83f-7efc455f6991:87830eec80e54383836ed9f2324cc2b3
+[I 16:20:07.673 NotebookApp] Restoring connection for 3c7663f3-79a1-42ac-b83f-7efc455f6991:87830eec80e54383836ed9f2324cc2b3
+[W 16:20:35.815 NotebookApp] Replacing stale connection: 3c7663f3-79a1-42ac-b83f-7efc455f6991:87830eec80e54383836ed9f2324cc2b3
+[I 16:20:40.819 NotebookApp] Starting buffering for 3c7663f3-79a1-42ac-b83f-7efc455f6991:87830eec80e54383836ed9f2324cc2b3
+[I 16:20:40.821 NotebookApp] Restoring connection for 3c7663f3-79a1-42ac-b83f-7efc455f6991:87830eec80e54383836ed9f2324cc2b3
+[I 07:12:50.198 NotebookApp] Writing notebook server cookie secret to /root/.local/share/jupyter/runtime/notebook_cookie_secret
+[I 07:12:50.548 NotebookApp] Serving notebooks from local directory: /persistent/Sefaria-Project/ML/notebooks
+[I 07:12:50.548 NotebookApp] The Jupyter Notebook is running at:
+[I 07:12:50.548 NotebookApp] http://yishai-remotedocker-0:7890/?token=08fafd034a7a4e4c6cd3dde5618bd113e97910d258f538e4
+[I 07:12:50.548 NotebookApp]  or http://127.0.0.1:7890/?token=08fafd034a7a4e4c6cd3dde5618bd113e97910d258f538e4
+[I 07:12:50.548 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[C 07:12:50.552 NotebookApp] 
+    
+    To access the notebook, open this file in a browser:
+        file:///root/.local/share/jupyter/runtime/nbserver-7528-open.html
+    Or copy and paste one of these URLs:
+        http://yishai-remotedocker-0:7890/?token=08fafd034a7a4e4c6cd3dde5618bd113e97910d258f538e4
+     or http://127.0.0.1:7890/?token=08fafd034a7a4e4c6cd3dde5618bd113e97910d258f538e4
+[I 07:16:31.588 NotebookApp] 302 GET /?token=d7c1c8190638239a2129176944d2b4593b2ff0d0fd27a0f4 (10.142.15.195) 0.76ms
+[I 07:16:31.604 NotebookApp] 302 GET /tree?token=d7c1c8190638239a2129176944d2b4593b2ff0d0fd27a0f4 (10.142.15.195) 1.06ms
+[I 07:16:34.091 NotebookApp] 302 GET /?token=d7c1c8190638239a2129176944d2b4593b2ff0d0fd27a0f4 (10.142.15.199) 0.67ms
+[W 07:16:34.262 NotebookApp] Clearing invalid/expired login cookie username-35-196-229-122-7890
+[W 07:16:34.263 NotebookApp] Clearing invalid/expired login cookie username-35-196-229-122-7890
+[I 07:16:34.263 NotebookApp] 302 GET /tree?token=d7c1c8190638239a2129176944d2b4593b2ff0d0fd27a0f4 (10.142.15.199) 1.91ms
+[W 07:17:37.024 NotebookApp] 401 POST /login?next=%2Ftree%3Ftoken%3Dd7c1c8190638239a2129176944d2b4593b2ff0d0fd27a0f4 (10.142.0.61) 2.07ms referer=http://35.196.229.122:7890/login?next=%2Ftree%3Ftoken%3Dd7c1c8190638239a2129176944d2b4593b2ff0d0fd27a0f4
+[I 07:18:04.085 NotebookApp] 302 GET / (10.142.0.61) 0.79ms
+[I 07:18:04.257 NotebookApp] 302 GET /tree? (10.142.0.61) 0.82ms
+[W 07:18:13.004 NotebookApp] 401 POST /login?next=%2Ftree%3F (10.142.0.61) 1.65ms referer=http://35.196.229.122:7890/login?next=%2Ftree%3F
+[I 07:19:06.491 NotebookApp] 302 GET /?token=d7c1c8190638239a2129176944d2b4593b2ff0d0fd27a0f4 (10.142.0.61) 0.72ms
+[I 07:19:16.149 NotebookApp] 302 GET /?token=d7c1c8190638239a2129176944d2b4593b2ff0d0fd27a0f4 (10.142.15.196) 0.79ms
+[I 07:19:16.354 NotebookApp] 302 GET /tree?token=d7c1c8190638239a2129176944d2b4593b2ff0d0fd27a0f4 (10.142.15.196) 0.92ms
+[I 07:33:58.298 NotebookApp] The port 7890 is already in use, trying another port.
+[I 07:33:58.303 NotebookApp] Serving notebooks from local directory: /persistent/Sefaria-Project/ML/notebooks
+[I 07:33:58.303 NotebookApp] The Jupyter Notebook is running at:
+[I 07:33:58.303 NotebookApp] http://yishai-remotedocker-0:7891/?token=f8395507585d54d3c9d7dce4d4aba6a3692209b22027f462
+[I 07:33:58.303 NotebookApp]  or http://127.0.0.1:7891/?token=f8395507585d54d3c9d7dce4d4aba6a3692209b22027f462
+[I 07:33:58.303 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[C 07:33:58.307 NotebookApp] 
+    
+    To access the notebook, open this file in a browser:
+        file:///root/.local/share/jupyter/runtime/nbserver-8012-open.html
+    Or copy and paste one of these URLs:
+        http://yishai-remotedocker-0:7891/?token=f8395507585d54d3c9d7dce4d4aba6a3692209b22027f462
+     or http://127.0.0.1:7891/?token=f8395507585d54d3c9d7dce4d4aba6a3692209b22027f462
+[I 07:43:33.289 NotebookApp] 302 GET /?token=d7c1c8190638239a2129176944d2b4593b2ff0d0fd27a0f4 (10.142.15.194) 0.81ms
+[I 07:43:33.490 NotebookApp] 302 GET /tree?token=d7c1c8190638239a2129176944d2b4593b2ff0d0fd27a0f4 (10.142.15.194) 0.92ms
+[W 07:43:48.781 NotebookApp] 401 POST /login?next=%2Ftree%3Ftoken%3Dd7c1c8190638239a2129176944d2b4593b2ff0d0fd27a0f4 (10.142.15.194) 1.67ms referer=http://35.196.229.122:7890/login?next=%2Ftree%3Ftoken%3Dd7c1c8190638239a2129176944d2b4593b2ff0d0fd27a0f4
+[W 07:43:58.465 NotebookApp] 401 POST /login?next=%2Ftree%3Ftoken%3Dd7c1c8190638239a2129176944d2b4593b2ff0d0fd27a0f4 (10.142.15.194) 1.71ms referer=http://35.196.229.122:7890/login?next=%2Ftree%3Ftoken%3Dd7c1c8190638239a2129176944d2b4593b2ff0d0fd27a0f4
+[W 07:44:01.257 NotebookApp] 401 POST /login?next=%2Ftree%3Ftoken%3Dd7c1c8190638239a2129176944d2b4593b2ff0d0fd27a0f4 (10.142.15.194) 1.71ms referer=http://35.196.229.122:7890/login?next=%2Ftree%3Ftoken%3Dd7c1c8190638239a2129176944d2b4593b2ff0d0fd27a0f4
+[I 08:02:05.292 NotebookApp] 302 GET /?token=f8395507585d54d3c9d7dce4d4aba6a3692209b22027f462 (10.142.15.193) 0.82ms
+[W 08:02:05.476 NotebookApp] Clearing invalid/expired login cookie username-35-196-229-122-7890
+[W 08:02:05.476 NotebookApp] Clearing invalid/expired login cookie username-35-196-229-122-7890
+[I 08:02:05.477 NotebookApp] 302 GET /tree?token=f8395507585d54d3c9d7dce4d4aba6a3692209b22027f462 (10.142.15.193) 1.67ms
+[I 08:05:07.920 NotebookApp] Serving notebooks from local directory: /persistent/Sefaria-Project/ML/notebooks
+[I 08:05:07.920 NotebookApp] The Jupyter Notebook is running at:
+[I 08:05:07.920 NotebookApp] http://yishai-remotedocker-0:7890/?token=ceb5c9faf527b6702723bb9543b7599c021faefa8653ebaa
+[I 08:05:07.920 NotebookApp]  or http://127.0.0.1:7890/?token=ceb5c9faf527b6702723bb9543b7599c021faefa8653ebaa
+[I 08:05:07.920 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[C 08:05:07.924 NotebookApp] 
+    
+    To access the notebook, open this file in a browser:
+        file:///root/.local/share/jupyter/runtime/nbserver-8337-open.html
+    Or copy and paste one of these URLs:
+        http://yishai-remotedocker-0:7890/?token=ceb5c9faf527b6702723bb9543b7599c021faefa8653ebaa
+     or http://127.0.0.1:7890/?token=ceb5c9faf527b6702723bb9543b7599c021faefa8653ebaa
+[I 08:05:35.897 NotebookApp] 302 GET /?token=ceb5c9faf527b6702723bb9543b7599c021faefa8653ebaa (10.142.15.193) 1.15ms
+[I 08:08:40.416 NotebookApp] Serving notebooks from local directory: /persistent/Sefaria-Project/ML/notebooks
+[I 08:08:40.416 NotebookApp] The Jupyter Notebook is running at:
+[I 08:08:40.417 NotebookApp] http://yishai-remotedocker-0:7890/?token=7087430968d52c24b0b1ff60964efa7d1929516b8828f68a
+[I 08:08:40.417 NotebookApp]  or http://127.0.0.1:7890/?token=7087430968d52c24b0b1ff60964efa7d1929516b8828f68a
+[I 08:08:40.417 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[C 08:08:40.421 NotebookApp] 
+    
+    To access the notebook, open this file in a browser:
+        file:///root/.local/share/jupyter/runtime/nbserver-8375-open.html
+    Or copy and paste one of these URLs:
+        http://yishai-remotedocker-0:7890/?token=7087430968d52c24b0b1ff60964efa7d1929516b8828f68a
+     or http://127.0.0.1:7890/?token=7087430968d52c24b0b1ff60964efa7d1929516b8828f68a
+[I 08:10:50.916 NotebookApp] 302 GET /?token=7087430968d52c24b0b1ff60964efa7d1929516b8828f68a (10.142.15.198) 0.79ms
+[I 08:10:55.256 NotebookApp] 302 GET /?token=7087430968d52c24b0b1ff60964efa7d1929516b8828f68a (10.142.15.195) 0.59ms
+[I 08:11:20.393 NotebookApp] Writing notebook-signing key to /root/.local/share/jupyter/notebook_secret
+[W 08:11:20.397 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 08:11:30.126 NotebookApp] Kernel started: b07a57fe-1538-4f59-b679-615caaf54eba
+[W 08:13:40.178 NotebookApp] Replacing stale connection: b07a57fe-1538-4f59-b679-615caaf54eba:52b0e112effd4fc38e0b137b036b1609
+[I 08:13:45.180 NotebookApp] Starting buffering for b07a57fe-1538-4f59-b679-615caaf54eba:52b0e112effd4fc38e0b137b036b1609
+[I 08:13:45.182 NotebookApp] Restoring connection for b07a57fe-1538-4f59-b679-615caaf54eba:52b0e112effd4fc38e0b137b036b1609
+[I 08:14:35.166 NotebookApp] Starting buffering for b07a57fe-1538-4f59-b679-615caaf54eba:52b0e112effd4fc38e0b137b036b1609
+[I 08:14:35.351 NotebookApp] Restoring connection for b07a57fe-1538-4f59-b679-615caaf54eba:52b0e112effd4fc38e0b137b036b1609
+[I 08:15:32.006 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 08:15:32.008 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 08:17:31.891 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[I 08:19:31.308 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 08:21:04.714 NotebookApp] Replacing stale connection: b07a57fe-1538-4f59-b679-615caaf54eba:52b0e112effd4fc38e0b137b036b1609
+[I 08:21:09.715 NotebookApp] Starting buffering for b07a57fe-1538-4f59-b679-615caaf54eba:52b0e112effd4fc38e0b137b036b1609
+[I 08:21:09.717 NotebookApp] Restoring connection for b07a57fe-1538-4f59-b679-615caaf54eba:52b0e112effd4fc38e0b137b036b1609
+[W 08:21:15.261 NotebookApp] Replacing stale connection: b07a57fe-1538-4f59-b679-615caaf54eba:52b0e112effd4fc38e0b137b036b1609
+[I 08:21:20.265 NotebookApp] Starting buffering for b07a57fe-1538-4f59-b679-615caaf54eba:52b0e112effd4fc38e0b137b036b1609
+[I 08:21:20.267 NotebookApp] Restoring connection for b07a57fe-1538-4f59-b679-615caaf54eba:52b0e112effd4fc38e0b137b036b1609
+[W 08:24:21.744 NotebookApp] Replacing stale connection: b07a57fe-1538-4f59-b679-615caaf54eba:52b0e112effd4fc38e0b137b036b1609
+[I 08:24:26.748 NotebookApp] Starting buffering for b07a57fe-1538-4f59-b679-615caaf54eba:52b0e112effd4fc38e0b137b036b1609
+[I 08:24:26.750 NotebookApp] Restoring connection for b07a57fe-1538-4f59-b679-615caaf54eba:52b0e112effd4fc38e0b137b036b1609
+[W 08:32:44.726 NotebookApp] Replacing stale connection: b07a57fe-1538-4f59-b679-615caaf54eba:52b0e112effd4fc38e0b137b036b1609
+[I 08:32:49.728 NotebookApp] Starting buffering for b07a57fe-1538-4f59-b679-615caaf54eba:52b0e112effd4fc38e0b137b036b1609
+[I 08:32:49.730 NotebookApp] Restoring connection for b07a57fe-1538-4f59-b679-615caaf54eba:52b0e112effd4fc38e0b137b036b1609
+[I 08:35:31.952 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[I 08:37:31.669 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[I 08:39:31.245 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[I 08:41:31.300 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[I 08:43:31.258 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[I 08:45:31.421 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 08:45:56.729 NotebookApp] Replacing stale connection: b07a57fe-1538-4f59-b679-615caaf54eba:52b0e112effd4fc38e0b137b036b1609
+[I 08:46:01.731 NotebookApp] Starting buffering for b07a57fe-1538-4f59-b679-615caaf54eba:52b0e112effd4fc38e0b137b036b1609
+[I 08:46:01.733 NotebookApp] Restoring connection for b07a57fe-1538-4f59-b679-615caaf54eba:52b0e112effd4fc38e0b137b036b1609
+[I 08:51:42.845 NotebookApp] Writing notebook server cookie secret to /root/.local/share/jupyter/runtime/notebook_cookie_secret
+[I 08:51:42.845 NotebookApp] Writing notebook server cookie secret to /root/.local/share/jupyter/runtime/notebook_cookie_secret
+[I 08:51:43.259 NotebookApp] The port 7890 is already in use, trying another port.
+[I 08:51:43.262 NotebookApp] Serving notebooks from local directory: /persistent/Sefaria-Project/ML/notebooks
+[I 08:51:43.262 NotebookApp] The Jupyter Notebook is running at:
+[I 08:51:43.262 NotebookApp] http://yishai-remotedocker-0:7890/?token=797854a3cf7d68ea2c64d98cfdced5b5cb9162c5e381e5c8
+[I 08:51:43.262 NotebookApp]  or http://127.0.0.1:7890/?token=797854a3cf7d68ea2c64d98cfdced5b5cb9162c5e381e5c8
+[I 08:51:43.262 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[I 08:51:43.263 NotebookApp] Serving notebooks from local directory: /persistent/Sefaria-Project/ML/notebooks
+[I 08:51:43.263 NotebookApp] The Jupyter Notebook is running at:
+[I 08:51:43.263 NotebookApp] http://yishai-remotedocker-0:7891/?token=d3a9a0e61863bf4f8286dcc99eafd3fdc55a9ab980972f00
+[I 08:51:43.263 NotebookApp]  or http://127.0.0.1:7891/?token=d3a9a0e61863bf4f8286dcc99eafd3fdc55a9ab980972f00
+[I 08:51:43.263 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[C 08:51:43.266 NotebookApp] 
+    
+    To access the notebook, open this file in a browser:
+        file:///root/.local/share/jupyter/runtime/nbserver-141-open.html
+    Or copy and paste one of these URLs:
+        http://yishai-remotedocker-0:7890/?token=797854a3cf7d68ea2c64d98cfdced5b5cb9162c5e381e5c8
+     or http://127.0.0.1:7890/?token=797854a3cf7d68ea2c64d98cfdced5b5cb9162c5e381e5c8
+[C 08:51:43.266 NotebookApp] 
+    
+    To access the notebook, open this file in a browser:
+        file:///root/.local/share/jupyter/runtime/nbserver-140-open.html
+    Or copy and paste one of these URLs:
+        http://yishai-remotedocker-0:7891/?token=d3a9a0e61863bf4f8286dcc99eafd3fdc55a9ab980972f00
+     or http://127.0.0.1:7891/?token=d3a9a0e61863bf4f8286dcc99eafd3fdc55a9ab980972f00
+[I 08:51:44.503 NotebookApp] The port 7890 is already in use, trying another port.
+[I 08:51:44.503 NotebookApp] The port 7891 is already in use, trying another port.
+[I 08:51:44.509 NotebookApp] Serving notebooks from local directory: /persistent/Sefaria-Project/ML/notebooks
+[I 08:51:44.509 NotebookApp] The Jupyter Notebook is running at:
+[I 08:51:44.509 NotebookApp] http://yishai-remotedocker-0:7892/?token=60cf1d7096f135386da971af433d7e960a341f34671152bc
+[I 08:51:44.509 NotebookApp]  or http://127.0.0.1:7892/?token=60cf1d7096f135386da971af433d7e960a341f34671152bc
+[I 08:51:44.509 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[C 08:51:44.515 NotebookApp] 
+    
+    To access the notebook, open this file in a browser:
+        file:///root/.local/share/jupyter/runtime/nbserver-146-open.html
+    Or copy and paste one of these URLs:
+        http://yishai-remotedocker-0:7892/?token=60cf1d7096f135386da971af433d7e960a341f34671152bc
+     or http://127.0.0.1:7892/?token=60cf1d7096f135386da971af433d7e960a341f34671152bc
+[I 08:52:40.734 NotebookApp] The port 7890 is already in use, trying another port.
+[I 08:52:40.735 NotebookApp] The port 7891 is already in use, trying another port.
+[I 08:52:40.735 NotebookApp] The port 7892 is already in use, trying another port.
+[I 08:52:40.738 NotebookApp] Serving notebooks from local directory: /persistent/Sefaria-Project/ML/notebooks
+[I 08:52:40.739 NotebookApp] The Jupyter Notebook is running at:
+[I 08:52:40.739 NotebookApp] http://yishai-remotedocker-0:7893/?token=58920123f6734748da20e2b687adfc2f021736193b30da3b
+[I 08:52:40.739 NotebookApp]  or http://127.0.0.1:7893/?token=58920123f6734748da20e2b687adfc2f021736193b30da3b
+[I 08:52:40.739 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[C 08:52:40.742 NotebookApp] 
+    
+    To access the notebook, open this file in a browser:
+        file:///root/.local/share/jupyter/runtime/nbserver-162-open.html
+    Or copy and paste one of these URLs:
+        http://yishai-remotedocker-0:7893/?token=58920123f6734748da20e2b687adfc2f021736193b30da3b
+     or http://127.0.0.1:7893/?token=58920123f6734748da20e2b687adfc2f021736193b30da3b
+[I 09:00:29.038 NotebookApp] The port 7890 is already in use, trying another port.
+[I 09:00:29.038 NotebookApp] The port 7891 is already in use, trying another port.
+[I 09:00:29.038 NotebookApp] The port 7892 is already in use, trying another port.
+[I 09:00:29.038 NotebookApp] The port 7893 is already in use, trying another port.
+[I 09:00:29.042 NotebookApp] Serving notebooks from local directory: /persistent/Sefaria-Project/ML/notebooks
+[I 09:00:29.042 NotebookApp] The Jupyter Notebook is running at:
+[I 09:00:29.042 NotebookApp] http://yishai-remotedocker-0:7894/?token=cd2c1242488e6363572ddc2d87b786d66d80534d7daa352b
+[I 09:00:29.042 NotebookApp]  or http://127.0.0.1:7894/?token=cd2c1242488e6363572ddc2d87b786d66d80534d7daa352b
+[I 09:00:29.042 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[C 09:00:29.046 NotebookApp] 
+    
+    To access the notebook, open this file in a browser:
+        file:///root/.local/share/jupyter/runtime/nbserver-233-open.html
+    Or copy and paste one of these URLs:
+        http://yishai-remotedocker-0:7894/?token=cd2c1242488e6363572ddc2d87b786d66d80534d7daa352b
+     or http://127.0.0.1:7894/?token=cd2c1242488e6363572ddc2d87b786d66d80534d7daa352b
+[I 09:03:14.992 NotebookApp] The port 7890 is already in use, trying another port.
+[I 09:03:14.993 NotebookApp] The port 7891 is already in use, trying another port.
+[I 09:03:14.993 NotebookApp] The port 7892 is already in use, trying another port.
+[I 09:03:14.993 NotebookApp] The port 7893 is already in use, trying another port.
+[I 09:03:14.993 NotebookApp] The port 7894 is already in use, trying another port.
+[I 09:03:14.997 NotebookApp] Serving notebooks from local directory: /persistent/Sefaria-Project/ML/notebooks
+[I 09:03:14.997 NotebookApp] The Jupyter Notebook is running at:
+[I 09:03:14.997 NotebookApp] http://yishai-remotedocker-0:7853/?token=e52192c2be355cd67abb52a22ddd9246b0de0b7aef044d2a
+[I 09:03:14.997 NotebookApp]  or http://127.0.0.1:7853/?token=e52192c2be355cd67abb52a22ddd9246b0de0b7aef044d2a
+[I 09:03:14.997 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[C 09:03:15.001 NotebookApp] 
+    
+    To access the notebook, open this file in a browser:
+        file:///root/.local/share/jupyter/runtime/nbserver-257-open.html
+    Or copy and paste one of these URLs:
+        http://yishai-remotedocker-0:7853/?token=e52192c2be355cd67abb52a22ddd9246b0de0b7aef044d2a
+     or http://127.0.0.1:7853/?token=e52192c2be355cd67abb52a22ddd9246b0de0b7aef044d2a
+[I 09:11:23.626 NotebookApp] Shutting down on /api/shutdown request.
+[I 09:11:23.628 NotebookApp] Shutting down 0 kernels
+[I 09:11:24.327 NotebookApp] Shutting down on /api/shutdown request.
+[I 09:11:24.328 NotebookApp] Shutting down 0 kernels
+[I 09:11:25.017 NotebookApp] Shutting down on /api/shutdown request.
+[I 09:11:25.019 NotebookApp] Shutting down 0 kernels
+[I 09:11:25.703 NotebookApp] Shutting down on /api/shutdown request.
+[I 09:11:25.704 NotebookApp] Shutting down 0 kernels
+[I 09:11:26.398 NotebookApp] Shutting down on /api/shutdown request.
+[I 09:11:26.399 NotebookApp] Shutting down 0 kernels
+[I 09:11:29.219 NotebookApp] Shutting down on /api/shutdown request.
+[I 09:11:29.221 NotebookApp] Shutting down 0 kernels
+[I 09:11:38.960 NotebookApp] Serving notebooks from local directory: /persistent/Sefaria-Project/ML/notebooks
+[I 09:11:38.960 NotebookApp] The Jupyter Notebook is running at:
+[I 09:11:38.960 NotebookApp] http://yishai-remotedocker-0:7890/?token=c30ee03390df2ddca201acb8f567c96be3fc7d9aaa812703
+[I 09:11:38.960 NotebookApp]  or http://127.0.0.1:7890/?token=c30ee03390df2ddca201acb8f567c96be3fc7d9aaa812703
+[I 09:11:38.960 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[C 09:11:38.964 NotebookApp] 
+    
+    To access the notebook, open this file in a browser:
+        file:///root/.local/share/jupyter/runtime/nbserver-349-open.html
+    Or copy and paste one of these URLs:
+        http://yishai-remotedocker-0:7890/?token=c30ee03390df2ddca201acb8f567c96be3fc7d9aaa812703
+     or http://127.0.0.1:7890/?token=c30ee03390df2ddca201acb8f567c96be3fc7d9aaa812703
+[I 09:13:13.726 NotebookApp] 302 GET /?token=c30ee03390df2ddca201acb8f567c96be3fc7d9aaa812703 (10.142.0.60) 0.90ms
+[I 09:13:17.239 NotebookApp] 302 GET /?token=c30ee03390df2ddca201acb8f567c96be3fc7d9aaa812703 (10.142.0.61) 0.69ms
+[I 09:14:12.885 NotebookApp] Writing notebook-signing key to /root/.local/share/jupyter/notebook_secret
+[W 09:14:12.890 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 09:14:21.127 NotebookApp] Kernel started: bff56ff1-d356-4d0b-92c4-1c57ea00ddb0
+[I 09:16:23.002 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 09:16:23.004 NotebookApp] Notebook multi-label_2.0.ipynb is not trusted
+[I 09:20:22.919 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 09:26:35.250 NotebookApp] Replacing stale connection: bff56ff1-d356-4d0b-92c4-1c57ea00ddb0:a303896106d74a7c9b2f4b6dd9c0eae6
+[I 09:26:40.253 NotebookApp] Starting buffering for bff56ff1-d356-4d0b-92c4-1c57ea00ddb0:a303896106d74a7c9b2f4b6dd9c0eae6
+[I 09:26:40.255 NotebookApp] Restoring connection for bff56ff1-d356-4d0b-92c4-1c57ea00ddb0:a303896106d74a7c9b2f4b6dd9c0eae6
+[W 09:27:28.278 NotebookApp] Replacing stale connection: bff56ff1-d356-4d0b-92c4-1c57ea00ddb0:a303896106d74a7c9b2f4b6dd9c0eae6
+[I 09:27:33.280 NotebookApp] Starting buffering for bff56ff1-d356-4d0b-92c4-1c57ea00ddb0:a303896106d74a7c9b2f4b6dd9c0eae6
+[I 09:27:33.281 NotebookApp] Restoring connection for bff56ff1-d356-4d0b-92c4-1c57ea00ddb0:a303896106d74a7c9b2f4b6dd9c0eae6
+[W 09:45:24.726 NotebookApp] Replacing stale connection: bff56ff1-d356-4d0b-92c4-1c57ea00ddb0:a303896106d74a7c9b2f4b6dd9c0eae6
+[I 09:45:29.731 NotebookApp] Starting buffering for bff56ff1-d356-4d0b-92c4-1c57ea00ddb0:a303896106d74a7c9b2f4b6dd9c0eae6
+[I 09:45:29.733 NotebookApp] Restoring connection for bff56ff1-d356-4d0b-92c4-1c57ea00ddb0:a303896106d74a7c9b2f4b6dd9c0eae6
+[W 09:50:11.508 NotebookApp] 404 GET /api/kernels/b07a57fe-1538-4f59-b679-615caaf54eba/channels?session_id=52b0e112effd4fc38e0b137b036b1609 (10.142.15.192): Kernel does not exist: b07a57fe-1538-4f59-b679-615caaf54eba
+[W 09:50:11.518 NotebookApp] 404 GET /api/kernels/b07a57fe-1538-4f59-b679-615caaf54eba/channels?session_id=52b0e112effd4fc38e0b137b036b1609 (10.142.15.192) 12.55ms referer=None
+[W 09:51:19.327 NotebookApp] Replacing stale connection: b07a57fe-1538-4f59-b679-615caaf54eba:52b0e112effd4fc38e0b137b036b1609
+[I 09:54:45.351 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 09:55:20.826 NotebookApp] Replacing stale connection: bff56ff1-d356-4d0b-92c4-1c57ea00ddb0:ac846b1cf53e4f1f97bbce2e1bb692df
+[W 09:55:26.182 NotebookApp] Replacing stale connection: bff56ff1-d356-4d0b-92c4-1c57ea00ddb0:a303896106d74a7c9b2f4b6dd9c0eae6
+[W 09:55:26.183 NotebookApp] zmq message arrived on closed channel
+[W 09:55:26.186 NotebookApp] zmq message arrived on closed channel
+[W 09:55:26.189 NotebookApp] zmq message arrived on closed channel
+[W 09:55:26.191 NotebookApp] zmq message arrived on closed channel
+[W 09:55:26.193 NotebookApp] zmq message arrived on closed channel
+[W 09:55:26.196 NotebookApp] zmq message arrived on closed channel
+[W 09:55:29.464 NotebookApp] zmq message arrived on closed channel
+[W 09:55:29.468 NotebookApp] zmq message arrived on closed channel
+[W 09:55:29.520 NotebookApp] zmq message arrived on closed channel
+[W 09:55:29.525 NotebookApp] zmq message arrived on closed channel
+[W 09:55:30.562 NotebookApp] zmq message arrived on closed channel
+[W 09:55:30.564 NotebookApp] zmq message arrived on closed channel
+[W 09:55:30.567 NotebookApp] zmq message arrived on closed channel
+[W 09:55:30.571 NotebookApp] zmq message arrived on closed channel
+[I 09:56:45.618 NotebookApp] Saving file at /multi-label_2.0.ipynb
+[W 09:58:22.430 NotebookApp] Replacing stale connection: bff56ff1-d356-4d0b-92c4-1c57ea00ddb0:a303896106d74a7c9b2f4b6dd9c0eae6
+[W 09:58:27.794 NotebookApp] Replacing stale connection: bff56ff1-d356-4d0b-92c4-1c57ea00ddb0:ac846b1cf53e4f1f97bbce2e1bb692df
+[W 10:03:51.919 NotebookApp] Replacing stale connection: bff56ff1-d356-4d0b-92c4-1c57ea00ddb0:ac846b1cf53e4f1f97bbce2e1bb692df
+[W 10:03:57.280 NotebookApp] Replacing stale connection: bff56ff1-d356-4d0b-92c4-1c57ea00ddb0:a303896106d74a7c9b2f4b6dd9c0eae6
+[W 10:04:46.371 NotebookApp] Replacing stale connection: bff56ff1-d356-4d0b-92c4-1c57ea00ddb0:a303896106d74a7c9b2f4b6dd9c0eae6
+[W 10:04:51.752 NotebookApp] Replacing stale connection: bff56ff1-d356-4d0b-92c4-1c57ea00ddb0:ac846b1cf53e4f1f97bbce2e1bb692df
+[W 10:05:17.295 NotebookApp] Replacing stale connection: bff56ff1-d356-4d0b-92c4-1c57ea00ddb0:ac846b1cf53e4f1f97bbce2e1bb692df
+[W 10:05:22.647 NotebookApp] Replacing stale connection: bff56ff1-d356-4d0b-92c4-1c57ea00ddb0:a303896106d74a7c9b2f4b6dd9c0eae6
+[W 10:05:40.358 NotebookApp] Replacing stale connection: bff56ff1-d356-4d0b-92c4-1c57ea00ddb0:ac846b1cf53e4f1f97bbce2e1bb692df
+[W 10:05:45.716 NotebookApp] Replacing stale connection: bff56ff1-d356-4d0b-92c4-1c57ea00ddb0:a303896106d74a7c9b2f4b6dd9c0eae6
+[W 10:06:07.287 NotebookApp] Replacing stale connection: bff56ff1-d356-4d0b-92c4-1c57ea00ddb0:a303896106d74a7c9b2f4b6dd9c0eae6
+[W 10:06:12.635 NotebookApp] Replacing stale connection: bff56ff1-d356-4d0b-92c4-1c57ea00ddb0:ac846b1cf53e4f1f97bbce2e1bb692df
+[W 10:06:32.297 NotebookApp] Replacing stale connection: bff56ff1-d356-4d0b-92c4-1c57ea00ddb0:a303896106d74a7c9b2f4b6dd9c0eae6
+[W 10:06:37.646 NotebookApp] Replacing stale connection: bff56ff1-d356-4d0b-92c4-1c57ea00ddb0:ac846b1cf53e4f1f97bbce2e1bb692df

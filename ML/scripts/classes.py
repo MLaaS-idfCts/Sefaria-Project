@@ -63,46 +63,56 @@ class DataManager:
         self.should_clean = should_clean
         self.should_remove_stopwords = should_remove_stopwords
 
+
     def get_my_topics(self,all_topics):
         all_topics_list = all_topics.split()
         sublist = [topic for topic in all_topics_list if topic in self.my_topics]
         result = ' '.join(sublist)
         return result
 
+
     def preprocess_dataframe(self):
         df = self.raw
+        # how many rows and columns
         print('Original shape:',df.shape)
+        # remove repeats
         df = df.drop_duplicates()
         print('Without duplicates:',df.shape)
+        # remove empty cells
         df = df.dropna()
         print('Without nulls:',df.shape)
+        # use Ref as index instead of number
         df = df.set_index('Ref',drop=True)
+        # keep only these columns
         df = df[['En','Topics']]
+        # add more descriptive name
         df = df.rename(columns={'En': 'passage_text'})
+        # keep only topics that i want to study
         df['Topics'] = df['Topics'].apply(self.get_my_topics)
+        # remove rows which don't have my topics
         df['Topics'].replace('', np.nan, inplace=True)
         df = df.dropna()
+        # one hot encode each topic
         df = pd.concat([df, df.pop('Topics').str.get_dummies(sep=' ')], axis=1)
         # df_wanted_rows = data_raw[~(df_all_rows[my_example_topics] == 0).all(axis=1)]
         return df
 
+
     def categories(self):
         return list(self.preprocess_dataframe().columns.values)[1:]
+
 
     def get_topic_counts(self):
         df = self.preprocess_dataframe()
         # categories = list(df.columns.values)
         # categories = categories[1:]
         counts = []
-        for category in self.categories:
+        
+        for category in self.my_topics:
+        # for category in self.categories:
             counts.append((category, df[category].sum()))
         df_stats = pd.DataFrame(counts, columns=['category', 'number of passages'])
         return df_stats
-
-    # def show_simple_plot(self):
-        # figure = plt.figure()
-        # figure = plt.plot([1, 2, 3, 4], [1, 4, 9, 16])
-        # return figure
 
 
     def show_topic_counts(self):
@@ -130,6 +140,7 @@ class DataManager:
         # plt.show()
         return ax
 
+
     def show_multiple_labels(self):
         rowSums = df.iloc[:,2:].sum(axis=1)
         multiLabel_counts = rowSums.value_counts()
@@ -151,6 +162,7 @@ class DataManager:
             height = rect.get_height()
             ax.text(rect.get_x() + rect.get_width()/2, height + 0, label, ha='center', va='bottom')
         plt.show()
+
 
     def cleanHtml(self,sentence):
         cleanr = re.compile('<.*?>')
@@ -176,6 +188,7 @@ class DataManager:
         alpha_sent = alpha_sent.strip()
         return alpha_sent
 
+
     def clean_text(self):
         data = self.preprocess_dataframe()
         data['passage_text'] = data['passage_text'].str.lower()
@@ -184,17 +197,20 @@ class DataManager:
         data['passage_text'] = data['passage_text'].apply(self.keepAlpha)
         return data
     
+
     def stopword_cleaner(self,sentence):
         stop_words = set(stopwords.words('english'))
         re_stop_words = re.compile(r"\b(" + "|".join(stop_words) + ")\\W", re.I)
         sentence = re_stop_words.sub(" ", sentence)
         return sentence
 
+
     def remove_stopwords(self):
         data = self.clean_text()
         if self.should_remove_stopwords:
             data['passage_text'] = data['passage_text'].apply(self.stopword_cleaner)
         return data
+
     
     def stemmer(self,sentence):
         stemmer = SnowballStemmer("english")
@@ -212,6 +228,7 @@ class DataManager:
         if self.should_stem:
             data['passage_text'] = data['passage_text'].apply(self.stemmer)
         return data
+
 
     def _get_ref_features(self,input_string):
         """
@@ -234,10 +251,12 @@ class DataManager:
         
         return result
 
+
     def _add_ref_features(self):
         df = self._remove_duplicates()
         df['ref_features'] = df.Ref.apply(self._get_ref_features)
         return df
+
 
     def _clean_text(self, sentence):
         # HTML decoding
@@ -275,6 +294,7 @@ class DataManager:
             df.En = df.En.apply(self._stem_text)
         
         return df
+
 
     def _add_topic_columns(self):
         df = self._clean_columns()
@@ -314,10 +334,12 @@ class DataManager:
         print('Shape of labeled data:',df.shape)
         return df[df.Topics.notnull()]
         
+
     def _get_unlabeled(self):
         df = self._add_topic_columns()
         print('Shape of unlabeled data:',df.shape)
         return df[df.Topics.isnull()]
+
 
     def get_train_and_test(self):
         labeled_data = self._get_labeled()

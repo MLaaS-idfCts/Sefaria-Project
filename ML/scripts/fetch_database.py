@@ -1,17 +1,15 @@
 import os
-os.environ['DJANGO_SETTINGS_MODULE'] = 'sefaria.settings'
-
 import sys
-sys.path.insert(1, '/persistent/Sefaria-Project/')
-
 import csv
 import django
+
+sys.path.insert(1, '/persistent/Sefaria-Project/')
+os.environ['DJANGO_SETTINGS_MODULE'] = 'sefaria.settings'
 django.setup()
 
 from tqdm import tqdm
 from sefaria.model import *
 from sefaria.system.database import db
-
 
 rows = []
 aggregated_passages = db.topic_links.aggregate(

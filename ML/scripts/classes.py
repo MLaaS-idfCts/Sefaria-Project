@@ -28,6 +28,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 # my_example_topics = ['prayer', 'procedures-for-judges-and-conduct-towards-them']
 # my_example_topics = ['prayer']
 
+nltk.download('stopwords')
 stemmer = SnowballStemmer('english')
 
 class DataManager:
@@ -224,7 +225,7 @@ class DataManager:
 
 
     def stem_words(self):
-        data = self.clean_text()
+        data = self.remove_stopwords()
         if self.should_stem:
             data['passage_text'] = data['passage_text'].apply(self.stemmer)
         return data
@@ -253,75 +254,21 @@ class DataManager:
 
 
     def _add_ref_features(self):
-        df = self._remove_duplicates()
+        df = self.stem_words()
         df['ref_features'] = df.Ref.apply(self._get_ref_features)
-        return df
-
-
-    def _clean_text(self, sentence):
-        # HTML decoding
-        sentence = BeautifulSoup(sentence, "lxml").text 
-        # lowercase text
-        sentence = sentence.lower() 
-        # Remove punctuations and numbers
-        sentence = re.sub('[^a-zA-Z]', ' ', sentence)
-        # Single character removal
-        sentence = re.sub(r"\s+[a-zA-Z]\s+", ' ', sentence)
-        # Removing multiple spaces
-        sentence = re.sub(r'\s+', ' ', sentence)
-        # Removing stopwords
-        sentence = ' '.join(word for word in sentence.split() if word not in STOPWORDS) # delete stopwors from text
-        return sentence
-
-
-    def _stem_text(self, sentence):
-        # instantiate stemmer class
-        # stemmer = SnowballStemmer('english')
-
-        # stem sentence
-        sentence = ' '.join(stemmer.stem(word) for word in sentence.split())
-        return sentence
-
-
-    def _clean_columns(self):
-        
-        df = self._add_ref_features()
-        
-        if self.should_clean:
-            df.En = df.En.apply(self._clean_text)
-        
-        if self.should_stem:
-            df.En = df.En.apply(self._stem_text)
-        
-        return df
-
-
-    def _add_topic_columns(self):
-        df = self._clean_columns()
-        start_time = datetime.now()
-        df = pd.concat([df, df['Topics'].str.get_dummies(sep=' ')], axis=1)
-        cols = ['Ref', 
-        # 'ref_features',
-        'En','Topics'] + my_example_topics
-        df = df[cols]
-        # df = df.loc[df['prayer'] + df['procedures-for-judges-and-conduct-towards-them'] > 0]
-        # df = df.loc[df['prayer'] > 0]
         return df
 
 
     def get_top_topics(self):
 
-        df = self._add_topic_columns()
-        df_topics = df.drop(['Ref', 'ref_features','En','Topics',
-        # 'Extended-topics'
-        ], axis=1)
+        df = self.stem_words()
 
         counts = []
-        topics = list(df_topics.columns.values)
+        topics = list(df.columns.values)[1:]
 
         print("\nCounting occurrences of each topic")
         for topic in tqdm(topics):
-            counts.append((topic, df_topics[topic].sum()))
+            counts.append((topic, df[topic].sum()))
 
         df_stats = pd.DataFrame(counts, columns=['topic', 'occurrences'])
         df_stats_sorted = df_stats.sort_values(by=['occurrences'], ascending=False)

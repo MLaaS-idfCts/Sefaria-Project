@@ -22,7 +22,7 @@ def confusion_matrix(y_test, y_pred):
     for i in range(0, cm.shape[1]):
         accuracy += cm[i, i]
     accuracy /= len(y_test.argmax(axis=1))
-    print "Accuracy on the test-set: " + str(accuracy)
+    print("Accuracy on the test-set: " + str(accuracy)
 
     return cm
 

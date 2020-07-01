@@ -35,8 +35,11 @@ data = DataManager(
 
 # result = data.clean_text()
 # result = data.remove_stopwords()
-result = data.stem_words()
-# print(result.head(5))
+# result = data.stem_words()
+result = data.get_top_topics()
+print(result.head(5))
+
+sys.exit()
 
 data = result
 
@@ -77,7 +80,10 @@ def get_true_topics(row):
 test['true_topics'] = test.apply(get_true_topics,axis=1)
 
 # using binary relevance
+from sklearn.svm import SVC
 from skmultilearn.adapt import MLkNN
+from sklearn.pipeline import Pipeline
+from fastxml import Trainer, Inferencer
 from sklearn.naive_bayes import GaussianNB
 from scipy.sparse import csr_matrix, lil_matrix
 from sklearn.multiclass import OneVsRestClassifier
@@ -86,19 +92,54 @@ from skmultilearn.problem_transform import LabelPowerset, BinaryRelevance, Class
 
 classifier_type = None
 
-classifier = OneVsRestClassifier(LogisticRegression())  # 1%
+# classifier, classifier_type = OneVsRestClassifier(LogisticRegression()), '1VSrest'  # 1%
+# classifier = OneVsRestClassifier(SVC())  # 1%
+
 # classifier = LabelPowerset(LogisticRegression())        # 52%
 # classifier, classifier_type = MLkNN(k=10), 'kNN'        # 43%
 # classifier = BinaryRelevance(GaussianNB())              # 16%
 # classifier = ClassifierChain(LogisticRegression())      # 14%
+classifier_type = 'fastXML'
 
-if classifier_type == 'kNN':
+if classifier_type == 'fastXML':
+    # X = [Sparse or numpy arrays]
+    # y = [[1, 3]] # Currently requires list[list[int]]
+    trainer = Trainer(n_trees=32, n_jobs=-1)
+    trainer.fit(x_train, y_train)
+    path = '/persistent/Sefaria-Project/ML/trainers/model.fxml'
+    trainer.save(path)
+    classifier = Inferencer(path)
+    # predictions = clf.predict(x_test)
+    # or
+    # clf.predict(X, fmt='dict')
+    # sys.exit()
+
+if classifier_type == '1VSrest':
+    
+    LogReg_pipeline = Pipeline([('clf', OneVsRestClassifier(LogisticRegression(solver='sag'), n_jobs=-1))])
+
+    categories = MY_TOPICS
+    
+    for category in categories:
+        print('**Processing {} comments...**'.format(category))
+        
+        # Training logistic regression model on train data
+        LogReg_pipeline.fit(x_train, train[category])
+        
+        # calculating test accuracy
+        prediction = LogReg_pipeline.predict(x_test)
+        print('Test accuracy is {}'.format(accuracy_score(test[category], prediction)))
+        
+    sys.exit()
+
+elif classifier_type == 'kNN':
     x_train = lil_matrix(x_train).toarray()
     y_train = lil_matrix(y_train).toarray()
     x_test = lil_matrix(x_test).toarray()
 
-# train
-classifier.fit(x_train, y_train)
+else:
+    # train
+    classifier.fit(x_train, y_train)
 
 # predict"
 test_predictions = classifier.predict(x_test)

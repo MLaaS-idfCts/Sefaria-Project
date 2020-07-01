@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import sklearn.model_selection
+from unidecode import unidecode
 import matplotlib.pyplot as plt
 
 from tqdm import tqdm
@@ -25,7 +26,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 # my_example_topics = ['prayer', 'procedures-for-judges-and-conduct-towards-them', 'learning', 'kings', 'hilchot-chol-hamoed', 'laws-of-judges-and-courts', 'laws-of-animal-sacrifices', 'financial-ramifications-of-marriage', 'idolatry', 'laws-of-transferring-between-domains']
 # my_example_topics = ['prayer', 'procedures-for-judges-and-conduct-towards-them']
-my_example_topics = ['prayer']
+# my_example_topics = ['prayer']
 
 stemmer = SnowballStemmer('english')
 
@@ -54,33 +55,163 @@ class DataManager:
         - within labeled, split into train and test set.
 
     """
-    def __init__(self, raw, num_topics, should_clean = True, should_stem = False):
+    def __init__(self, raw, num_topics, my_topics, should_clean = True, should_stem = False, should_remove_stopwords = True):
         self.raw = raw
+        self.my_topics = my_topics
         self.num_topics = num_topics
-        self.should_clean = should_clean
         self.should_stem = should_stem
+        self.should_clean = should_clean
+        self.should_remove_stopwords = should_remove_stopwords
 
-    def _select_columns(self):
+    def get_my_topics(self,all_topics):
+        all_topics_list = all_topics.split()
+        sublist = [topic for topic in all_topics_list if topic in self.my_topics]
+        result = ' '.join(sublist)
+        return result
+
+    def preprocess_dataframe(self):
         df = self.raw
-        return df[[
-            'Ref',
-            'En','Topics']]
-
-    def _remove_null(self):
-        df = self._select_columns()
-        rows_before = df.shape[0]
-        df = df.dropna(subset=['Ref', 'En'])
-        rows_after = df.shape[0]
-        # print(f"Dropped {rows_before - rows_after} nulls!")
-        return df
-
-    def _remove_duplicates(self):
-        df = self._remove_null()
-        rows_before = df.shape[0]
+        print('Original shape:',df.shape)
         df = df.drop_duplicates()
-        rows_after = df.shape[0]
-        # print(f"Dropped {rows_before - rows_after} duplicates!")
+        print('Without duplicates:',df.shape)
+        df = df.dropna()
+        print('Without nulls:',df.shape)
+        df = df.set_index('Ref',drop=True)
+        df = df[['En','Topics']]
+        df = df.rename(columns={'En': 'passage_text'})
+        df['Topics'] = df['Topics'].apply(self.get_my_topics)
+        df['Topics'].replace('', np.nan, inplace=True)
+        df = df.dropna()
+        df = pd.concat([df, df.pop('Topics').str.get_dummies(sep=' ')], axis=1)
+        # df_wanted_rows = data_raw[~(df_all_rows[my_example_topics] == 0).all(axis=1)]
         return df
+
+    def categories(self):
+        return list(self.preprocess_dataframe().columns.values)[1:]
+
+    def get_topic_counts(self):
+        df = self.preprocess_dataframe()
+        # categories = list(df.columns.values)
+        # categories = categories[1:]
+        counts = []
+        for category in self.categories:
+            counts.append((category, df[category].sum()))
+        df_stats = pd.DataFrame(counts, columns=['category', 'number of passages'])
+        return df_stats
+
+    # def show_simple_plot(self):
+        # figure = plt.figure()
+        # figure = plt.plot([1, 2, 3, 4], [1, 4, 9, 16])
+        # return figure
+
+
+    def show_topic_counts(self):
+        df = self.preprocess_dataframe()
+        categories = list(df.columns.values)
+        categories = categories[1:]
+        sns.set(font_scale = 2)
+        figure = plt.figure(figsize=(15,8))
+
+        ax= sns.barplot(categories, df.iloc[:,1:].sum().values)
+
+        plt.title("Passages in each category", fontsize=24)
+        plt.ylabel('Number of Passages', fontsize=18)
+        plt.xlabel('Passage Type ', fontsize=18)
+
+        #adding the text labels
+        rects = ax.patches
+        labels = df.iloc[:,1:].sum().values
+        for rect, label in zip(rects, labels):
+            height = rect.get_height()
+            ax.text(rect.get_x() + rect.get_width()/2, height + 0, label, ha='center', va='bottom', fontsize=18)
+
+        plt.xticks(rotation=90)
+        # plt.imshow()
+        # plt.show()
+        return ax
+
+    def show_multiple_labels(self):
+        rowSums = df.iloc[:,2:].sum(axis=1)
+        multiLabel_counts = rowSums.value_counts()
+        multiLabel_counts.sort_index(inplace=True)
+        multiLabel_counts = multiLabel_counts.iloc[:]
+
+        sns.set(font_scale = 2)
+        plt.figure(figsize=(15,8))
+
+        ax = sns.barplot(multiLabel_counts.index, multiLabel_counts.values)
+
+        plt.title("passages having multiple labels ")
+        plt.ylabel('Number of passages', fontsize=18)
+        plt.xlabel('Number of labels', fontsize=18)
+        #adding the text labels
+        rects = ax.patches
+        labels = multiLabel_counts.values
+        for rect, label in zip(rects, labels):
+            height = rect.get_height()
+            ax.text(rect.get_x() + rect.get_width()/2, height + 0, label, ha='center', va='bottom')
+        plt.show()
+
+    def cleanHtml(self,sentence):
+        cleanr = re.compile('<.*?>')
+        cleantext = re.sub(cleanr, ' ', str(sentence))
+        return cleantext
+
+
+    def cleanPunc(self,sentence): #function to clean the word of any punctuation or special characters
+        cleaned = re.sub(r'[?|!|\'|"|#]',r'',sentence)
+        cleaned = re.sub(r'[.|,|)|(|\|/]',r' ',cleaned)
+        cleaned = cleaned.strip()
+        cleaned = cleaned.replace("\n"," ")
+        return cleaned
+
+
+    def keepAlpha(self,sentence):
+        sentence = unidecode(sentence)
+        alpha_sent = ""
+        for word in sentence.split():
+            alpha_word = re.sub('[^a-z A-Z]+', ' ', word)
+            alpha_sent += alpha_word
+            alpha_sent += " "
+        alpha_sent = alpha_sent.strip()
+        return alpha_sent
+
+    def clean_text(self):
+        data = self.preprocess_dataframe()
+        data['passage_text'] = data['passage_text'].str.lower()
+        data['passage_text'] = data['passage_text'].apply(self.cleanHtml)
+        data['passage_text'] = data['passage_text'].apply(self.cleanPunc)
+        data['passage_text'] = data['passage_text'].apply(self.keepAlpha)
+        return data
+    
+    def stopword_cleaner(self,sentence):
+        stop_words = set(stopwords.words('english'))
+        re_stop_words = re.compile(r"\b(" + "|".join(stop_words) + ")\\W", re.I)
+        sentence = re_stop_words.sub(" ", sentence)
+        return sentence
+
+    def remove_stopwords(self):
+        data = self.clean_text()
+        if self.should_remove_stopwords:
+            data['passage_text'] = data['passage_text'].apply(self.stopword_cleaner)
+        return data
+    
+    def stemmer(self,sentence):
+        stemmer = SnowballStemmer("english")
+        stemSentence = ""
+        for word in sentence.split():
+            stem = stemmer.stem(word)
+            stemSentence += stem
+            stemSentence += " "
+        stemSentence = stemSentence.strip()
+        return stemSentence
+
+
+    def stem_words(self):
+        data = self.clean_text()
+        if self.should_stem:
+            data['passage_text'] = data['passage_text'].apply(self.stemmer)
+        return data
 
     def _get_ref_features(self,input_string):
         """

@@ -5,40 +5,105 @@ import pandas as pd
 from tqdm import tqdm
 from datetime import datetime
 from sklearn.metrics import accuracy_score
-from classes import DataManager, PipelineFactory, my_example_topics
-
-def finish_now(start_time):
-    finish_time = datetime.now()
-    total_time = finish_time - start_time
-    print('\n>>> Total runtime:',total_time)
-    sys.exit()
-
-start_time = datetime.now()
+from classes import DataManager, PipelineFactory
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 NUM_TOPICS = 10
-NUM_DATA_POINTS = 500
+NUM_DATA_POINTS = 50000
+DATA_PATH = '/persistent/Sefaria-Project/ML/data/yishai_data.csv'
+MY_TOPICS = ['prayer', 'procedures-for-judges-and-conduct-towards-them', 'learning', 'kings', 'hilchot-chol-hamoed', 'laws-of-judges-and-courts', 'laws-of-animal-sacrifices', 'financial-ramifications-of-marriage', 'idolatry', 'laws-of-transferring-between-domains']
+
 pd.options.display.max_colwidth = 50
 
-# import data
-# df = pd.read_csv('/root/Sefaria-Project/ML/data/yishai_data.csv')[:NUM_DATA_POINTS]
-# df = pd.read_pickle('data/1k.pkl')
-# df = pd.read_pickle('data/full_df.pkl')[:NUM_DATA_POINTS]
-# df = pd.read_pickle('data\single_class_df.pkl')[:NUM_DATA_POINTS]
-df = pd.read_pickle('data\single_class_df.pkl')[:NUM_DATA_POINTS]
-# df = pd.read_pickle('yishai_data.csv')[:NUM_DATA_POINTS]
-# df = pd.read_pickle('data\small_version_OHE_df.pkl')[:NUM_DATA_POINTS]
-
-# df.to_pickle('/root/Sefaria-Project/ML/data/1k.pkl')
-# df.set_index('Ref',
-#     drop=False,
-#     inplace=True)
+df = pd.read_csv(DATA_PATH)[:NUM_DATA_POINTS]
 
 # init data manager class
-data_manager = DataManager(
-    raw = df, num_topics = NUM_TOPICS, 
+data = DataManager(
+    raw = df, 
+    num_topics = NUM_TOPICS, 
+    my_topics = MY_TOPICS,
     should_clean = True,
     should_stem = True
     )
+
+# result = data.preprocess_dataframe()
+
+# result = data.get_topic_counts()
+
+# result = data.show_topic_counts()
+# result = data.show_simple_plot()
+# result.show()
+
+# result = data.clean_text()
+# result = data.remove_stopwords()
+result = data.stem_words()
+# print(result.head(5))
+
+data = result
+
+# train test split
+train, test = train_test_split(data, random_state=42, test_size=0.30, 
+#                                shuffle=True
+                              )
+# print(train.head(5))
+# print(test.head(5))
+
+train_text = train['passage_text']
+test_text = test['passage_text']
+
+vectorizer = TfidfVectorizer(strip_accents='unicode', analyzer='word', ngram_range=(1,3), norm='l2')
+vectorizer.fit(train_text)
+# vectorizer.fit(test_text)
+
+x_train = vectorizer.transform(train_text)
+y_train = train.drop(labels = ['passage_text'], axis=1)
+x_test = vectorizer.transform(test_text)
+y_test = test.drop(labels = ['passage_text'], axis=1)
+
+# result = y_test.head()
+
+def get_true_topics(row):
+    true_topics = []
+    global MY_TOPICS
+    for col in MY_TOPICS:
+        try:
+           row[col]
+        except:
+            continue
+        if row[col]==1:
+            true_topics.append(col)
+    return true_topics
+
+# test['true_topics'] = test.apply(get_true_topics,axis=1)
+# result = test[['passage_text','true_topics']].head()
+
+# print(result)
+
+# %%time
+
+# using binary relevance
+from skmultilearn.problem_transform import BinaryRelevance
+from sklearn.naive_bayes import GaussianNB
+
+# initialize binary relevance multi-label classifier
+# with a gaussian naive bayes base classifier
+classifier = BinaryRelevance(GaussianNB())
+
+# train
+classifier.fit(x_train, y_train)
+
+# predict"
+test_predictions = classifier.predict(x_test)
+train_predictions = classifier.predict(x_train)
+
+
+# accuracy
+print("Test Accuracy = ",accuracy_score(y_test,test_predictions))
+print("Train Accuracy = ",accuracy_score(y_train,train_predictions))
+print("\n")
+
+sys.exit()
 
 # split train and test data
 train, test = data_manager.get_train_and_test()

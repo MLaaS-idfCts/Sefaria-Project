@@ -5,6 +5,7 @@ import matplotlib
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from string import printable
 import sklearn.model_selection
 from unidecode import unidecode
 import matplotlib.pyplot as plt
@@ -34,46 +35,33 @@ stemmer = SnowballStemmer('english')
 class DataManager:
     """
     1 input:
-
     - raw data: pandas dataframe (heneforth "df")
 
-    3 tasks:
-
-    - clean data
-        - keep only three columns: Ref, En, and Topics
-        - remove rows with null Ref or En
-        - remove duplicated rows
-        - add parsed_Ref column to show just relevant subject
-            - e.g. "Mishna Torah, Shabbat, 4:7" --> "shabbat"
-        - clean En column
-
-    - breakdown topics
-        - one-hot-encode the list from Topics column
-        - present number of topic occurrences
-
-    -divide data
-        - divide labeled from unlabeled.
-        - within labeled, split into train and test set.
-
+    tasks:
+    
+    5 critical:
+    X remove nulls and duplicates
+    X get top topics 
+    - in topics col, keep only wanted topics
+    - clean text 
+    - one-hot-encode the list of wanted topics
+    
+    3 less important
+    - add parsed_Ref column to show just relevant subject
+        - e.g. "Mishna Torah, Shabbat, 4:7" --> "shabbat"
+    - divide labeled from unlabeled.
+    - within labeled, split into train and test set.
     """
-    def __init__(self, raw, num_topics, my_topics, should_clean = True, should_stem = False, should_remove_stopwords = True):
-        self.raw = raw
-        self.my_topics = my_topics
+    def __init__(self, raw_df, num_topics, should_clean = True, should_stem = False, should_remove_stopwords = True):
+        self.raw_df = raw_df
         self.num_topics = num_topics
         self.should_stem = should_stem
         self.should_clean = should_clean
         self.should_remove_stopwords = should_remove_stopwords
 
 
-    def get_my_topics(self,all_topics):
-        all_topics_list = all_topics.split()
-        sublist = [topic for topic in all_topics_list if topic in self.my_topics]
-        result = ' '.join(sublist)
-        return result
-
-
-    def preprocess_dataframe(self):
-        df = self.raw
+    def remove_junk_rows(self):
+        df = self.raw_df
         # how many rows and columns
         print('Original shape:',df.shape)
         # remove repeats
@@ -82,6 +70,121 @@ class DataManager:
         # remove empty cells
         df = df.dropna()
         print('Without nulls:',df.shape)
+        return df
+
+
+    def _get_top_topics(self):
+        if getattr(self, "top_topics", None):
+            return self.top_topics
+        else:
+            # count all topics that appear without having removed junk rows
+            df = self.raw_df
+            # make str out of all topic lists in topics column
+            all_topics_list = ' '.join(df['Topics'].tolist()).split()
+            # init dict
+            topic_counts = {}
+            # loop thru all topic occurrences
+            for topic in all_topics_list:
+                # increment if seen already
+                if topic in topic_counts:
+                    topic_counts[topic] += 1
+                # init if not seen yet
+                else:
+                    topic_counts[topic] = 1
+            # rank the entries by most frequently occurring first
+            top_topic_counts = {k: v for k, v in sorted(topic_counts.items(), key=lambda item: item[1],reverse=True)}
+            # convert dict {'prayer':334, etc} to list [('prayer',334), etc]
+            topic_tuples = list(top_topic_counts.items())
+            # select only the highest ranking
+            top_topic_tuples = topic_tuples[:self.num_topics]
+            # extract only the names of these topics, whilst dropping the number of occrurences 
+            top_topics_list = [topic_tuple[0] for topic_tuple in top_topic_tuples]
+            self.top_topics = top_topics_list
+        return top_topics_list
+
+
+    def topic_selector(self,row):
+        # this cell contains more topics than we might want
+        all_topics_list = row
+        # call attribute which stored top topics
+        # top_topics_list = self.top_topics()
+        top_topics_list = self._get_top_topics()
+        # keep only the topics which are popular
+        reduced_topics_list = [topic for topic in all_topics_list.split() if topic in top_topics_list]
+        # reconnect the topics in the list to form a string separated by spaces
+        reduced_topics_string = ' '.join(reduced_topics_list)
+        return reduced_topics_string
+
+
+    def cleanHtml(self,sentence):
+        cleanr = re.compile('<.*?>')
+        cleantext = re.sub(cleanr, ' ', str(sentence))
+        return cleantext
+
+
+    def cleanPunc(self,sentence): #function to clean the word of any punctuation or special characters
+        cleaned = re.sub(r'[?|!|\'|"|#]',r'',sentence)
+        cleaned = re.sub(r'[.|,|)|(|\|/]',r' ',cleaned)
+        cleaned = cleaned.strip()
+        cleaned = cleaned.replace("\n"," ")
+        return cleaned
+
+
+    def keepAlpha(self,sentence):
+        # convert chars to acceptable format
+        sentence = unidecode(sentence)
+        # init
+        alpha_sent = ""
+        for word in sentence.split():
+            alpha_word = re.sub('[^a-z A-Z]+', ' ', word)
+            alpha_sent += alpha_word
+            alpha_sent += " "
+        alpha_sent = alpha_sent.strip()
+        return alpha_sent
+
+
+    # def clean_text(self):
+    #     data = self.preprocess_dataframe()
+    #     data['passage_text'] = data['passage_text'].str.lower()
+    #     data['passage_text'] = data['passage_text'].apply(self.cleanHtml)
+    #     data['passage_text'] = data['passage_text'].apply(self.cleanPunc)
+    #     data['passage_text'] = data['passage_text'].apply(self.keepAlpha)
+    #     return data
+    
+
+    def stopword_cleaner(self,sentence):
+        stop_words = set(stopwords.words('english'))
+        re_stop_words = re.compile(r"\b(" + "|".join(stop_words) + ")\\W", re.I)
+        sentence = re_stop_words.sub(" ", sentence)
+        return sentence
+
+
+    # def remove_stopwords(self):
+    #     data = self.clean_text()
+    #     if self.should_remove_stopwords:
+    #         data['passage_text'] = data['passage_text'].apply(self.stopword_cleaner)
+    #     return data
+
+    
+    def stemmer(self,sentence):
+        stemmer = SnowballStemmer("english")
+        stemSentence = ""
+        for word in sentence.split():
+            stem = stemmer.stem(word)
+            stemSentence += stem
+            stemSentence += " "
+        stemSentence = stemSentence.strip()
+        return stemSentence
+
+
+    # def stem_words(self):
+    #     data = self.remove_stopwords()
+    #     if self.should_stem:
+    #         data['passage_text'] = data['passage_text'].apply(self.stemmer)
+    #     return data
+
+    def preprocess_dataframe(self):
+        df = self.remove_junk_rows()
         # use Ref as index instead of number
         df = df.set_index('Ref',drop=True)
         # keep only these columns
@@ -89,18 +192,33 @@ class DataManager:
         # add more descriptive name
         df = df.rename(columns={'En': 'passage_text'})
         # keep only topics that i want to study
-        df['Topics'] = df['Topics'].apply(self.get_my_topics)
+        df['true_topics'] = df.pop('Topics').apply(self.topic_selector)
         # remove rows which don't have my topics
-        df['Topics'].replace('', np.nan, inplace=True)
+        df['true_topics'].replace('', np.nan, inplace=True)
+        # remove casualties
         df = df.dropna()
         # one hot encode each topic
-        df = pd.concat([df, df.pop('Topics').str.get_dummies(sep=' ')], axis=1)
-        # df_wanted_rows = data_raw[~(df_all_rows[my_example_topics] == 0).all(axis=1)]
+        df = pd.concat([df, df['true_topics'].str.get_dummies(sep=' ')], axis=1)
+        # make topic string into list
+        df['true_topics'] = df['true_topics'].str.split()
+        # clean passage text
+        df['passage_text'] = df['passage_text'].str.lower()
+        df['passage_text'] = df['passage_text'].apply(self.cleanHtml)
+        df['passage_text'] = df['passage_text'].apply(self.cleanPunc)
+        df['passage_text'] = df['passage_text'].apply(self.keepAlpha)
+        # remove stopwords, if you so chose  
+        if self.should_remove_stopwords:
+            df['passage_text'] = df['passage_text'].apply(self.stopword_cleaner)
+        # stem words, if you so chose  
+        if self.should_stem:
+            df['passage_text'] = df['passage_text'].apply(self.stemmer)
         return df
 
 
-    def categories(self):
-        return list(self.preprocess_dataframe().columns.values)[1:]
+    # def one_hot_encode(self):
+    #     df = self.preprocess_dataframe()
+    #     # df_wanted_rows = data_raw[~(df_all_rows[my_example_topics] == 0).all(axis=1)]
+    #     return df
 
 
     def get_topic_counts(self):
@@ -165,71 +283,6 @@ class DataManager:
         plt.show()
 
 
-    def cleanHtml(self,sentence):
-        cleanr = re.compile('<.*?>')
-        cleantext = re.sub(cleanr, ' ', str(sentence))
-        return cleantext
-
-
-    def cleanPunc(self,sentence): #function to clean the word of any punctuation or special characters
-        cleaned = re.sub(r'[?|!|\'|"|#]',r'',sentence)
-        cleaned = re.sub(r'[.|,|)|(|\|/]',r' ',cleaned)
-        cleaned = cleaned.strip()
-        cleaned = cleaned.replace("\n"," ")
-        return cleaned
-
-
-    def keepAlpha(self,sentence):
-        sentence = unidecode(sentence)
-        alpha_sent = ""
-        for word in sentence.split():
-            alpha_word = re.sub('[^a-z A-Z]+', ' ', word)
-            alpha_sent += alpha_word
-            alpha_sent += " "
-        alpha_sent = alpha_sent.strip()
-        return alpha_sent
-
-
-    def clean_text(self):
-        data = self.preprocess_dataframe()
-        data['passage_text'] = data['passage_text'].str.lower()
-        data['passage_text'] = data['passage_text'].apply(self.cleanHtml)
-        data['passage_text'] = data['passage_text'].apply(self.cleanPunc)
-        data['passage_text'] = data['passage_text'].apply(self.keepAlpha)
-        return data
-    
-
-    def stopword_cleaner(self,sentence):
-        stop_words = set(stopwords.words('english'))
-        re_stop_words = re.compile(r"\b(" + "|".join(stop_words) + ")\\W", re.I)
-        sentence = re_stop_words.sub(" ", sentence)
-        return sentence
-
-
-    def remove_stopwords(self):
-        data = self.clean_text()
-        if self.should_remove_stopwords:
-            data['passage_text'] = data['passage_text'].apply(self.stopword_cleaner)
-        return data
-
-    
-    def stemmer(self,sentence):
-        stemmer = SnowballStemmer("english")
-        stemSentence = ""
-        for word in sentence.split():
-            stem = stemmer.stem(word)
-            stemSentence += stem
-            stemSentence += " "
-        stemSentence = stemSentence.strip()
-        return stemSentence
-
-
-    def stem_words(self):
-        data = self.remove_stopwords()
-        if self.should_stem:
-            data['passage_text'] = data['passage_text'].apply(self.stemmer)
-        return data
-
 
     def _get_ref_features(self,input_string):
         """
@@ -259,22 +312,6 @@ class DataManager:
         return df
 
 
-    def get_top_topics(self):
-
-        df = self.stem_words()
-
-        counts = []
-        topics = list(df.columns.values)[1:]
-
-        print("\nCounting occurrences of each topic")
-        for topic in tqdm(topics):
-            counts.append((topic, df[topic].sum()))
-
-        df_stats = pd.DataFrame(counts, columns=['topic', 'occurrences'])
-        df_stats_sorted = df_stats.sort_values(by=['occurrences'], ascending=False)
-        top_topics_df = df_stats_sorted[:self.num_topics]
-        return top_topics_df
-
 
     def _get_labeled(self):
         df = self._add_topic_columns()
@@ -288,13 +325,13 @@ class DataManager:
         return df[df.Topics.isnull()]
 
 
-    def get_train_and_test(self):
-        labeled_data = self._get_labeled()
-        train, test = labeled_data[:-1], labeled_data[-5:]
-        train, test = sklearn.model_selection.train_test_split(labeled_data,random_state=42, test_size=0.33, 
-        shuffle=True
-        )
-        return train, test
+    # def get_train_and_test(self):
+    #     labeled_data = self._get_labeled()
+    #     train, test = labeled_data[:-1], labeled_data[-5:]
+    #     train, test = sklearn.model_selection.train_test_split(labeled_data,random_state=42, test_size=0.33, 
+    #     shuffle=True
+    #     )
+    #     return train, test
 
 
 class PipelineFactory:

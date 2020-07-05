@@ -63,13 +63,13 @@ class DataManager:
     def remove_junk_rows(self):
         df = self.raw_df
         # how many rows and columns
-        print('Original shape:',df.shape)
+        # print('Original shape:',df.shape)
         # remove repeats
         df = df.drop_duplicates()
-        print('Without duplicates:',df.shape)
+        # print('Without duplicates:',df.shape)
         # remove empty cells
         df = df.dropna()
-        print('Without nulls:',df.shape)
+        # print('Without nulls:',df.shape)
         return df
 
 
@@ -315,13 +315,13 @@ class DataManager:
 
     def _get_labeled(self):
         df = self._add_topic_columns()
-        print('Shape of labeled data:',df.shape)
+        # print('Shape of labeled data:',df.shape)
         return df[df.Topics.notnull()]
         
 
     def _get_unlabeled(self):
         df = self._add_topic_columns()
-        print('Shape of unlabeled data:',df.shape)
+        # print('Shape of unlabeled data:',df.shape)
         return df[df.Topics.isnull()]
 
 

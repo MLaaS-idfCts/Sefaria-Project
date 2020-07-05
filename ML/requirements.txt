@@ -15,4 +15,6 @@ virtualenv
 ipykernel
 Unidecode
 mplcursors
-fastxml
+# fastxml
+# nano
+# vim

@@ -1,33 +1,28 @@
 import re
 import nltk
-import sklearn
-import matplotlib
 import numpy as np
 import pandas as pd
+import sklearn
 import seaborn as sns
-from string import printable
-import sklearn.model_selection
-from unidecode import unidecode
 import matplotlib.pyplot as plt
+import sklearn.model_selection
 
-from tqdm import tqdm
 from bs4 import BeautifulSoup
+from tqdm import tqdm
+from string import printable
 from datetime import datetime
+from unidecode import unidecode
+from nltk.stem import SnowballStemmer
 from nltk.corpus import stopwords
 from sklearn.svm import LinearSVC
-from nltk.stem import SnowballStemmer
-from sklearn.pipeline import Pipeline
 from sklearn.metrics import accuracy_score
-from sklearn.naive_bayes import MultinomialNB
-from gensim.parsing.preprocessing import STOPWORDS
+from sklearn.pipeline import Pipeline
 from sklearn.multiclass import OneVsRestClassifier
+from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
+from gensim.parsing.preprocessing import STOPWORDS
 from sklearn.feature_extraction.text import TfidfVectorizer
-
-# my_example_topics = ['prayer', 'procedures-for-judges-and-conduct-towards-them', 'learning', 'kings', 'hilchot-chol-hamoed', 'laws-of-judges-and-courts', 'laws-of-animal-sacrifices', 'financial-ramifications-of-marriage', 'idolatry', 'laws-of-transferring-between-domains']
-# my_example_topics = ['prayer', 'procedures-for-judges-and-conduct-towards-them']
-# my_example_topics = ['prayer']
 
 nltk.download('stopwords')
 stemmer = SnowballStemmer('english')

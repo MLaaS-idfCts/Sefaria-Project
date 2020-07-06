@@ -2,9 +2,9 @@
 import sys
 import time
 import scipy
-import warnings
 import numpy as np
 import pandas as pd
+import warnings
 
 from tqdm import tqdm
 from classes import DataManager, PipelineFactory
@@ -40,20 +40,24 @@ pd.set_option('display.max_rows', None)
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # width of column to dispaly in dataframe
-pd.options.display.max_colwidth = 50
+pd.options.display.max_colwidth = 40
 
 # how many topics to consider
-NUM_TOPICS = 3
+NUM_TOPICS = 50
 
 # max num of passages to examine
-ROW_LIMIT = 1000
+ROW_LIMIT = None
 
 # location of actual csv
 DATA_PATH = '/persistent/Sefaria-Project/ML/data/yishai_data.csv'
 
 # dict of classifier types
 classifier_types = {
-    1:OneVsRestClassifier(LogisticRegression())
+    1:OneVsRestClassifier(LinearSVC()),
+    2:OneVsRestClassifier(MultinomialNB()),
+    # 3:OneVsRestClassifier(GaussianNB()),
+    4:OneVsRestClassifier(LogisticRegression()),
+    5:BinaryRelevance(classifier=SVC(),require_dense=[True, True]),
 }
 
 # load original data 
@@ -102,7 +106,18 @@ for classifier_key in classifier_types.keys():
     classifier = classifier_types[classifier_key]
     
     # train the classifier
-    classifier.fit(x_train, y_train)
+    try:
+        classifier.fit(x_train, y_train)
+    except:
+        y_train = y_train.values.toarray()
+        # y_train = y_train.values.todense()
+        # try:
+        classifier.fit(
+            x_train, 
+            y_train
+            )
+    # except:
+
 
     # make predictions
     test_predictions = classifier.predict(x_test)
@@ -114,14 +129,15 @@ for classifier_key in classifier_types.keys():
     
     # init list of sublists, one sublist per passage, 
     # e.g. pred_labels_list = [['prayer'],['prayer','judges'],['moses']]
-    
     pred_labels_list = []
-    # loop thru each matrix in list, again one matrix per passage, 
     
+    # loop thru each matrix in list, again one matrix per passage, 
     for array in preds_list:
     
         if isinstance(array,scipy.sparse.csr.csr_matrix):
-            array = array.tolil().data.tolist()
+            # array = array.tolil().data.tolist()
+            array = [array[0,i] for i in range(array.shape[1])]
+            print()
     
         # init topics list for this row, e.g. passage_labels = ['prayer', 'moses']
         passage_labels = []
@@ -139,9 +155,9 @@ for classifier_key in classifier_types.keys():
 
     result = test[cols]
     topics_comparison = test[['true_topics','pred_topics']]
-    print(topics_comparison)
-    print('\nClassifier type:',classifier)
-    print('**********************************************')
+    # print(topics_comparison)
+    print('\n*******************************************************************')
+    print('Classifier type:',classifier)
 
     topics_list = ['None'] + top_topics
 
@@ -204,31 +220,17 @@ for classifier_key in classifier_types.keys():
     TP = np.diag(cm)
     FP = np.sum(cm, axis=0) - TP
     FN = np.sum(cm, axis=1) - TP
-
     
     np.seterr(divide='ignore', invalid='ignore')
 
-    precision = TP/(TP+FP)
-    recall = TP/(TP+FN)
-
-
-    precision_dict = dict(zip(topics_list, precision))
-
-    recall_dict = dict(zip(topics_list, recall))
-    # print()
-    print('Precision:',[round(num,2) for num in precision])
-    # for k,v in precision_dict.items():
-    #     print(k)
-    #     print(v)
-
-    print('Recall:',[round(num,2) for num in recall])
-    # for k,v in recall_dict.items():
-    #     print(k)
-        # print(v)
-
-    # show how much time has elapsed
-    print(datetime.now()-start_time)
+    # precision = how many predicted were correct
+    precision = [round(num,2) for num in TP/(TP+FP)]
     
-print([(topic_index, topic) for topic_index, topic in enumerate(top_topics)])
-print()
-# """
+    # recall = how many correct were predicted
+    recall = [round(num,2) for num in TP/(TP+FN)]
+
+    score_df = pd.DataFrame(
+        {'Topics': topics_list,'Precision': precision,'Recall': recall},
+        ).sort_values(by=['Precision', 'Recall'],ascending=False)
+
+    print(score_df.head())

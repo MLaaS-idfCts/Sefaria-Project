@@ -1,3 +1,8 @@
+# GAMEPLAN
+'''
+
+'''
+
 # IMPORT LIBRARIES
 import sys
 import time
@@ -7,7 +12,7 @@ import pandas as pd
 import warnings
 
 from tqdm import tqdm
-from classes import DataManager, PipelineFactory
+from classes import DataManager
 from datetime import datetime
 from sklearn.svm import SVC, LinearSVC
 from scipy.sparse import csr_matrix, lil_matrix
@@ -25,8 +30,6 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from skmultilearn.problem_transform import LabelPowerset, BinaryRelevance, ClassifierChain
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-# for timing processes
-start_time = datetime.now()
 
 # choose convenient settings
 # ignore warnings regarding column assignment, 
@@ -42,32 +45,49 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 # width of column to dispaly in dataframe
 pd.options.display.max_colwidth = 40
 
-# how many topics to consider
-NUM_TOPICS = 50
-
-# max num of passages to examine
-ROW_LIMIT = None
-
 # location of actual csv
 DATA_PATH = '/persistent/Sefaria-Project/ML/data/yishai_data.csv'
 
 # dict of classifier types
-classifier_types = {
-    1:OneVsRestClassifier(LinearSVC()),
-    2:OneVsRestClassifier(MultinomialNB()),
-    # 3:OneVsRestClassifier(GaussianNB()),
-    4:OneVsRestClassifier(LogisticRegression()),
-    5:BinaryRelevance(classifier=SVC(),require_dense=[True, True]),
-}
+classifiers = [
+    # 1
+    # OneVsRestClassifier(LinearSVC()),
+    # OneVsRestClassifier(MultinomialNB()),
+    # OneVsRestClassifier(GaussianNB()),
+    # OneVsRestClassifier(LogisticRegression()),
+    # OneVsRestClassifier(SGDClassifier(loss='log', alpha=0.1, penalty='l2'), n_jobs=-1),
+    OneVsRestClassifier(SGDClassifier()),
+    # 2
+    # BinaryRelevance(classifier=LinearSVC(),require_dense=[True, True]),
+    # BinaryRelevance(classifier=MultinomialNB(),require_dense=[True, True]),
+    # BinaryRelevance(classifier=SVC(),require_dense=[True, True]),
+    # 3
+    # LabelPowerset(classifier=LinearSVC(),require_dense=[True, True]),
+    # 4
+    # ClassifierChain(classifier=LinearSVC(),require_dense=[True, True]),
+    # 5
+    # (classifier=LinearSVC(),require_dense=[True, True]),
+    ]
+
+# ***VARIABLE INPUTS***
+# how many topics to consider
+NUM_TOPICS = 5
+# max num of passages to examine
+ROW_LIMIT = 100000
+print(f"{NUM_TOPICS} topics and {ROW_LIMIT} for row limit.")
 
 # load original data 
 df = pd.read_csv(DATA_PATH)[:ROW_LIMIT]
 
 # init class to manage data
-data = DataManager(raw_df = df, num_topics = NUM_TOPICS, should_clean = True, should_stem = False)
+data = DataManager(raw_df = df, num_topics = NUM_TOPICS, should_clean = True, should_stem = True)
 
 # list of most commonly occurring topics
 top_topics = data._get_top_topics()
+
+# how many passages belong to each topic
+topic_counts = data.get_topic_counts()
+print(topic_counts.head())
 
 # data in usable fromat, e.g. cleaned, stemmed, etc.
 # e.g. should have column for passage text, and for each topic
@@ -84,15 +104,16 @@ train_text = train['passage_text']
 test_text = test['passage_text']
 
 # init a vectorizer that will convert string of words into numerical format
-vectorizer = TfidfVectorizer(strip_accents='unicode', analyzer='word', ngram_range=(1,3), norm='l2')
+# vectorizer = TfidfVectorizer(max_features=5000,stop_words='english')
+vectorizer = TfidfVectorizer(ngram_range=(1,2), 
+# tokenizer=tokenize,
+min_df=3, max_df=0.9, strip_accents='unicode', use_idf=1,smooth_idf=1, sublinear_tf=1 )
+# vectorizer = TfidfVectorizer(strip_accents='unicode', analyzer='word', ngram_range=(1,3), norm='l2')
 
-# convert words of each passages
+# document-term matrix, i.e. numerical version of passage text
 # Note: We only fit with training data, 
+x_train = vectorizer.fit_transform(train_text)
 # but NOT with testing data, because testing data should be "UNSEEN"
-vectorizer.fit(train_text)
-
-# numerical version of words in passage
-x_train = vectorizer.transform(train_text)
 x_test = vectorizer.transform(test_text)
 
 # topics columns, with 0/1 indicating if the topic of this column relates to that row's passage
@@ -100,10 +121,10 @@ y_train = train.drop(labels = ['passage_text','true_topics'], axis=1)
 y_test = test.drop(labels = ['passage_text','true_topics'], axis=1)
 
 # loop thru various classifier types
-for classifier_key in classifier_types.keys():
-    
-    # choose your classifier type
-    classifier = classifier_types[classifier_key]
+for classifier in classifiers:
+
+    # for timing processes
+    start_time = datetime.now()
     
     # train the classifier
     try:
@@ -134,10 +155,9 @@ for classifier_key in classifier_types.keys():
     # loop thru each matrix in list, again one matrix per passage, 
     for array in preds_list:
     
-        if isinstance(array,scipy.sparse.csr.csr_matrix):
+        if isinstance(array, scipy.sparse.csr.csr_matrix) or isinstance(array, np.int64) or isinstance(array, scipy.sparse.lil.lil_matrix):
             # array = array.tolil().data.tolist()
             array = [array[0,i] for i in range(array.shape[1])]
-            print()
     
         # init topics list for this row, e.g. passage_labels = ['prayer', 'moses']
         passage_labels = []
@@ -158,8 +178,6 @@ for classifier_key in classifier_types.keys():
     # print(topics_comparison)
     print('\n*******************************************************************')
     print('Classifier type:',classifier)
-
-    topics_list = ['None'] + top_topics
 
     true_label_lists = result.true_topics.tolist()
     pred_label_lists = result.pred_topics.tolist()
@@ -207,9 +225,9 @@ for classifier_key in classifier_types.keys():
             if pred_label not in true_label_list:
                 y_true.append("None")
                 y_pred.append(pred_label)
+    
+    topics_list = ['None'] + top_topics
             
-    import pandas as pd
-
     y_actu = pd.Categorical(y_true, categories=topics_list)
     y_pred = pd.Categorical(y_pred, categories=topics_list)
 
@@ -230,7 +248,11 @@ for classifier_key in classifier_types.keys():
     recall = [round(num,2) for num in TP/(TP+FN)]
 
     score_df = pd.DataFrame(
-        {'Topics': topics_list,'Precision': precision,'Recall': recall},
-        ).sort_values(by=['Precision', 'Recall'],ascending=False)
+        {'Topics': topics_list,'Precision': precision, 'Recall': recall}
+        ).sort_values(by=['Precision', 'Recall'], ascending=False)
 
+    print("Time taken:", datetime.now() - start_time)
+    
     print(score_df.head())
+
+print()

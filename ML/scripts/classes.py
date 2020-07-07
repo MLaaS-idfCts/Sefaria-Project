@@ -56,45 +56,61 @@ class DataManager:
 
 
     def remove_junk_rows(self):
-        df = self.raw_df
-        # how many rows and columns
-        # print('Original shape:',df.shape)
-        # remove repeats
-        df = df.drop_duplicates()
-        # print('Without duplicates:',df.shape)
-        # remove empty cells
-        df = df.dropna()
-        # print('Without nulls:',df.shape)
+        
+        if isinstance(getattr(self, "without_junk_rows", None), pd.DataFrame):
+            return self.without_junk_rows
+        else:
+            df = self.raw_df
+            # remove repeats
+            df = df.drop_duplicates()
+            # remove empty cells
+            df = df.dropna()
+            # store as attribute
+            self.without_junk_rows = df
         return df
 
 
     def _get_top_topics(self):
+
         if getattr(self, "top_topics", None):
             return self.top_topics
+        
         else:
-            # count all topics that appear without having removed junk rows
-            df = self.raw_df
+            # count all topics that appear *after* having removed junk rows
+            df = self.remove_junk_rows()
+
             # make str out of all topic lists in topics column
             all_topics_list = ' '.join(df['Topics'].tolist()).split()
+            
             # init dict
             topic_counts = {}
+            
             # loop thru all topic occurrences
             for topic in all_topics_list:
+            
                 # increment if seen already
                 if topic in topic_counts:
                     topic_counts[topic] += 1
+            
                 # init if not seen yet
                 else:
                     topic_counts[topic] = 1
+            
             # rank the entries by most frequently occurring first
             top_topic_counts = {k: v for k, v in sorted(topic_counts.items(), key=lambda item: item[1],reverse=True)}
+            
             # convert dict {'prayer':334, etc} to list [('prayer',334), etc]
             topic_tuples = list(top_topic_counts.items())
+            
             # select only the highest ranking
             top_topic_tuples = topic_tuples[:self.num_topics]
+            
             # extract only the names of these topics, whilst dropping the number of occrurences 
             top_topics_list = [topic_tuple[0] for topic_tuple in top_topic_tuples]
+            
+            # store as attribute
             self.top_topics = top_topics_list
+
         return top_topics_list
 
 
@@ -138,15 +154,6 @@ class DataManager:
         return alpha_sent
 
 
-    # def clean_text(self):
-    #     data = self.preprocess_dataframe()
-    #     data['passage_text'] = data['passage_text'].str.lower()
-    #     data['passage_text'] = data['passage_text'].apply(self.cleanHtml)
-    #     data['passage_text'] = data['passage_text'].apply(self.cleanPunc)
-    #     data['passage_text'] = data['passage_text'].apply(self.keepAlpha)
-    #     return data
-    
-
     def stopword_cleaner(self,sentence):
         stop_words = set(stopwords.words('english'))
         re_stop_words = re.compile(r"\b(" + "|".join(stop_words) + ")\\W", re.I)
@@ -154,13 +161,6 @@ class DataManager:
         return sentence
 
 
-    # def remove_stopwords(self):
-    #     data = self.clean_text()
-    #     if self.should_remove_stopwords:
-    #         data['passage_text'] = data['passage_text'].apply(self.stopword_cleaner)
-    #     return data
-
-    
     def stemmer(self,sentence):
         stemmer = SnowballStemmer("english")
         stemSentence = ""
@@ -172,60 +172,67 @@ class DataManager:
         return stemSentence
 
 
-    # def stem_words(self):
-    #     data = self.remove_stopwords()
-    #     if self.should_stem:
-    #         data['passage_text'] = data['passage_text'].apply(self.stemmer)
-    #     return data
-
     def preprocess_dataframe(self):
-        df = self.remove_junk_rows()
-        # use Ref as index instead of number
-        df = df.set_index('Ref',drop=True)
-        # keep only these columns
-        df = df[['En','Topics']]
-        # add more descriptive name
-        df = df.rename(columns={'En': 'passage_text'})
-        # keep only topics that i want to study
-        df['true_topics'] = df.pop('Topics').apply(self.topic_selector)
-        # remove rows which don't have my topics
-        df['true_topics'].replace('', np.nan, inplace=True)
-        # remove casualties
-        df = df.dropna()
-        # one hot encode each topic
-        df = pd.concat([df, df['true_topics'].str.get_dummies(sep=' ')], axis=1)
-        # make topic string into list
-        df['true_topics'] = df['true_topics'].str.split()
-        # clean passage text
-        df['passage_text'] = df['passage_text'].str.lower()
-        df['passage_text'] = df['passage_text'].apply(self.cleanHtml)
-        df['passage_text'] = df['passage_text'].apply(self.cleanPunc)
-        df['passage_text'] = df['passage_text'].apply(self.keepAlpha)
-        # remove stopwords, if you so chose  
-        if self.should_remove_stopwords:
-            df['passage_text'] = df['passage_text'].apply(self.stopword_cleaner)
-        # stem words, if you so chose  
-        if self.should_stem:
-            df['passage_text'] = df['passage_text'].apply(self.stemmer)
+
+        if isinstance(getattr(self, "preprocessed_dataframe", None),pd.DataFrame):
+            return self.preprocessed_dataframe
+        
+        else:
+            df = self.remove_junk_rows()
+        
+            # use Ref as index instead of number
+            df = df.set_index('Ref',drop=True)
+        
+            # keep only these columns
+            df = df[['En','Topics']]
+        
+            # add more descriptive name
+            df = df.rename(columns={'En': 'passage_text'})
+        
+            # keep only topics that i want to study
+            df['true_topics'] = df.pop('Topics').apply(self.topic_selector)
+        
+            # remove rows which don't have my topics
+            df['true_topics'].replace('', np.nan, inplace=True)
+        
+            # remove casualties
+            df = df.dropna()
+        
+            # one hot encode each topic
+            df = pd.concat([df, df['true_topics'].str.get_dummies(sep=' ')], axis=1)
+        
+            # make topic string into list
+            df['true_topics'] = df['true_topics'].str.split()
+        
+            # clean passage text
+            df['passage_text'] = df['passage_text'].str.lower()
+            df['passage_text'] = df['passage_text'].apply(self.cleanHtml)
+            df['passage_text'] = df['passage_text'].apply(self.cleanPunc)
+            df['passage_text'] = df['passage_text'].apply(self.keepAlpha)
+        
+            # remove stopwords, if you so chose  
+            if self.should_remove_stopwords:
+                df['passage_text'] = df['passage_text'].apply(self.stopword_cleaner)
+        
+            # stem words, if you so chose  
+            if self.should_stem:
+                df['passage_text'] = df['passage_text'].apply(self.stemmer)
+            self.preprocessed_dataframe = df
         return df
 
 
-    # def one_hot_encode(self):
-    #     df = self.preprocess_dataframe()
-    #     # df_wanted_rows = data_raw[~(df_all_rows[my_example_topics] == 0).all(axis=1)]
-    #     return df
-
-
     def get_topic_counts(self):
-        df = self.preprocess_dataframe()
-        # categories = list(df.columns.values)
-        # categories = categories[1:]
-        counts = []
-        
-        for category in self.my_topics:
-        # for category in self.categories:
-            counts.append((category, df[category].sum()))
-        df_stats = pd.DataFrame(counts, columns=['category', 'number of passages'])
+        if getattr(self, "topic_counts", None):
+        # if getattr('',None):
+            return self.topic_counts
+        else:
+            
+            df = self.preprocess_dataframe()
+            counts = []
+            for topic in self.top_topics:
+                counts.append((topic, df[topic].sum()))
+            df_stats = pd.DataFrame(counts, columns=['Topic', 'Occurrences']).sort_values(by='Occurrences', ascending=False, na_position='last')
+            df_stats.index = df_stats.index + 1
         return df_stats
 
 
@@ -238,7 +245,7 @@ class DataManager:
 
         ax= sns.barplot(categories, df.iloc[:,1:].sum().values)
 
-        plt.title("Passages in each category", fontsize=24)
+        plt.title("Passages in each topic", fontsize=24)
         plt.ylabel('Number of Passages', fontsize=18)
         plt.xlabel('Passage Type ', fontsize=18)
 
@@ -305,53 +312,6 @@ class DataManager:
         df = self.stem_words()
         df['ref_features'] = df.Ref.apply(self._get_ref_features)
         return df
-
-
-
-    def _get_labeled(self):
-        df = self._add_topic_columns()
-        # print('Shape of labeled data:',df.shape)
-        return df[df.Topics.notnull()]
-        
-
-    def _get_unlabeled(self):
-        df = self._add_topic_columns()
-        # print('Shape of unlabeled data:',df.shape)
-        return df[df.Topics.isnull()]
-
-
-    # def get_train_and_test(self):
-    #     labeled_data = self._get_labeled()
-    #     train, test = labeled_data[:-1], labeled_data[-5:]
-    #     train, test = sklearn.model_selection.train_test_split(labeled_data,random_state=42, test_size=0.33, 
-    #     shuffle=True
-    #     )
-    #     return train, test
-
-
-class PipelineFactory:
-
-    def __init__(self, model_code):
-        self.model_code = model_code
-        self.stop_words = set(stopwords.words('english'))
-        self.pipelines = {
-            "MultNB":Pipeline([
-                ('tfidf', TfidfVectorizer(stop_words=self.stop_words)),
-                ('clf', OneVsRestClassifier(MultinomialNB(fit_prior=True, class_prior=None))),
-                ]),
-            "LinSVC":Pipeline([
-                ('tfidf', TfidfVectorizer(stop_words=self.stop_words)),
-                ('clf', OneVsRestClassifier(LinearSVC(), n_jobs=1)),
-                ]),
-            "LogReg":Pipeline([
-                ('tfidf', TfidfVectorizer(stop_words=self.stop_words)),
-                ('clf', OneVsRestClassifier(LogisticRegression(solver='sag',max_iter=1000), n_jobs=1)),
-                ])
-        }
-
-    def get_pipeline(self):
-        return self.pipelines[self.model_code]
-
 
 # # class Classifier
 # # class Evaluator

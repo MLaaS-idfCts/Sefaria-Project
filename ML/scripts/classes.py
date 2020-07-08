@@ -1,5 +1,6 @@
 import re
 import nltk
+import scipy
 import numpy as np
 import pandas as pd
 import sklearn
@@ -47,11 +48,15 @@ class DataManager:
     - divide labeled from unlabeled.
     - within labeled, split into train and test set.
     """
-    def __init__(self, raw_df, num_topics, should_clean = True, should_stem = False, should_remove_stopwords = True):
+    def __init__(
+        self, raw_df, num_topics, 
+        should_clean = True, should_stem = False, should_remove_stopwords = True, count_none = False):
+        
         self.raw_df = raw_df
         self.num_topics = num_topics
         self.should_stem = should_stem
         self.should_clean = should_clean
+        self.count_none = count_none
         self.should_remove_stopwords = should_remove_stopwords
 
 
@@ -106,7 +111,10 @@ class DataManager:
             top_topic_tuples = topic_tuples[:self.num_topics]
             
             # extract only the names of these topics, whilst dropping the number of occrurences 
-            top_topics_list = [topic_tuple[0] for topic_tuple in top_topic_tuples]
+            top_topics_list = [topic_tuple[0] for topic_tuple in top_topic_tuples] + ['None']
+            
+            # order by topic name
+            top_topics_list.sort()
             
             # store as attribute
             self.top_topics = top_topics_list
@@ -193,13 +201,18 @@ class DataManager:
             df['true_topics'] = df.pop('Topics').apply(self.topic_selector)
         
             # remove rows which don't have my topics
-            df['true_topics'].replace('', np.nan, inplace=True)
+            df['true_topics'].replace('', 'None', inplace=True)
+            # df['true_topics'].replace('', np.nan, inplace=True)
         
             # remove casualties
             df = df.dropna()
         
             # one hot encode each topic
             df = pd.concat([df, df['true_topics'].str.get_dummies(sep=' ')], axis=1)
+
+            # order columns, starting with most frequently occurring topic
+            ordered_columns = ['passage_text', 'true_topics'] + self.top_topics
+            df = df[ordered_columns]
         
             # make topic string into list
             df['true_topics'] = df['true_topics'].str.split()
@@ -217,13 +230,14 @@ class DataManager:
             # stem words, if you so chose  
             if self.should_stem:
                 df['passage_text'] = df['passage_text'].apply(self.stemmer)
+
             self.preprocessed_dataframe = df
+
         return df
 
 
     def get_topic_counts(self):
         if getattr(self, "topic_counts", None):
-        # if getattr('',None):
             return self.topic_counts
         else:
             
@@ -231,9 +245,16 @@ class DataManager:
             counts = []
             for topic in self.top_topics:
                 counts.append((topic, df[topic].sum()))
-            df_stats = pd.DataFrame(counts, columns=['Topic', 'Occurrences']).sort_values(by='Occurrences', ascending=False, na_position='last')
-            df_stats.index = df_stats.index + 1
-        return df_stats
+            topic_counts = pd.DataFrame(counts, columns=['Topic', 'Occurrences'])
+            topic_counts = topic_counts.sort_values(by='Occurrences', ascending=False, na_position='last')
+            topic_counts = topic_counts.reset_index(drop=True)
+            
+            total_occurrences = topic_counts.Occurrences.sum()
+            topic_counts['Proportion'] = round(topic_counts.Occurrences/total_occurrences,2)
+
+            topic_counts = topic_counts.sort_values(by='Topic')
+
+        return topic_counts
 
 
     def show_topic_counts(self):
@@ -312,6 +333,218 @@ class DataManager:
         df = self.stem_words()
         df['ref_features'] = df.Ref.apply(self._get_ref_features)
         return df
+
+class ConfusionMatrix:
+    def __init__(self, result, top_topics):
+        self.result = result
+        self.top_topics = top_topics
+
+    def get_values(self):
+
+        # return 12
+
+    # if True:
+        result = self.result
+        top_topics = self.top_topics
+
+        true_label_lists = result.true_topics.tolist()
+        pred_label_lists = result.pred_topics.tolist()
+
+        assert len(true_label_lists) == len(pred_label_lists)
+
+        num_passages = len(true_label_lists)
+
+        y_true = []
+        y_pred = []
+
+        for i in range(num_passages):
+
+            true_label_list = []
+            pred_label_list = []
+            
+            try:
+                true_label_list = true_label_lists[i]
+            except:
+                pass
+            
+            try:
+                pred_label_list = pred_label_lists[i]
+            except:
+                pass
+
+            # 0) NULL CASE --> No true or pred labels 
+            if len(pred_label_list) == 0 and len(pred_label_list) == 0:
+                    y_true.append('None')
+                    y_pred.append('None')
+        
+            # 1) MATCH --> true label == pred label 
+            for true_label in true_label_list:
+                if true_label in pred_label_list:
+                    y_true.append(true_label)
+                    y_pred.append(true_label)
+
+            # 2) FALSE NEGATIVE --> true label was not predicted
+                else:
+                    y_true.append(true_label)
+                    y_pred.append("None")
+
+            # 3) FALSE POSITIVE --> pred label was not true
+            for pred_label in pred_label_list:
+                if pred_label not in true_label_list:
+                    y_true.append("None")
+                    y_pred.append(pred_label)
+        
+        # topics_list = ['None'] + top_topics
+        topics_list = top_topics
+                
+        y_actu = pd.Categorical(y_true, categories=topics_list)
+        y_pred = pd.Categorical(y_pred, categories=topics_list)
+
+        cm = pd.crosstab(y_actu, y_pred, rownames=['True'], colnames = ['Pred'], dropna=False) 
+        # print(cm)
+        cm = cm.values
+        return cm
+
+class Predictor:
+    def __init__(self, classifier, test, x_test, top_topics):
+        self.classifier = classifier
+        self.test = test
+        self.x_test = x_test
+        self.top_topics = top_topics
+    
+    def get_result(self):
+        
+        classifier = self.classifier
+        top_topics = self.top_topics
+        test = self.test
+        x_test = self.x_test
+
+        # make predictions
+        test_predictions = classifier.predict(x_test)
+        # train_predictions = classifier.predict(x_train)
+
+        # convert csc matrix into list of csr matrices, e.g. preds_list = [[0,1,0,1,0],[0,0,0,1,0],...,[1,0,0,0,0]]
+        # one matrix per passage, e.g. [0,0,0,1,1] inidicates this passage corrseponds to the last two topics
+        preds_list = list(test_predictions)
+        
+        # init list of sublists, one sublist per passage, 
+        # e.g. pred_labels_list = [['prayer'],['prayer','judges'],['moses']]
+        pred_labels_list = []
+        
+        # loop thru each matrix in list, again one matrix per passage, 
+        for array in preds_list:
+        
+            if isinstance(array, scipy.sparse.csr.csr_matrix) or isinstance(array, np.int64) or isinstance(array, scipy.sparse.lil.lil_matrix):
+                # array = array.tolil().data.tolist()
+                array = [array[0,i] for i in range(array.shape[1])]
+        
+            # init topics list for this row, e.g. passage_labels = ['prayer', 'moses']
+            passage_labels = []
+        
+        
+            # if 1 occurs in ith element in the array, record ith topic
+            for topic_index, pred_value in enumerate(list(array)):
+                if pred_value != 0:
+                    passage_labels.append(top_topics[topic_index])
+            pred_labels_list.append(passage_labels)
+
+        test['pred_topics'] = pred_labels_list
+
+        cols=['passage_text','true_topics','pred_topics']
+
+        # topics_comparison = test[['true_topics','pred_topics']]
+        pred_vs_true = test[cols]
+        return pred_vs_true
+
+
+class DataConverter:
+
+    def __init__(self, data):
+    
+        self.data = data
+
+    def get_datasets(self):
+
+        data = self.data
+
+        # randomly split into training and testing sets
+        train, test = train_test_split(data, random_state=42, test_size=0.30, shuffle=True)
+
+        # init column for topic predictions
+        test['pred_topics'] = None
+
+        # select just the words of each passage
+        train_text = train['passage_text']
+        test_text = test['passage_text']
+
+        # init a vectorizer that will convert string of words into numerical format
+        # vectorizer = TfidfVectorizer(max_features=5000,stop_words='english')
+        vectorizer = TfidfVectorizer(ngram_range=(1,2), min_df=3, max_df=0.9, strip_accents='unicode', use_idf=1,smooth_idf=1, sublinear_tf=1 )
+        # vectorizer = TfidfVectorizer(strip_accents='unicode', analyzer='word', ngram_range=(1,3), norm='l2')
+
+        # create document-term matrix, i.e. numerical version of passage text
+        # Note: We only fit with training data, but NOT with testing data, because testing data should be "UNSEEN"
+        x_train = vectorizer.fit_transform(train_text)
+        x_test = vectorizer.transform(test_text)
+
+        # topics columns, with 0/1 indicating if the topic of this column relates to that row's passage
+        y_train = train.drop(labels = ['passage_text','true_topics'], axis=1)
+        y_test = test.drop(labels = ['passage_text','true_topics'], axis=1)
+
+        return x_train, x_test, y_train, y_test, test
+
+
+class Scorer:
+    def __init__(self, cm, top_topics, topic_counts):
+    
+        self.cm = cm
+        self.topic_counts = topic_counts
+        self.top_topics = top_topics
+
+    def get_result(self):
+
+        cm = self.cm
+        topic_counts = self.topic_counts
+        top_topics = self.top_topics
+
+        TP = np.diag(cm)
+        FP = np.sum(cm, axis=0) - TP
+        FN = np.sum(cm, axis=1) - TP
+        
+        np.seterr(divide='ignore', invalid='ignore')
+
+        # precision = how many predicted were correct
+        precision = TP/(TP+FP)
+        
+        # recall = how many correct were predicted
+        recall = TP/(TP+FN)
+        
+        # f1 score = harmonic mean of precision and recall
+        f1score = TP/(TP+(FP+FN)/2)
+        
+        score_df = pd.DataFrame({
+            'Topic': top_topics,
+            'Count': topic_counts.Occurrences.tolist(), 
+            'Proportion': topic_counts.Proportion.tolist(), 
+            'Precision': precision, 
+            'Recall': recall, 
+            'F1score': f1score
+            })
+        # score_df = score_df.set_index(['Topic'], drop=True)
+        score_df = score_df.set_index(['Topic'])
+        score_df = score_df.loc[score_df.index.isin(top_topics)]
+        # score_df = score_df.loc[score_df.index.isin(top_topics)]
+        score_df = score_df.sort_values(by=['F1score', 'Precision', 'Recall'], ascending=False)
+        score_df = score_df.reset_index()
+
+        # overall scores 
+        overall_precision = (score_df.Precision * score_df.Proportion).sum()
+        overall_recall = (score_df.Recall * score_df.Proportion).sum()
+        overall_f1score = (score_df.F1score * score_df.Proportion).sum()
+
+        score_df.loc['OVERALL -->'] = ['',score_df.Count.sum(),score_df.Proportion.sum(),overall_precision,overall_recall,overall_f1score]#print(f"Overall: \nPrecision: {overall_precision}, \nRecall: {overall_recall}, \nF1score: {overall_f1score}")
+
+        return score_df
 
 # # class Classifier
 # # class Evaluator

@@ -12,3 +12,4 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # width of column to dispaly in dataframe
 pd.options.display.max_colwidth = 40
+

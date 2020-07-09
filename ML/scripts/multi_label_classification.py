@@ -8,7 +8,6 @@ import warnings
 from tqdm import tqdm
 from classes import DataManager, ConfusionMatrix, Predictor, DataConverter, Scorer, Trainer
 from datetime import datetime
-from settings import *
 from sklearn.svm import SVC, LinearSVC
 from scipy.sparse import csr_matrix, lil_matrix
 from sklearn.utils import shuffle
@@ -16,6 +15,7 @@ from sklearn.metrics import confusion_matrix, accuracy_score
 from sklearn.pipeline import Pipeline
 from sklearn.datasets import make_classification
 from sklearn.ensemble import RandomForestClassifier
+# from personal_settings import *
 from sklearn.multiclass import OneVsRestClassifier
 from skmultilearn.adapt import BRkNNaClassifier, MLkNN
 from sklearn.multioutput import MultiOutputClassifier
@@ -25,49 +25,44 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from skmultilearn.problem_transform import LabelPowerset, BinaryRelevance, ClassifierChain
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-# for timing processes
+def time_and_reset(start_time):
+    """
+    Usage: To print the time elapsed since previous call, type:
+    start_time = time_and_reset(start_time)
+    """
+    print(datetime.now() - start_time)
+    return datetime.now()
+
+
 start_time = datetime.now()
 
-
-# location of actual csv
-DATA_PATH = '/persistent/Sefaria-Project/ML/data/yishai_data.csv'
+start_time = time_and_reset(start_time)
 
 parameters = [
-{
-    'classifier': [MultinomialNB()],
-    'classifier__alpha': [0.8, 1.1],
-},
-{
-    'classifier': [SVC()],
-    'classifier__kernel': ['rbf', 'linear'],
-},
-]
+    {'classifier': [MultinomialNB()],'classifier__alpha': [0.8, 1.1],},
+    {'classifier': [SVC()],'classifier__kernel': ['rbf', 'linear'],},
+    ]
 
+DATA_PATH = '/persistent/Sefaria-Project/ML/data/yishai_data.csv'
 
-# dict of classifier types
 classifiers = [
-
-    # BinaryRelevance(classifier=LinearSVC()),
-    GridSearchCV(BinaryRelevance(), parameters, scoring='accuracy'),
-    # BinaryRelevance(classifier=SVC()),
-
-    # LabelPowerset(classifier=LinearSVC()),
-    # LabelPowerset(classifier=SVC()),
-    
-    # ClassifierChain(classifier=LinearSVC()),
-    # ClassifierChain(classifier=SVC()),
+    BinaryRelevance(classifier=LinearSVC()),
     ]
 
 # count passages with no topics
 COUNT_NONE = False
+
 # how many topics to consider
-NUM_TOPICS = 50
+NUM_TOPICS = 5
+
 # max num of passages to examine
 ROW_LIMIT = 1000
 print(f"{NUM_TOPICS} topics and {ROW_LIMIT} for row limit.")
 
+# raw dataframe
 df = pd.read_csv(DATA_PATH)[:ROW_LIMIT]
 
+# preprocessed data
 data = DataManager(raw_df = df, num_topics = NUM_TOPICS, should_clean = True, should_stem = True, count_none = COUNT_NONE)
 
 # list of most commonly occurring topics
@@ -122,6 +117,12 @@ if __name__ == "__main__":
         score_df = Scorer(cm, top_topics, topic_counts).get_result()
 
         print('Overall F1score:',score_df.loc['OVERALL','F1score'].round(5))
+
+    end_time = datetime.now()
+
+    total_time = end_time - start_time
+    
+    print(total_time)
 
     print()
 

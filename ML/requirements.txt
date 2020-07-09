@@ -16,6 +16,6 @@ ipykernel
 Unidecode
 mplcursors
 # fastxml
-# nano
+nano
 # vim
 scipy

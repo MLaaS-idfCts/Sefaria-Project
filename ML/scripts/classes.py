@@ -49,8 +49,14 @@ class DataManager:
     - within labeled, split into train and test set.
     """
     def __init__(
-        self, raw_df, num_topics, 
-        should_clean = True, should_stem = False, should_remove_stopwords = True, count_none = False):
+        self, 
+        raw_df, 
+        num_topics, 
+        should_clean = True, 
+        should_stem = False, 
+        should_remove_stopwords = True, 
+        count_none = False
+        ):
         
         self.raw_df = raw_df
         self.num_topics = num_topics
@@ -247,12 +253,13 @@ class DataManager:
                 counts.append((topic, df[topic].sum()))
             topic_counts = pd.DataFrame(counts, columns=['Topic', 'Occurrences'])
             topic_counts = topic_counts.sort_values(by='Occurrences', ascending=False, na_position='last')
+            # topic_counts = topic_counts.reset_index()
             topic_counts = topic_counts.reset_index(drop=True)
             
             total_occurrences = topic_counts.Occurrences.sum()
             topic_counts['Proportion'] = round(topic_counts.Occurrences/total_occurrences,2)
 
-            topic_counts = topic_counts.sort_values(by='Topic')
+            # topic_counts = topic_counts.sort_values(by='Topic')
 
         return topic_counts
 
@@ -406,22 +413,22 @@ class ConfusionMatrix:
         return cm
 
 class Predictor:
-    def __init__(self, classifier, test, x_test, top_topics):
+    def __init__(self, classifier, test, top_topics):
+    # def __init__(self, classifier, test, x_test, top_topics):
+        
         self.classifier = classifier
         self.test = test
-        self.x_test = x_test
+        # self.x_test = x_test
         self.top_topics = top_topics
     
-    def get_result(self):
-        
+
+    def get_preds_list(self, x_input):
+
         classifier = self.classifier
         top_topics = self.top_topics
-        test = self.test
-        x_test = self.x_test
 
         # make predictions
-        test_predictions = classifier.predict(x_test)
-        # train_predictions = classifier.predict(x_train)
+        test_predictions = classifier.predict(x_input)
 
         # convert csc matrix into list of csr matrices, e.g. preds_list = [[0,1,0,1,0],[0,0,0,1,0],...,[1,0,0,0,0]]
         # one matrix per passage, e.g. [0,0,0,1,1] inidicates this passage corrseponds to the last two topics
@@ -441,19 +448,29 @@ class Predictor:
             # init topics list for this row, e.g. passage_labels = ['prayer', 'moses']
             passage_labels = []
         
-        
             # if 1 occurs in ith element in the array, record ith topic
             for topic_index, pred_value in enumerate(list(array)):
                 if pred_value != 0:
                     passage_labels.append(top_topics[topic_index])
+
             pred_labels_list.append(passage_labels)
+
+        return pred_labels_list
+
+
+    def get_pred_vs_true(self, pred_list):
+        
+        test = self.test
+        pred_labels_list = pred_list
 
         test['pred_topics'] = pred_labels_list
 
         cols=['passage_text','true_topics','pred_topics']
 
         # topics_comparison = test[['true_topics','pred_topics']]
+
         pred_vs_true = test[cols]
+        
         return pred_vs_true
 
 
@@ -463,12 +480,16 @@ class DataConverter:
     
         self.data = data
 
-    def get_datasets(self):
+    def get_datasets(self, vectorizer):
 
         data = self.data
+        # vectorizer = self.vectorizer
 
+        start_time = datetime.now()
         # randomly split into training and testing sets
         train, test = train_test_split(data, random_state=42, test_size=0.30, shuffle=True)
+        #print("Time taken for train test split:\n", datetime.now() - start_time)
+        start_time = datetime.now()
 
         # init column for topic predictions
         test['pred_topics'] = None
@@ -477,15 +498,13 @@ class DataConverter:
         train_text = train['passage_text']
         test_text = test['passage_text']
 
-        # init a vectorizer that will convert string of words into numerical format
-        # vectorizer = TfidfVectorizer(max_features=5000,stop_words='english')
-        vectorizer = TfidfVectorizer(ngram_range=(1,2), min_df=3, max_df=0.9, strip_accents='unicode', use_idf=1,smooth_idf=1, sublinear_tf=1 )
-        # vectorizer = TfidfVectorizer(strip_accents='unicode', analyzer='word', ngram_range=(1,3), norm='l2')
 
         # create document-term matrix, i.e. numerical version of passage text
         # Note: We only fit with training data, but NOT with testing data, because testing data should be "UNSEEN"
         x_train = vectorizer.fit_transform(train_text)
         x_test = vectorizer.transform(test_text)
+        #print("Time taken for vectorizer:\n", datetime.now() - start_time)
+        start_time = datetime.now()
 
         # topics columns, with 0/1 indicating if the topic of this column relates to that row's passage
         y_train = train.drop(labels = ['passage_text','true_topics'], axis=1)
@@ -530,21 +549,59 @@ class Scorer:
             'Recall': recall, 
             'F1score': f1score
             })
-        # score_df = score_df.set_index(['Topic'], drop=True)
+
         score_df = score_df.set_index(['Topic'])
+
         score_df = score_df.loc[score_df.index.isin(top_topics)]
-        # score_df = score_df.loc[score_df.index.isin(top_topics)]
+
+
         score_df = score_df.sort_values(by=['F1score', 'Precision', 'Recall'], ascending=False)
+
         score_df = score_df.reset_index()
 
         # overall scores 
         overall_precision = (score_df.Precision * score_df.Proportion).sum()
+
         overall_recall = (score_df.Recall * score_df.Proportion).sum()
+
         overall_f1score = (score_df.F1score * score_df.Proportion).sum()
 
-        score_df.loc['OVERALL -->'] = ['',score_df.Count.sum(),score_df.Proportion.sum(),overall_precision,overall_recall,overall_f1score]#print(f"Overall: \nPrecision: {overall_precision}, \nRecall: {overall_recall}, \nF1score: {overall_f1score}")
+        score_df.loc['OVERALL'] = [
+            '---',
+            score_df.Count.sum(),
+            score_df.Proportion.sum(),
+            overall_precision,
+            overall_recall,
+            overall_f1score]
 
         return score_df
+
+class Trainer:
+    
+    def __init__(self, classifier):
+    
+        self.classifier = classifier
+
+
+    def train(self, x_train, y_train):
+        
+        classifier = self.classifier
+        
+        try:
+            
+            classifier.fit(x_train, y_train)
+
+        except:        
+            
+            y_train = y_train.values.toarray()
+            
+            classifier.fit(x_train, y_train)
+
+        if isinstance(classifier, sklearn.model_selection._search.GridSearchCV):
+            print ("Best params:",classifier.best_params_)
+            print("Best score:",classifier.best_score_)
+        
+        return classifier
 
 # # class Classifier
 # # class Evaluator

@@ -54,8 +54,8 @@ parameters = [
     {'classifier': [MultinomialNB()],'classifier__alpha': [0.8, 1.1],},
     {'classifier': [SVC()],'classifier__kernel': ['rbf', 'linear'],},
     ]
-
-DATA_PATH = '/persistent/Sefaria-Project/ML/many_versions.csv'
+DATA_PATH = '/persistent/Sefaria-Project/ML/data/multiversion.csv'
+# DATA_PATH = '/persistent/Sefaria-Project/ML/many_versions.csv'
 # DATA_PATH = '/persistent/Sefaria-Project/ML/data/yishai_data.csv'
 
 classifiers = [

@@ -43,8 +43,8 @@ topic_cache = {}
 
 parent_cache = {}
 
-for passage in tqdm(passage_list[:100]):
-# for passage in tqdm(passage_list):
+# for passage in tqdm(passage_list[:100]):
+for passage in tqdm(passage_list):
  
     try:
         ref = Ref(passage['_id'])
@@ -93,7 +93,7 @@ for passage in tqdm(passage_list[:100]):
             "Expanded Topics": " ".join(expanded_topics)
         }]
 
-with open("/persistent/Sefaria-Project/ML/data/many_versions.csv", "w") as fout:
+with open("/persistent/Sefaria-Project/ML/data/multiversion.csv", "w") as fout:
     c = csv.DictWriter(fout, [
         # "Ref only", 
         "Ref", 

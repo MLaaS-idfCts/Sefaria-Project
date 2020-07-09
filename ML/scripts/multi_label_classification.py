@@ -32,6 +32,18 @@ def time_and_reset(start_time):
     """
     print(datetime.now() - start_time)
     return datetime.now()
+    
+# ignore warnings regarding column assignment, e.g. df['col1'] = list1 -- not 100% sure about this
+pd.options.mode.chained_assignment = None  # default='warn'
+
+# do not limit num of rows in df to display
+pd.set_option('display.max_rows', None)
+
+# disable future warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
+# width of column to dispaly in dataframe
+pd.options.display.max_colwidth = 40
 
 
 start_time = datetime.now()
@@ -43,10 +55,12 @@ parameters = [
     {'classifier': [SVC()],'classifier__kernel': ['rbf', 'linear'],},
     ]
 
-DATA_PATH = '/persistent/Sefaria-Project/ML/data/yishai_data.csv'
+DATA_PATH = '/persistent/Sefaria-Project/ML/many_versions.csv'
+# DATA_PATH = '/persistent/Sefaria-Project/ML/data/yishai_data.csv'
 
 classifiers = [
-    BinaryRelevance(classifier=LinearSVC()),
+    # BinaryRelevance(classifier=LinearSVC()),
+    GridSearchCV(BinaryRelevance(), parameters, scoring='accuracy'),
     ]
 
 # count passages with no topics

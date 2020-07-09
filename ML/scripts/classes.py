@@ -259,7 +259,7 @@ class DataManager:
             total_occurrences = topic_counts.Occurrences.sum()
             topic_counts['Proportion'] = round(topic_counts.Occurrences/total_occurrences,2)
 
-            # topic_counts = topic_counts.sort_values(by='Topic')
+            topic_counts = topic_counts.sort_values(by='Topic')
 
         return topic_counts
 

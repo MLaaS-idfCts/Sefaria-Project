@@ -56,7 +56,7 @@ for passage in tqdm(passage_list):
     version_titles = [
         version['versionTitle'] 
         for version in ref.version_list() 
-        if version['versionTitle'][-5:-3] != ' ['
+        if version['language'] == 'en' and version['versionTitle'][-5:-3] != ' ['
         ]
 
     topics = []
@@ -93,7 +93,7 @@ for passage in tqdm(passage_list):
             "Expanded Topics": " ".join(expanded_topics)
         }]
 
-with open("/persistent/Sefaria-Project/ML/data/multiversion.csv", "w") as fout:
+with open("/persistent/Sefaria-Project/ML/data/multi_version_english.csv", "w") as fout:
     c = csv.DictWriter(fout, [
         # "Ref only", 
         "Ref", 

@@ -225,10 +225,11 @@ class DataManager:
             df['true_topics'] = df['true_topics'].str.split()
         
             # clean passage text
-            df['passage_text'] = df['passage_text'].str.lower()
-            df['passage_text'] = df['passage_text'].apply(self.cleanHtml)
-            df['passage_text'] = df['passage_text'].apply(self.cleanPunc)
-            df['passage_text'] = df['passage_text'].apply(self.keepAlpha)
+            if self.should_clean:
+                df['passage_text'] = df['passage_text'].str.lower()
+                df['passage_text'] = df['passage_text'].apply(self.cleanHtml)
+                df['passage_text'] = df['passage_text'].apply(self.cleanPunc)
+                df['passage_text'] = df['passage_text'].apply(self.keepAlpha)
         
             # remove stopwords, if you so chose  
             if self.should_remove_stopwords:
@@ -343,9 +344,10 @@ class DataManager:
         return df
 
 class ConfusionMatrix:
-    def __init__(self, result, top_topics):
+    def __init__(self, result, top_topics, should_print = False):
         self.result = result
         self.top_topics = top_topics
+        self.should_print = should_print
 
     def get_values(self):
 
@@ -354,6 +356,7 @@ class ConfusionMatrix:
     # if True:
         result = self.result
         top_topics = self.top_topics
+        # should_print = self.should_print
 
         true_label_lists = result.true_topics.tolist()
         pred_label_lists = result.pred_topics.tolist()
@@ -408,17 +411,41 @@ class ConfusionMatrix:
         y_actu = pd.Categorical(y_true, categories=topics_list)
         y_pred = pd.Categorical(y_pred, categories=topics_list)
 
-        cm = pd.crosstab(y_actu, y_pred, rownames=['True'], colnames = ['Pred'], dropna=False) 
-        # print(cm)
+        cm = pd.crosstab(y_actu, y_pred, rownames=['\/ True \/'], colnames = ['Pred >>>'], dropna=False) 
+        if self.should_print:
+            print(cm)
+            df_confusion = cm
+            # import matplotlib.pyplot as plt
+            # def plot_confusion_matrix(df_confusion, title='Confusion matrix', cmap=plt.cm.gray_r):
+            title='Confusion matrix'
+            cmap=plt.cm.gray_r
+            plt.matshow(df_confusion, cmap=cmap) # imshow
+            # plt.title(title)
+            plt.colorbar()
+            tick_marks = np.arange(len(df_confusion.columns))
+            plt.xticks(tick_marks, df_confusion.columns, rotation=45)
+            plt.yticks(tick_marks, df_confusion.index)
+            # plt.tight_layout()
+            plt.ylabel(df_confusion.index.name)
+            plt.xlabel(df_confusion.columns.name)
+            # plt.imshow()
+            # %%
+            plt.show()
+            # plot_confusion_matrix(df_confusion)
         cm = cm.values
         return cm
 
+
+
 class Predictor:
-    def __init__(self, classifier, test, top_topics):
+    def __init__(self, classifier, 
+    # train, test, 
+    top_topics):
     # def __init__(self, classifier, test, x_test, top_topics):
         
         self.classifier = classifier
-        self.test = test
+        # self.test = test
+        # self.train = train
         # self.x_test = x_test
         self.top_topics = top_topics
     
@@ -429,11 +456,11 @@ class Predictor:
         top_topics = self.top_topics
 
         # make predictions
-        test_predictions = classifier.predict(x_input)
+        predictions = classifier.predict(x_input)
 
         # convert csc matrix into list of csr matrices, e.g. preds_list = [[0,1,0,1,0],[0,0,0,1,0],...,[1,0,0,0,0]]
         # one matrix per passage, e.g. [0,0,0,1,1] inidicates this passage corrseponds to the last two topics
-        preds_list = list(test_predictions)
+        preds_list = list(predictions)
         
         # init list of sublists, one sublist per passage, 
         # e.g. pred_labels_list = [['prayer'],['prayer','judges'],['moses']]
@@ -475,7 +502,8 @@ class Predictor:
         return pred_vs_true
 
 
-class DataConverter:
+
+class DataSplitter:
 
     def __init__(self, data):
     
@@ -484,11 +512,15 @@ class DataConverter:
     def get_datasets(self, vectorizer):
 
         data = self.data
-        # vectorizer = self.vectorizer
-
-        start_time = datetime.now()
+        # arrange in ordr of index for passage
+        data.sort_values(by='Ref')
         # randomly split into training and testing sets
-        train, test = train_test_split(data, random_state=42, test_size=0.30, shuffle=True)
+        train, test = train_test_split(
+            data, 
+            shuffle=True,
+            test_size=0.30, 
+            random_state=42, 
+        )
         #print("Time taken for train test split:\n", datetime.now() - start_time)
         start_time = datetime.now()
 
@@ -511,19 +543,27 @@ class DataConverter:
         y_train = train.drop(labels = ['passage_text','true_topics'], axis=1)
         y_test = test.drop(labels = ['passage_text','true_topics'], axis=1)
 
-        return x_train, x_test, y_train, y_test, test
+        return train, test, x_train, x_test, y_train, y_test
 
 
 class Scorer:
-    def __init__(self, cm, top_topics, topic_counts):
+    def __init__(
+        self, 
+        # cm, 
+        top_topics, topic_counts, row_lim, expt_num
+        ):
     
-        self.cm = cm
+        # self.cm = cm
+        self.row_lim = row_lim
+        self.expt_num = expt_num
         self.topic_counts = topic_counts
         self.top_topics = top_topics
 
-    def get_result(self):
+    def get_result(self, cm):
 
-        cm = self.cm
+        # cm = self.cm
+        row_lim = self.row_lim
+        expt_num = self.expt_num
         topic_counts = self.topic_counts
         top_topics = self.top_topics
 
@@ -574,6 +614,17 @@ class Scorer:
             overall_precision,
             overall_recall,
             overall_f1score]
+        
+        score_df = score_df.sort_values(by='Topic')
+
+        my_topics = ['None', 'abraham', 'prayer', 'moses', 'laws-of-judges-and-courts']
+        
+        # print('topics =',score_df.loc[score_df['Topic'].isin(my_topics)]['Topic'].to_list())
+        print(f'expt_{expt_num} =',score_df.loc[score_df['Topic'].isin(my_topics)]['F1score'].to_list())
+        
+        # print('topics =',score_df['Topic'].to_list())
+        # print('scores =',score_df['F1score'].to_list())
+
 
         return score_df
 

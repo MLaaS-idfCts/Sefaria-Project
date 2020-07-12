@@ -2,11 +2,12 @@ import sys
 import time
 import scipy
 import numpy as np
+import pickle
 import pandas as pd
 import warnings
 
 from tqdm import tqdm
-from classes import DataManager, ConfusionMatrix, Predictor, DataConverter, Scorer, Trainer
+from classes import DataManager, ConfusionMatrix, Predictor, DataSplitter, Scorer, Trainer
 from datetime import datetime
 from sklearn.svm import SVC, LinearSVC
 from scipy.sparse import csr_matrix, lil_matrix
@@ -54,107 +55,162 @@ parameters = [
     {'classifier': [MultinomialNB()],'classifier__alpha': [0.8, 1.1],},
     {'classifier': [SVC()],'classifier__kernel': ['rbf', 'linear'],},
     ]
-DATA_PATH = '/persistent/Sefaria-Project/ML/data/multiversion.csv'
-# DATA_PATH = '/persistent/Sefaria-Project/ML/data/yishai_data.csv'
 
+# DATA_PATHS = []
+
+# DATA_PATH = '/persistent/Sefaria-Project/ML/data/multiversion.csv'
+# DATA_PATHS.append(DATA_PATH)
+# DATA_PATH = '/persistent/Sefaria-Project/ML/data/yishai_data.csv'
+# DATA_PATHS.append(DATA_PATH)
+DATA_PATH = '/persistent/Sefaria-Project/ML/data/multi_version_english.csv'
+# DATA_PATHS.append(DATA_PATH)
+
+# for DATA_PATH in DATA_PATHS:
+
+print(DATA_PATH[DATA_PATH.rfind('data'):])
 
 classifiers = [
-    # BinaryRelevance(classifier=LinearSVC()),
-    GridSearchCV(BinaryRelevance(), parameters, scoring='accuracy'),
+    BinaryRelevance(classifier=LinearSVC()),
+    # GridSearchCV(BinaryRelevance(), parameters, scoring='accuracy'),
     ]
 
 # count passages with no topics
-COUNT_NONE = False
+COUNT_NONE = True
 
 # how many topics to consider
-NUM_TOPICS = 5
+NUM_TOPICS = 20
 
 # max num of passages to examine
-ROW_LIMIT = None
-print(f"{NUM_TOPICS} topics and {ROW_LIMIT} for row limit.")
+ROW_LIMITS = {
+    0:1000,
+    # 1:10000,
+    # 2:20000,
+    # 3:40000,
+    4:80000,
+    5:120000,
+    6:180000,
+}
 
-# raw dataframe
-# raw_df = pd.read_csv(DATA_PATH).sample(ROW_LIMIT)
-raw_df = pd.read_csv(DATA_PATH)[:ROW_LIMIT]
+for expt_num, row_lim in ROW_LIMITS.items():
 
-# check shape
-print("Raw shape:",raw_df.shape)
-
-# preprocessed data
-data = DataManager(
-    raw_df = raw_df, 
-    num_topics = NUM_TOPICS, 
-    # should_stem = True, 
-    should_clean = True, 
-    # should_remove_stopwords = True, 
-    # count_none = COUNT_NONE
-    )
-
-
-# list of most commonly occurring topics
-top_topics = data._get_top_topics()
-
-# how many passages belong to each topic
-topic_counts = data.get_topic_counts()
-print(topic_counts)
-
-# data in usable fromat, e.g. cleaned, stemmed, etc.
-# e.g. should have column for passage text, and for each topic
-data = data.preprocess_dataframe()
-
-# check shape
-print("Processed shape:",data.shape)
-
-# init a vectorizer that will convert string of words into numerical format
-vectorizer = TfidfVectorizer(
-    # norm = 'l2',
-    # min_df = 3, 
-    # max_df = 0.9, 
-    # use_idf = 1,
-    # analyzer = 'word', 
-    # stop_words = 'english',
-    # smooth_idf = 1, 
-    # ngram_range = (1,3),
-    # max_features = 10000,
-    # sublinear_tf = 1,
-    # strip_accents = 'unicode', 
-    )
-
-x_train, x_test, y_train, y_test, test = DataConverter(data).get_datasets(vectorizer)
-
-predictors = []
-
-# loop thru various classifier types
-for classifier in classifiers:
-
-    classifier = Trainer(classifier).train(x_train, y_train)
+    ROW_LIMIT = row_lim
     
-    predictor = Predictor(classifier, test, top_topics)
-    
-    predictors.append(predictor)
+    # raw dataframe
+    raw_df = pd.read_csv(DATA_PATH).sample(ROW_LIMIT)
+    # raw_df = pd.read_csv(DATA_PATH)[:ROW_LIMIT]
 
-if __name__ == "__main__":
+    # check shape
+    # print("Raw shape:",raw_df.shape)
 
-    for predictor in predictors:
+    # preprocessed data
+    data = DataManager(
+        raw_df = raw_df, 
+        num_topics = NUM_TOPICS, 
+        should_stem = True, 
+        # should_clean = False, 
+        should_remove_stopwords = True, 
+        # count_none = COUNT_NONE
+        )
 
-        preds_list = predictor.get_preds_list(x_test)
 
-        pred_vs_true = predictor.get_pred_vs_true(preds_list)
+    # list of most commonly occurring topics
+    top_topics = data._get_top_topics()
 
-        cm = ConfusionMatrix(pred_vs_true, top_topics).get_values()
+    # how many passages belong to each topic
+    topic_counts = data.get_topic_counts()
+    # print(topic_counts)
 
-        score_df = Scorer(cm, top_topics, topic_counts).get_result()
+    # data in usable fromat, e.g. cleaned, stemmed, etc.
+    # e.g. should have column for passage text, and for each topic
+    data = data.preprocess_dataframe()
 
-        print('Overall F1score:',score_df.loc['OVERALL','F1score'].round(5))
+    # check shape
+    # print("Processed shape:",data.shape)
 
-    
-    end_time = datetime.now()
+    data.to_csv(DATA_PATH[:-4]+'processed.csv')
 
-    total_time = end_time - start_time
-    
-    print(total_time)
 
-    print()
+    # init a vectorizer that will convert string of words into numerical format
+    vectorizer = TfidfVectorizer(
+        # norm = 'l2',
+        # min_df = 3, 
+        # max_df = 0.9, 
+        # use_idf = 1,
+        # analyzer = 'word', 
+        # stop_words = 'english',
+        # smooth_idf = 1, 
+        # ngram_range = (1,3),
+        # max_features = 10000,
+        # sublinear_tf = 1,
+        # strip_accents = 'unicode', 
+        )
+
+    splitter = DataSplitter(data)
+    train, test, x_train, x_test, y_train, y_test = splitter.get_datasets(vectorizer)
+
+    predictors = []
+
+    # loop thru various classifier types
+    for classifier in classifiers:
+
+        classifier = Trainer(classifier).train(x_train, y_train)
+        
+        predictor = Predictor(classifier, top_topics)
+        # predictor = Predictor(classifier, train, top_topics)
+        
+        predictors.append(predictor)
+
+    # if __name__ == "__main__":
+
+        for predictor in predictors:
+
+            test_pred_list = predictor.get_preds_list(x_test)
+            train_pred_list = predictor.get_preds_list(x_train)
+
+            train_pred_vs_true = predictor.get_pred_vs_true(train_pred_list)
+            test_pred_vs_true = predictor.get_pred_vs_true(test_pred_list)
+
+            train_pred_vs_true.to_pickle(f'/persistent/Sefaria-Project/ML/data/train_pred_vs_true_{row_lim}.pkl')
+            test_pred_vs_true.to_pickle(f'/persistent/Sefaria-Project/ML/data/test_pred_vs_true_{row_lim}.pkl')
+
+            train_cm = ConfusionMatrix(train_pred_vs_true, top_topics, 
+                # should_print = True
+                )
+
+            test_cm = ConfusionMatrix(test_pred_vs_true, top_topics, 
+                # should_print = True
+                )
+            
+            train_cm = train_cm.get_values()
+            test_cm = test_cm.get_values()
+
+            train_cm.dump(f"/persistent/Sefaria-Project/ML/data/train_cm_{row_lim}.dat")
+            test_cm.dump(f"/persistent/Sefaria-Project/ML/data/test_cm_{row_lim}.dat")
+            # cm.dump(f"/persistent/Sefaria-Project/ML/data/cm_{row_lim}.dat")
+            # cm = numpy.load("cm_{row_lim}.dat")
+
+            # print(cm)
+
+            scorer = Scorer(top_topics, topic_counts, row_lim, expt_num)
+ 
+            train_score_df = scorer.get_result(train_cm)
+            test_score_df = scorer.get_result(test_cm)
+ 
+            train_score_df.to_pickle(f'/persistent/Sefaria-Project/ML/data/train_score_df{row_lim}.pkl')
+            test_score_df.to_pickle(f'/persistent/Sefaria-Project/ML/data/test_score_df_{row_lim}.pkl')
+
+            # print(score_df.round(2))
+            # print('Overall F1score:',score_df.loc['OVERALL','F1score'].round(5))
+
+        
+        end_time = datetime.now()
+
+        total_time = end_time - start_time
+        
+        print("Time taken:", total_time)
+        # print("When I ran this:", end_time)
+
+        # print()
 
 
     # RANK MODELS

@@ -48,15 +48,15 @@ pd.options.display.max_colwidth = 40
 
 start_time = datetime.now()
 
-start_time = time_and_reset(start_time)
+# start_time = time_and_reset(start_time)
 
 parameters = [
     {'classifier': [MultinomialNB()],'classifier__alpha': [0.8, 1.1],},
     {'classifier': [SVC()],'classifier__kernel': ['rbf', 'linear'],},
     ]
 DATA_PATH = '/persistent/Sefaria-Project/ML/data/multiversion.csv'
-# DATA_PATH = '/persistent/Sefaria-Project/ML/many_versions.csv'
 # DATA_PATH = '/persistent/Sefaria-Project/ML/data/yishai_data.csv'
+
 
 classifiers = [
     # BinaryRelevance(classifier=LinearSVC()),
@@ -70,14 +70,26 @@ COUNT_NONE = False
 NUM_TOPICS = 5
 
 # max num of passages to examine
-ROW_LIMIT = 1000
+ROW_LIMIT = None
 print(f"{NUM_TOPICS} topics and {ROW_LIMIT} for row limit.")
 
 # raw dataframe
-df = pd.read_csv(DATA_PATH)[:ROW_LIMIT]
+# raw_df = pd.read_csv(DATA_PATH).sample(ROW_LIMIT)
+raw_df = pd.read_csv(DATA_PATH)[:ROW_LIMIT]
+
+# check shape
+print("Raw shape:",raw_df.shape)
 
 # preprocessed data
-data = DataManager(raw_df = df, num_topics = NUM_TOPICS, should_clean = True, should_stem = True, count_none = COUNT_NONE)
+data = DataManager(
+    raw_df = raw_df, 
+    num_topics = NUM_TOPICS, 
+    # should_stem = True, 
+    should_clean = True, 
+    # should_remove_stopwords = True, 
+    # count_none = COUNT_NONE
+    )
+
 
 # list of most commonly occurring topics
 top_topics = data._get_top_topics()
@@ -89,6 +101,9 @@ print(topic_counts)
 # data in usable fromat, e.g. cleaned, stemmed, etc.
 # e.g. should have column for passage text, and for each topic
 data = data.preprocess_dataframe()
+
+# check shape
+print("Processed shape:",data.shape)
 
 # init a vectorizer that will convert string of words into numerical format
 vectorizer = TfidfVectorizer(
@@ -132,6 +147,7 @@ if __name__ == "__main__":
 
         print('Overall F1score:',score_df.loc['OVERALL','F1score'].round(5))
 
+    
     end_time = datetime.now()
 
     total_time = end_time - start_time

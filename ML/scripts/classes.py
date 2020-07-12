@@ -52,10 +52,10 @@ class DataManager:
         self, 
         raw_df, 
         num_topics, 
-        should_clean = True, 
+        count_none = False,
         should_stem = False, 
-        should_remove_stopwords = True, 
-        count_none = False
+        should_clean = True, 
+        should_remove_stopwords = False, 
         ):
         
         self.raw_df = raw_df
@@ -72,6 +72,7 @@ class DataManager:
             return self.without_junk_rows
         else:
             df = self.raw_df
+            
             # remove repeats
             df = df.drop_duplicates()
             # remove empty cells
@@ -200,7 +201,7 @@ class DataManager:
             # keep only these columns
             df = df[['En','Topics']]
         
-            # add more descriptive name
+            # make more descriptive name
             df = df.rename(columns={'En': 'passage_text'})
         
             # keep only topics that i want to study

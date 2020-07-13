@@ -82,21 +82,42 @@ NUM_TOPICS = 20
 
 # max num of passages to examine
 ROW_LIMITS = {
-    0:1000,
-    # 1:10000,
+    # 0:1000,
+    1:10000,
     # 2:20000,
     # 3:40000,
-    4:80000,
-    5:120000,
-    6:180000,
+    # 4:80000,
+    # 5:120000,
+    # 6:180000,
 }
 
-for expt_num, row_lim in ROW_LIMITS.items():
+# max num of nones to allow, e.g. 1/8 means to allow 
+# only enough nones so that they will number no more 
+# than 1/8 of the passages with non-trivial topic
+none_ratios = {
+    0:0.2,
+    1:0.4,
+    2:0.6,
+    3:0.8,
+    4:1.0,
+    5:1.2,
+    6:1.4,
+    7:1.6,
+    8:1.8,
+    9:2.0,
+    # 7:5,
+    # 8:10,
+    # 9:20,
+}
 
-    ROW_LIMIT = row_lim
+row_lim = 40000
+
+for expt_num, none_ratio in none_ratios.items():
+# for expt_num, row_lim in ROW_LIMITS.items():
+
     
     # raw dataframe
-    raw_df = pd.read_csv(DATA_PATH).sample(ROW_LIMIT)
+    raw_df = pd.read_csv(DATA_PATH).sample(row_lim)
     # raw_df = pd.read_csv(DATA_PATH)[:ROW_LIMIT]
 
     # check shape
@@ -105,11 +126,13 @@ for expt_num, row_lim in ROW_LIMITS.items():
     # preprocessed data
     data = DataManager(
         raw_df = raw_df, 
+        none_ratio = none_ratio, 
         num_topics = NUM_TOPICS, 
         should_stem = True, 
         # should_clean = False, 
         should_remove_stopwords = True, 
-        # count_none = COUNT_NONE
+        # count_none = COUNT_NONE,
+        # none_ratio = 10,
         )
 
 
@@ -167,11 +190,11 @@ for expt_num, row_lim in ROW_LIMITS.items():
             test_pred_list = predictor.get_preds_list(x_test)
             train_pred_list = predictor.get_preds_list(x_train)
 
-            train_pred_vs_true = predictor.get_pred_vs_true(train_pred_list)
-            test_pred_vs_true = predictor.get_pred_vs_true(test_pred_list)
+            train_pred_vs_true = predictor.get_pred_vs_true(train, train_pred_list)
+            test_pred_vs_true = predictor.get_pred_vs_true(test, test_pred_list)
 
-            train_pred_vs_true.to_pickle(f'/persistent/Sefaria-Project/ML/data/train_pred_vs_true_{row_lim}.pkl')
-            test_pred_vs_true.to_pickle(f'/persistent/Sefaria-Project/ML/data/test_pred_vs_true_{row_lim}.pkl')
+            train_pred_vs_true.to_pickle(f'/persistent/Sefaria-Project/ML/data/train_pred_vs_true_{none_ratio}.pkl')
+            test_pred_vs_true.to_pickle(f'/persistent/Sefaria-Project/ML/data/test_pred_vs_true_{none_ratio}.pkl')
 
             train_cm = ConfusionMatrix(train_pred_vs_true, top_topics, 
                 # should_print = True
@@ -184,20 +207,20 @@ for expt_num, row_lim in ROW_LIMITS.items():
             train_cm = train_cm.get_values()
             test_cm = test_cm.get_values()
 
-            train_cm.dump(f"/persistent/Sefaria-Project/ML/data/train_cm_{row_lim}.dat")
-            test_cm.dump(f"/persistent/Sefaria-Project/ML/data/test_cm_{row_lim}.dat")
+            train_cm.dump(f"/persistent/Sefaria-Project/ML/data/train_cm_{none_ratio}.dat")
+            test_cm.dump(f"/persistent/Sefaria-Project/ML/data/test_cm_{none_ratio}.dat")
             # cm.dump(f"/persistent/Sefaria-Project/ML/data/cm_{row_lim}.dat")
             # cm = numpy.load("cm_{row_lim}.dat")
 
             # print(cm)
 
-            scorer = Scorer(top_topics, topic_counts, row_lim, expt_num)
+            scorer = Scorer(top_topics, topic_counts, row_lim, expt_num, none_ratio)
  
-            train_score_df = scorer.get_result(train_cm)
-            test_score_df = scorer.get_result(test_cm)
+            train_score_df = scorer.get_result(train_cm, dataset = 'train')
+            test_score_df = scorer.get_result(test_cm, dataset = 'test')
  
-            train_score_df.to_pickle(f'/persistent/Sefaria-Project/ML/data/train_score_df{row_lim}.pkl')
-            test_score_df.to_pickle(f'/persistent/Sefaria-Project/ML/data/test_score_df_{row_lim}.pkl')
+            train_score_df.to_pickle(f'/persistent/Sefaria-Project/ML/data/train_score_df{none_ratio}.pkl')
+            test_score_df.to_pickle(f'/persistent/Sefaria-Project/ML/data/test_score_df_{none_ratio}.pkl')
 
             # print(score_df.round(2))
             # print('Overall F1score:',score_df.loc['OVERALL','F1score'].round(5))
@@ -207,11 +230,7 @@ for expt_num, row_lim in ROW_LIMITS.items():
 
         total_time = end_time - start_time
         
-        print("Time taken:", total_time)
-        # print("When I ran this:", end_time)
-
-        # print()
-
+        print("# Time taken:", total_time)
 
     # RANK MODELS
 

@@ -29,29 +29,12 @@ nltk.download('stopwords')
 stemmer = SnowballStemmer('english')
 
 class DataManager:
-    """
-    1 input:
-    - raw data: pandas dataframe (heneforth "df")
 
-    tasks:
-    
-    5 critical:
-    X remove nulls and duplicates
-    X get top topics 
-    - in topics col, keep only wanted topics
-    - clean text 
-    - one-hot-encode the list of wanted topics
-    
-    3 less important
-    - add parsed_Ref column to show just relevant subject
-        - e.g. "Mishna Torah, Shabbat, 4:7" --> "shabbat"
-    - divide labeled from unlabeled.
-    - within labeled, split into train and test set.
-    """
     def __init__(
         self, 
         raw_df, 
         num_topics, 
+        none_ratio, 
         count_none = False,
         should_stem = False, 
         should_clean = True, 
@@ -59,6 +42,7 @@ class DataManager:
         ):
         
         self.raw_df = raw_df
+        self.none_ratio = none_ratio
         self.num_topics = num_topics
         self.should_stem = should_stem
         self.should_clean = should_clean
@@ -211,8 +195,34 @@ class DataManager:
             df['true_topics'].replace('', 'None', inplace=True)
             # df['true_topics'].replace('', np.nan, inplace=True)
         
-            # remove casualties
-            df = df.dropna()
+            # place Nones last
+            df = df.sort_values(by='true_topics',ascending=False)
+
+            # calc how many nones there are
+            num_nones = df.loc[df['true_topics'] == "None"].shape[0]
+
+            # calc num of rows with real (i.e. substantive) topics
+            num_reals = df.loc[df['true_topics'] != "None"].shape[0]
+            
+            # calc num of rows with most popular topic
+            num_top_topic = df.loc[df['true_topics'] != "None"].shape[0]
+
+            # check we have correct sum
+            assert num_nones + num_reals == df.shape[0]
+
+            # compute num of nones to keep
+            nones_to_keep = int(num_reals * self.none_ratio)
+
+            nones_to_drop = 0
+
+            # check there are more nones than the computed limit
+            if nones_to_keep <= num_nones:
+                    
+                # calc how many nones to drop
+                nones_to_drop = num_nones - nones_to_keep
+
+            # remove extra nones
+            df = df.iloc[:-1 * nones_to_drop]
         
             # one hot encode each topic
             df = pd.concat([df, df['true_topics'].str.get_dummies(sep=' ')], axis=1)
@@ -313,7 +323,6 @@ class DataManager:
             height = rect.get_height()
             ax.text(rect.get_x() + rect.get_width()/2, height + 0, label, ha='center', va='bottom')
         plt.show()
-
 
 
     def _get_ref_features(self,input_string):
@@ -429,7 +438,6 @@ class ConfusionMatrix:
             plt.ylabel(df_confusion.index.name)
             plt.xlabel(df_confusion.columns.name)
             # plt.imshow()
-            # %%
             plt.show()
             # plot_confusion_matrix(df_confusion)
         cm = cm.values
@@ -486,18 +494,18 @@ class Predictor:
         return pred_labels_list
 
 
-    def get_pred_vs_true(self, pred_list):
+    def get_pred_vs_true(self, true_df, pred_list):
         
-        test = self.test
+        # test = self.test
         pred_labels_list = pred_list
 
-        test['pred_topics'] = pred_labels_list
+        true_df['pred_topics'] = pred_labels_list
 
         cols=['passage_text','true_topics','pred_topics']
 
         # topics_comparison = test[['true_topics','pred_topics']]
 
-        pred_vs_true = test[cols]
+        pred_vs_true = true_df[cols]
         
         return pred_vs_true
 
@@ -546,26 +554,29 @@ class DataSplitter:
         return train, test, x_train, x_test, y_train, y_test
 
 
+
 class Scorer:
+
     def __init__(
         self, 
         # cm, 
-        top_topics, topic_counts, row_lim, expt_num
+        top_topics, topic_counts, row_lim, expt_num, none_ratio,
         ):
     
         # self.cm = cm
         self.row_lim = row_lim
         self.expt_num = expt_num
-        self.topic_counts = topic_counts
         self.top_topics = top_topics
+        self.none_ratio = none_ratio
+        self.topic_counts = topic_counts
 
-    def get_result(self, cm):
+    def get_result(self, cm, dataset = "None"):
 
-        # cm = self.cm
         row_lim = self.row_lim
         expt_num = self.expt_num
-        topic_counts = self.topic_counts
+        none_ratio = self.none_ratio
         top_topics = self.top_topics
+        topic_counts = self.topic_counts
 
         TP = np.diag(cm)
         FP = np.sum(cm, axis=0) - TP
@@ -620,7 +631,8 @@ class Scorer:
         my_topics = ['None', 'abraham', 'prayer', 'moses', 'laws-of-judges-and-courts']
         
         # print('topics =',score_df.loc[score_df['Topic'].isin(my_topics)]['Topic'].to_list())
-        print(f'expt_{expt_num} =',score_df.loc[score_df['Topic'].isin(my_topics)]['F1score'].to_list())
+        # print(f'{dataset}_expt_{expt_num}_none_ratio_{none_ratio} =',score_df.loc[score_df['Topic'].isin(my_topics)]['F1score'].to_list())
+        print(f'{row_lim}_rows_{dataset}_expt_{expt_num} =',score_df.loc[score_df['Topic'].isin(my_topics)]['F1score'].to_list())
         
         # print('topics =',score_df['Topic'].to_list())
         # print('scores =',score_df['F1score'].to_list())

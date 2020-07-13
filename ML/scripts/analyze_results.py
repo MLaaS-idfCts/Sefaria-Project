@@ -6,9 +6,9 @@ import pickle
 np.set_printoptions(linewidth=np.inf)
 
 
-# to_analyze = 'scores'
+to_analyze = 'scores'
 # to_analyze = 'preds'
-to_analyze = 'cm'
+# to_analyze = 'cm'
 
 
 if to_analyze == 'scores':
@@ -35,36 +35,36 @@ if to_analyze == 'cm':
 
     cm = np.load(path,allow_pickle=True)
 
-    print(cm)
+    # print(cm)
 
 
-    # vegetables = ["cucumber", "tomato", "lettuce", "asparagus",
-    #                 "potato", "wheat", "barley"]
-    # farmers = ["Farmer Joe", "Upland Bros.", "Smith Gardening",
-    #             "Agrifun", "Organiculture", "BioGoods Ltd.", "Cornylee Corp."]
+    vegetables = ["cucumber", "tomato", "lettuce", "asparagus",
+                    "potato", "wheat", "barley"]
+    farmers = ["Farmer Joe", "Upland Bros.", "Smith Gardening",
+                "Agrifun", "Organiculture", "BioGoods Ltd.", "Cornylee Corp."]
 
 
-    # fig, ax = plt.subplots()
+    fig, ax = plt.subplots()
     
-    # im = ax.imshow(cm)
+    im = ax.imshow(cm)
 
-    # # We want to show all ticks...
-    # ax.set_xticks(np.arange(len(farmers)))
-    # ax.set_yticks(np.arange(len(vegetables)))
-    # # # ... and label them with the respective list entries
-    # ax.set_xticklabels(farmers)
-    # ax.set_yticklabels(vegetables)
+    # We want to show all ticks...
+    ax.set_xticks(np.arange(len(farmers)))
+    ax.set_yticks(np.arange(len(vegetables)))
+    # # ... and label them with the respective list entries
+    ax.set_xticklabels(farmers)
+    ax.set_yticklabels(vegetables)
 
-    # # Rotate the tick labels and set their alignment.
-    # plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
-    #         rotation_mode="anchor")
+    # Rotate the tick labels and set their alignment.
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
+            rotation_mode="anchor")
 
-    # # Loop over data dimensions and create text annotations.
-    # for i in range(len(vegetables)):
-    #     for j in range(len(farmers)):
-    #         text = ax.text(j, i, cm[i, j],
-    #                     ha="center", va="center", color="w")
+    # Loop over data dimensions and create text annotations.
+    for i in range(len(vegetables)):
+        for j in range(len(farmers)):
+            text = ax.text(j, i, cm[i, j],
+                        ha="center", va="center", color="w")
 
-    # ax.set_title("cm of local farmers (in tons/year)")
-    # fig.tight_layout()
-    # plt.show()
+    ax.set_title("cm of local farmers (in tons/year)")
+    fig.tight_layout()
+    plt.show()

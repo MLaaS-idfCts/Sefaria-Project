@@ -56,18 +56,7 @@ parameters = [
     {'classifier': [SVC()],'classifier__kernel': ['rbf', 'linear'],},
     ]
 
-# DATA_PATHS = []
-
-# DATA_PATH = '/persistent/Sefaria-Project/ML/data/multiversion.csv'
-# DATA_PATHS.append(DATA_PATH)
-# DATA_PATH = '/persistent/Sefaria-Project/ML/data/yishai_data.csv'
-# DATA_PATHS.append(DATA_PATH)
 DATA_PATH = '/persistent/Sefaria-Project/ML/data/multi_version_english.csv'
-# DATA_PATHS.append(DATA_PATH)
-
-# for DATA_PATH in DATA_PATHS:
-
-print(DATA_PATH[DATA_PATH.rfind('data'):])
 
 classifiers = [
     BinaryRelevance(classifier=LinearSVC()),
@@ -80,37 +69,28 @@ COUNT_NONE = True
 # how many topics to consider
 NUM_TOPICS = 20
 
-# max num of passages to examine
-ROW_LIMITS = {
-    # 0:1000,
-    1:10000,
-    # 2:20000,
-    # 3:40000,
-    # 4:80000,
-    # 5:120000,
-    # 6:180000,
-}
-
 # max num of nones to allow, e.g. 1/8 means to allow 
 # only enough nones so that they will number no more 
 # than 1/8 of the passages with non-trivial topic
+# Note: i am changing this to be ratio compared with num of occurrences of top topic.
 none_ratios = {
-    0:0.2,
-    1:0.4,
-    2:0.6,
-    3:0.8,
-    4:1.0,
-    5:1.2,
-    6:1.4,
-    7:1.6,
-    8:1.8,
-    9:2.0,
+    0:0.3,
+    1:0.6,
+    2:0.9,
+    3:1.2,
+    4:1.5,
+    5:1.8,
+    6:2.1,
+    7:2.4,
+    8:2.7,
+    9:3.0,
     # 7:5,
     # 8:10,
     # 9:20,
 }
 
-row_lim = 40000
+row_lim = 5000
+print("row_lim:",row_lim)
 
 for expt_num, none_ratio in none_ratios.items():
 # for expt_num, row_lim in ROW_LIMITS.items():
@@ -137,15 +117,16 @@ for expt_num, none_ratio in none_ratios.items():
 
 
     # list of most commonly occurring topics
-    top_topics = data._get_top_topics()
-
-    # how many passages belong to each topic
-    topic_counts = data.get_topic_counts()
-    # print(topic_counts)
+    top_topics = data.get_top_topics()
+    # top_topics = data._get_top_topics() + ['None']
 
     # data in usable fromat, e.g. cleaned, stemmed, etc.
     # e.g. should have column for passage text, and for each topic
     data = data.preprocess_dataframe()
+
+    # how many passages belong to each topic
+    topic_counts = data.get_topic_counts()
+    # print(topic_counts)
 
     # check shape
     # print("Processed shape:",data.shape)
@@ -213,6 +194,7 @@ for expt_num, none_ratio in none_ratios.items():
             # cm = numpy.load("cm_{row_lim}.dat")
 
             # print(cm)
+            print()
 
             scorer = Scorer(top_topics, topic_counts, row_lim, expt_num, none_ratio)
  

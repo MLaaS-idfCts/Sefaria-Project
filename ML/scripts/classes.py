@@ -66,7 +66,7 @@ class DataManager:
         return df
 
 
-    def _get_top_topics(self):
+    def get_top_topics(self):
 
         if getattr(self, "top_topics", None):
             return self.top_topics
@@ -103,6 +103,7 @@ class DataManager:
             
             # extract only the names of these topics, whilst dropping the number of occrurences 
             top_topics_list = [topic_tuple[0] for topic_tuple in top_topic_tuples] + ['None']
+            # top_topics_list = [topic_tuple[0] for topic_tuple in top_topic_tuples]
             
             # order by topic name
             top_topics_list.sort()
@@ -114,16 +115,20 @@ class DataManager:
 
 
     def topic_selector(self,row):
+
         # this cell contains more topics than we might want
-        all_topics_list = row
+        old_passage_topics_string = row
+        
         # call attribute which stored top topics
-        # top_topics_list = self.top_topics()
         top_topics_list = self._get_top_topics()
+        
         # keep only the topics which are popular
-        reduced_topics_list = [topic for topic in all_topics_list.split() if topic in top_topics_list]
+        passage_topics_list = [topic for topic in old_passage_topics_string.split() if topic in top_topics_list]
+        
         # reconnect the topics in the list to form a string separated by spaces
-        reduced_topics_string = ' '.join(reduced_topics_list)
-        return reduced_topics_string
+        new_passage_topics_string = ' '.join(passage_topics_list)
+        
+        return new_passage_topics_string
 
 
     def cleanHtml(self,sentence):
@@ -204,14 +209,24 @@ class DataManager:
             # calc num of rows with real (i.e. substantive) topics
             num_reals = df.loc[df['true_topics'] != "None"].shape[0]
             
+            # string consisting of all topic occurrences
+            topic_counts_string = df['true_topics'].to_string(index=False)
+
+
+            # get the name of the most popular topic
+            non_trivial_topics = self.top_topics
+            non_trivial_topics.remove('None')
+            top_topic_name = non_trivial_topics[0]
+
             # calc num of rows with most popular topic
-            num_top_topic = df.loc[df['true_topics'] != "None"].shape[0]
+            top_topic_counts = topic_counts_string.count(top_topic_name)
 
             # check we have correct sum
             assert num_nones + num_reals == df.shape[0]
 
             # compute num of nones to keep
-            nones_to_keep = int(num_reals * self.none_ratio)
+            nones_to_keep = int(top_topic_counts * self.none_ratio)
+            # nones_to_keep = int(num_reals * self.none_ratio)
 
             nones_to_drop = 0
 
@@ -576,6 +591,7 @@ class Scorer:
         expt_num = self.expt_num
         none_ratio = self.none_ratio
         top_topics = self.top_topics
+        # top_topics = self.top_topics + ['None']
         topic_counts = self.topic_counts
 
         TP = np.diag(cm)
@@ -628,11 +644,17 @@ class Scorer:
         
         score_df = score_df.sort_values(by='Topic')
 
-        my_topics = ['None', 'abraham', 'prayer', 'moses', 'laws-of-judges-and-courts']
+        my_topics = ['None', 'abraham', 'passover', 'torah', 'prayer', 'moses', 'laws-of-judges-and-courts']
         
         # print('topics =',score_df.loc[score_df['Topic'].isin(my_topics)]['Topic'].to_list())
-        # print(f'{dataset}_expt_{expt_num}_none_ratio_{none_ratio} =',score_df.loc[score_df['Topic'].isin(my_topics)]['F1score'].to_list())
-        print(f'{row_lim}_rows_{dataset}_expt_{expt_num} =',score_df.loc[score_df['Topic'].isin(my_topics)]['F1score'].to_list())
+        # print(               f'{dataset}_expt_{expt_num}_none_ratio_{none_ratio} =',score_df.loc[score_df['Topic'].isin(my_topics)]['F1score'].to_list())
+        # print(f'{row_lim}_rows_{dataset}_expt_{expt_num} =',score_df.loc[score_df['Topic'].isin(my_topics)]['F1score'].to_list())
+        
+        selected_topics_df = score_df.loc[score_df['Topic'].isin(my_topics)]
+        
+        selected_scores_list = selected_topics_df['F1score'].to_list()
+
+        print(f'{dataset}_expt_{expt_num} =', selected_scores_list)
         
         # print('topics =',score_df['Topic'].to_list())
         # print('scores =',score_df['F1score'].to_list())

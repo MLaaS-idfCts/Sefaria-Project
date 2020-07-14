@@ -130,3 +130,5 @@ static/sheetrank.json
 # Miscellaneous #
 #################
 *.csv
+*.pkl
+*.dat

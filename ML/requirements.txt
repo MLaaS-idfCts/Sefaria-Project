@@ -1,21 +1,23 @@
-sklearn
-seaborn
-gensim
-nltk
-bs4
-matplotlib
-tqdm
-pandas
-numpy
-lxml
-ipynb-py-convert
-scikit-multilearn
-itertools-s
-virtualenv
-ipykernel
 Unidecode
+bs4
+fastxml
+gensim
+ipykernel
+ipynb-py-convert
+itertools-s
+lxml
+matplotlib
+mglearn
 mplcursors
-# fastxml
 nano
-# vim
+nltk
+numpy
+pandas
+# python-matplotlib
+scikit-multilearn
 scipy
+seaborn
+sklearn
+tqdm
+# vim
+virtualenv

@@ -99,8 +99,8 @@ NUM_TOPICS = 6
 # for expt_num, none_ratio in tqdm(none_ratios.items()):
 if True:
     expt_num = 0
-    none_ratio = 10.0
-    row_lim = 80000
+    none_ratio = 1.1
+    row_lim = 180000
     print("row_lim =",row_lim)
     
     # raw dataframe
@@ -108,6 +108,7 @@ if True:
 
     # preprocessed data
     data = DataManager(
+        
         raw_df = raw_df, 
         num_topics = NUM_TOPICS, 
 
@@ -163,8 +164,8 @@ if True:
         for predictor in predictors:
 
             # list of predictions
-            test_pred_list = predictor.get_preds_list(x_test)
             train_pred_list = predictor.get_preds_list(x_train)
+            test_pred_list = predictor.get_preds_list(x_test)
 
             # columns to compare pred and true labels
             train_pred_vs_true = predictor.get_pred_vs_true(train, train_pred_list)

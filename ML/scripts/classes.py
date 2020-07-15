@@ -483,12 +483,14 @@ class Predictor:
     def get_preds_list(self, x_input):
 
         classifier = self.classifier
-        top_topics = self.top_topics
+        top_topics = self.top_topics 
+        substantive_topics = [topic for topic in top_topics if topic != "None"]
 
-        # make predictions
+        # make predictions on input dataset -- could be train or test
+        # it should be in csc matrix format
         predictions = classifier.predict(x_input)
 
-        # convert csc matrix into list of csr matrices, e.g. preds_list = [[0,1,0,1,0],[0,0,0,1,0],...,[1,0,0,0,0]]
+        # convert prrediction from csc matrix format into list of csr matrices, e.g. preds_list = [[0,1,0,1,0],[0,0,0,1,0],...,[1,0,0,0,0]]
         # one matrix per passage, e.g. [0,0,0,1,1] inidicates this passage corrseponds to the last two topics
         preds_list = list(predictions)
         
@@ -497,19 +499,19 @@ class Predictor:
         pred_labels_list = []
         
         # loop thru each matrix in list, again one matrix per passage, 
-        for array in preds_list:
+        for passage_pred_array in preds_list:
         
-            if isinstance(array, scipy.sparse.csr.csr_matrix) or isinstance(array, np.int64) or isinstance(array, scipy.sparse.lil.lil_matrix):
+            if isinstance(passage_pred_array, scipy.sparse.csr.csr_matrix) or isinstance(passage_pred_array, np.int64) or isinstance(passage_pred_array, scipy.sparse.lil.lil_matrix):
                 # array = array.tolil().data.tolist()
-                array = [array[0,i] for i in range(array.shape[1])]
+                passage_pred_list = [passage_pred_array[0,i] for i in range(passage_pred_array.shape[1])]
         
             # init topics list for this row, e.g. passage_labels = ['prayer', 'moses']
             passage_labels = []
         
             # if 1 occurs in ith element in the array, record ith topic
-            for topic_index, pred_value in enumerate(list(array)):
+            for topic_index, pred_value in enumerate(passage_pred_list):
                 if pred_value != 0:
-                    passage_labels.append(top_topics[topic_index])
+                    passage_labels.append(substantive_topics[topic_index])
 
             pred_labels_list.append(passage_labels)
 

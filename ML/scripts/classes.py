@@ -16,6 +16,7 @@ from unidecode import unidecode
 from nltk.stem import SnowballStemmer
 from nltk.corpus import stopwords
 from sklearn.svm import LinearSVC
+from IPython.display import HTML
 from sklearn.metrics import accuracy_score
 from sklearn.pipeline import Pipeline
 from sklearn.multiclass import OneVsRestClassifier
@@ -35,19 +36,54 @@ class DataManager:
         raw_df, 
         num_topics, 
         none_ratio, 
-        count_none = False,
+        should_limit_nones = False,
         should_stem = False, 
         should_clean = True, 
+        keep_all_nones = False,
         should_remove_stopwords = False, 
         ):
         
         self.raw_df = raw_df
+        self.should_limit_nones = should_limit_nones
         self.none_ratio = none_ratio
         self.num_topics = num_topics
         self.should_stem = should_stem
         self.should_clean = should_clean
-        self.count_none = count_none
+        self.keep_all_nones = keep_all_nones
         self.should_remove_stopwords = should_remove_stopwords
+
+    
+    def get_top_topic_counts(self, df):
+
+        # make str out of all topic lists in topics column
+        all_topics_list = ' '.join(df['Topics'].tolist()).split()
+        
+        # init dict
+        topic_counts = {}
+        
+        # loop thru all topic occurrences
+        for topic in all_topics_list:
+        
+            # increment if seen already
+            if topic in topic_counts:
+                topic_counts[topic] += 1
+        
+            # init if not seen yet
+            else:
+                topic_counts[topic] = 1
+        
+        # rank the entries by most frequently occurring first
+        topic_counts_dict = {
+                                k: v for k, v in sorted(topic_counts.items(), 
+                                key=lambda item: item[1],
+                                reverse=True)
+                            }
+        
+        topic_counts_list = [(k, v) for k, v in topic_counts_dict.items()] 
+
+        top_topic_counts_list = topic_counts_list[:self.num_topics]
+
+        return top_topic_counts_list
 
 
     def remove_junk_rows(self):
@@ -59,71 +95,142 @@ class DataManager:
             
             # remove repeats
             df = df.drop_duplicates()
+            
             # remove empty cells
             df = df.dropna()
+            
             # store as attribute
             self.without_junk_rows = df
+
         return df
 
 
-    def get_top_topics(self):
+    def reduce_topics(self, df):
 
-        if getattr(self, "top_topics", None):
-            return self.top_topics
+        # keep only topics that i want to study
+        df['true_topics'] = df.pop('Topics').apply(self.topic_selector)
+
+        # **************************************************
+        # df['true_topics'].replace('', 'None', inplace=True)
+        # **************************************************
+
+        return df
+
+
+    def tidy_up(self, df):
+
+        # clean passage text
+        if self.should_clean:
+            df['passage_text'] = df['passage_text'].str.lower()
+            df['passage_text'] = df['passage_text'].apply(self.cleanHtml)
+            df['passage_text'] = df['passage_text'].apply(self.cleanPunc)
+            df['passage_text'] = df['passage_text'].apply(self.keepAlpha)
+    
+        # remove stopwords, if you so chose  
+        if self.should_remove_stopwords:
+            df['passage_text'] = df['passage_text'].apply(self.stopword_cleaner)
+    
+        # stem words, if you so chose  
+        if self.should_stem:
+            df['passage_text'] = df['passage_text'].apply(self.stemmer)
+
+        return df
+
+
+    def get_reduced_topics_df(self):
+
+        if getattr(self, "reduced_topics_df", None):
+
+            return self.reduced_topics_df
         
         else:
-            # count all topics that appear *after* having removed junk rows
-            df = self.remove_junk_rows()
+            
+            all_topics_df = self.preprocess_dataframe()
 
-            # make str out of all topic lists in topics column
-            all_topics_list = ' '.join(df['Topics'].tolist()).split()
-            
-            # init dict
-            topic_counts = {}
-            
-            # loop thru all topic occurrences
-            for topic in all_topics_list:
-            
-                # increment if seen already
-                if topic in topic_counts:
-                    topic_counts[topic] += 1
-            
-                # init if not seen yet
-                else:
-                    topic_counts[topic] = 1
-            
-            # rank the entries by most frequently occurring first
-            top_topic_counts = {k: v for k, v in sorted(topic_counts.items(), key=lambda item: item[1],reverse=True)}
-            
-            # convert dict {'prayer':334, etc} to list [('prayer',334), etc]
-            topic_tuples = list(top_topic_counts.items())
-            
-            # select only the highest ranking
-            top_topic_tuples = topic_tuples[:self.num_topics]
-            
-            # extract only the names of these topics, whilst dropping the number of occrurences 
-            top_topics_list = [topic_tuple[0] for topic_tuple in top_topic_tuples] + ['None']
-            # top_topics_list = [topic_tuple[0] for topic_tuple in top_topic_tuples]
-            
-            # order by topic name
-            top_topics_list.sort()
-            
+            self.top_topic_counts_list = self.get_top_topic_counts(all_topics_df)
+
+            self.top_topics_list = [topic_tuple[0] for topic_tuple in self.top_topic_counts_list]
+
+            # eliminate topic rows with no top topics
+            reduced_topics_df = self.reduce_topics(all_topics_df)
+
             # store as attribute
-            self.top_topics = top_topics_list
+            self.reduced_topics_df = reduced_topics_df
 
-        return top_topics_list
+        return reduced_topics_df
 
 
-    def topic_selector(self,row):
+    def limit_nones(self, df):
+
+        # place nones last
+        df = df.sort_values(by='true_topics', ascending=False)
+
+        # calc how many nones there are
+        num_nones = df.loc[df['true_topics'] == ""].shape[0]
+
+        # most commonly occurring topic
+        top_topic_name = self.top_topic_counts_list[0][0]
+
+        # num of occurrences of most popular topic 
+        top_topic_counts = self.top_topic_counts_list[0][1]
+
+        # init
+        nones_to_drop = 0
+        nones_to_keep = num_nones
+        
+        if self.none_ratio == 'all':
+
+            pass
+            
+        else:
+
+            # compute num of nones to keep based upon ratio
+            nones_to_keep = int(top_topic_counts * self.none_ratio)
+
+
+            # check there are more nones than the computed limit
+            if nones_to_keep <= num_nones:
+                    
+                # calc how many nones to drop
+                nones_to_drop = num_nones - nones_to_keep
+
+            # remove final excess 'none' rows
+            df = df.iloc[:-1 * nones_to_drop]
+
+        # update list of topic counts
+        top_topic_counts_list = self.top_topic_counts_list + [('None',nones_to_keep)]
+        
+        # ensure 'None' is placed at the beginning iff it has the most
+        top_topic_counts_list.sort(key=lambda x:x[1],reverse=True)
+
+        self.top_topic_counts_list = top_topic_counts_list
+
+        self.top_topics_list = [topic_tuple[0] for topic_tuple in self.top_topic_counts_list]
+        
+        return df
+
+    
+    def one_hot_encode(self, df):
+
+        # one hot encode each topic
+        df = pd.concat([df, df['true_topics'].str.get_dummies(sep=' ')], axis=1)
+
+        # # don't need a col for "None" because it is just the absence of all substantice topics
+        # del df['None']
+
+        # make topic string into list
+        df['true_topics'] = df['true_topics'].str.split()
+
+        return df
+
+
+    def topic_selector(self, row):
 
         # this cell contains more topics than we might want
         old_passage_topics_string = row
-        
-        # call attribute which stored top topics
-        top_topics_list = self._get_top_topics()
-        
+
         # keep only the topics which are popular
-        passage_topics_list = [topic for topic in old_passage_topics_string.split() if topic in top_topics_list]
+        passage_topics_list = [topic for topic in old_passage_topics_string.split() if topic in self.top_topics_list]
         
         # reconnect the topics in the list to form a string separated by spaces
         new_passage_topics_string = ' '.join(passage_topics_list)
@@ -192,103 +299,24 @@ class DataManager:
         
             # make more descriptive name
             df = df.rename(columns={'En': 'passage_text'})
-        
-            # keep only topics that i want to study
-            df['true_topics'] = df.pop('Topics').apply(self.topic_selector)
-        
-            # remove rows which don't have my topics
-            df['true_topics'].replace('', 'None', inplace=True)
-            # df['true_topics'].replace('', np.nan, inplace=True)
-        
-            # place Nones last
-            df = df.sort_values(by='true_topics',ascending=False)
-
-            # calc how many nones there are
-            num_nones = df.loc[df['true_topics'] == "None"].shape[0]
-
-            # calc num of rows with real (i.e. substantive) topics
-            num_reals = df.loc[df['true_topics'] != "None"].shape[0]
-            
-            # string consisting of all topic occurrences
-            topic_counts_string = df['true_topics'].to_string(index=False)
-
-
-            # get the name of the most popular topic
-            non_trivial_topics = self.top_topics
-            non_trivial_topics.remove('None')
-            top_topic_name = non_trivial_topics[0]
-
-            # calc num of rows with most popular topic
-            top_topic_counts = topic_counts_string.count(top_topic_name)
-
-            # check we have correct sum
-            assert num_nones + num_reals == df.shape[0]
-
-            # compute num of nones to keep
-            nones_to_keep = int(top_topic_counts * self.none_ratio)
-            # nones_to_keep = int(num_reals * self.none_ratio)
-
-            nones_to_drop = 0
-
-            # check there are more nones than the computed limit
-            if nones_to_keep <= num_nones:
-                    
-                # calc how many nones to drop
-                nones_to_drop = num_nones - nones_to_keep
-
-            # remove extra nones
-            df = df.iloc[:-1 * nones_to_drop]
-        
-            # one hot encode each topic
-            df = pd.concat([df, df['true_topics'].str.get_dummies(sep=' ')], axis=1)
-
-            # order columns, starting with most frequently occurring topic
-            ordered_columns = ['passage_text', 'true_topics'] + self.top_topics
-            df = df[ordered_columns]
-        
-            # make topic string into list
-            df['true_topics'] = df['true_topics'].str.split()
-        
-            # clean passage text
-            if self.should_clean:
-                df['passage_text'] = df['passage_text'].str.lower()
-                df['passage_text'] = df['passage_text'].apply(self.cleanHtml)
-                df['passage_text'] = df['passage_text'].apply(self.cleanPunc)
-                df['passage_text'] = df['passage_text'].apply(self.keepAlpha)
-        
-            # remove stopwords, if you so chose  
-            if self.should_remove_stopwords:
-                df['passage_text'] = df['passage_text'].apply(self.stopword_cleaner)
-        
-            # stem words, if you so chose  
-            if self.should_stem:
-                df['passage_text'] = df['passage_text'].apply(self.stemmer)
-
+    
             self.preprocessed_dataframe = df
 
         return df
 
 
-    def get_topic_counts(self):
-        if getattr(self, "topic_counts", None):
-            return self.topic_counts
-        else:
+    # def get_topic_counts(self):
+    #     if getattr(self, "topic_counts_list", None):
+    #         return self.topic_counts_list
+    #     else:
             
-            df = self.preprocess_dataframe()
-            counts = []
-            for topic in self.top_topics:
-                counts.append((topic, df[topic].sum()))
-            topic_counts = pd.DataFrame(counts, columns=['Topic', 'Occurrences'])
-            topic_counts = topic_counts.sort_values(by='Occurrences', ascending=False, na_position='last')
-            # topic_counts = topic_counts.reset_index()
-            topic_counts = topic_counts.reset_index(drop=True)
-            
-            total_occurrences = topic_counts.Occurrences.sum()
-            topic_counts['Proportion'] = round(topic_counts.Occurrences/total_occurrences,2)
+    #         df = self.preprocess_dataframe()
+    #         counts = []
+    #         for topic in self.top_topics:
+    #             counts.append((topic, df[topic].sum()))
+    #         topic_counts = pd.DataFrame(counts, columns=['Topic', 'Occurrences'])
 
-            topic_counts = topic_counts.sort_values(by='Topic')
-
-        return topic_counts
+    #     return topic_counts
 
 
     def show_topic_counts(self):
@@ -368,22 +396,19 @@ class DataManager:
         return df
 
 class ConfusionMatrix:
-    def __init__(self, result, top_topics, should_print = False):
-        self.result = result
+    def __init__(self, 
+    # result, 
+    top_topics, should_print = False):
+        # self.result = result
         self.top_topics = top_topics
         self.should_print = should_print
 
-    def get_values(self):
+    def get_cm_values(self, pred_vs_true):
 
-        # return 12
-
-    # if True:
-        result = self.result
         top_topics = self.top_topics
-        # should_print = self.should_print
 
-        true_label_lists = result.true_topics.tolist()
-        pred_label_lists = result.pred_topics.tolist()
+        true_label_lists = pred_vs_true.true_topics.tolist()
+        pred_label_lists = pred_vs_true.pred_topics.tolist()
 
         assert len(true_label_lists) == len(pred_label_lists)
 
@@ -435,27 +460,9 @@ class ConfusionMatrix:
         y_actu = pd.Categorical(y_true, categories=topics_list)
         y_pred = pd.Categorical(y_pred, categories=topics_list)
 
-        cm = pd.crosstab(y_actu, y_pred, rownames=['\/ True \/'], colnames = ['Pred >>>'], dropna=False) 
+        cm = pd.crosstab(y_actu, y_pred, rownames=['True'], colnames = ['Pred'], dropna=False) 
         if self.should_print:
             print(cm)
-            df_confusion = cm
-            # import matplotlib.pyplot as plt
-            # def plot_confusion_matrix(df_confusion, title='Confusion matrix', cmap=plt.cm.gray_r):
-            title='Confusion matrix'
-            cmap=plt.cm.gray_r
-            plt.matshow(df_confusion, cmap=cmap) # imshow
-            # plt.title(title)
-            plt.colorbar()
-            tick_marks = np.arange(len(df_confusion.columns))
-            plt.xticks(tick_marks, df_confusion.columns, rotation=45)
-            plt.yticks(tick_marks, df_confusion.index)
-            # plt.tight_layout()
-            plt.ylabel(df_confusion.index.name)
-            plt.xlabel(df_confusion.columns.name)
-            # plt.imshow()
-            plt.show()
-            # plot_confusion_matrix(df_confusion)
-        cm = cm.values
         return cm
 
 
@@ -509,46 +516,43 @@ class Predictor:
         return pred_labels_list
 
 
-    def get_pred_vs_true(self, true_df, pred_list):
+    def get_pred_vs_true(self, passage_labels_df, pred_list):
         
         # test = self.test
         pred_labels_list = pred_list
 
-        true_df['pred_topics'] = pred_labels_list
+        passage_labels_df['pred_topics'] = pred_labels_list
 
         cols=['passage_text','true_topics','pred_topics']
 
-        # topics_comparison = test[['true_topics','pred_topics']]
-
-        pred_vs_true = true_df[cols]
+        pred_vs_true = passage_labels_df[cols]
         
+        # print(pred_vs_true.sample(30).to_string(index=False))
+        # print(pred_vs_true.sample(30))
+
         return pred_vs_true
 
 
 
 class DataSplitter:
 
-    def __init__(self, data):
+    def __init__(self, data_df):
     
-        self.data = data
+        self.data_df = data_df
 
     def get_datasets(self, vectorizer):
 
-        data = self.data
         # arrange in ordr of index for passage
-        data.sort_values(by='Ref')
+        self.data_df.sort_values(by='Ref')
         # randomly split into training and testing sets
         train, test = train_test_split(
-            data, 
+            self.data_df, 
             shuffle=True,
             test_size=0.30, 
             random_state=42, 
         )
         #print("Time taken for train test split:\n", datetime.now() - start_time)
         start_time = datetime.now()
-
-        # init column for topic predictions
-        test['pred_topics'] = None
 
         # select just the words of each passage
         train_text = train['passage_text']
@@ -572,26 +576,18 @@ class DataSplitter:
 
 class Scorer:
 
-    def __init__(
-        self, 
-        # cm, 
-        top_topics, topic_counts, row_lim, expt_num, none_ratio,
-        ):
+    def __init__(self, top_topics, topic_counts, row_lim, expt_num, none_ratio, should_print = False):
     
-        # self.cm = cm
         self.row_lim = row_lim
         self.expt_num = expt_num
         self.top_topics = top_topics
         self.none_ratio = none_ratio
+        self.should_print = should_print
         self.topic_counts = topic_counts
 
-    def get_result(self, cm, dataset = "None"):
 
-        row_lim = self.row_lim
-        expt_num = self.expt_num
-        none_ratio = self.none_ratio
-        top_topics = self.top_topics
-        # top_topics = self.top_topics + ['None']
+    def get_scores(self, cm):
+
         topic_counts = self.topic_counts
 
         TP = np.diag(cm)
@@ -608,59 +604,65 @@ class Scorer:
         
         # f1 score = harmonic mean of precision and recall
         f1score = TP/(TP+(FP+FN)/2)
+
+        scores = {
+            'precision':precision, 
+            "recall":recall, 
+            'f1score':f1score,
+        } 
+
+        return scores
+
+
+    def get_stats_df(self, cm, dataset = "None"):
+
+        scores = self.get_scores(cm)
+        row_lim = self.row_lim
+        expt_num = self.expt_num
+        none_ratio = self.none_ratio
+
+        recall = scores['recall']
+        f1score = scores['f1score']
+        precision = scores['precision']
+
+        topic_stats_df = pd.DataFrame(self.topic_counts,columns=['Topic','Occurrences'])
         
-        score_df = pd.DataFrame({
-            'Topic': top_topics,
-            'Count': topic_counts.Occurrences.tolist(), 
-            'Proportion': topic_counts.Proportion.tolist(), 
-            'Precision': precision, 
-            'Recall': recall, 
-            'F1score': f1score
-            })
+        total_occurrences = topic_stats_df.Occurrences.sum()
 
-        score_df = score_df.set_index(['Topic'])
+        topic_stats_df['Proportion'] = topic_stats_df.Occurrences/total_occurrences
+        topic_stats_df['Precision'] = precision.tolist()
+        topic_stats_df['Recall'] = recall.tolist()
+        topic_stats_df['F1score'] = f1score.tolist()
 
-        score_df = score_df.loc[score_df.index.isin(top_topics)]
+        overall_precision = (topic_stats_df.Precision * topic_stats_df.Proportion).sum()
 
+        overall_recall = (topic_stats_df.Recall * topic_stats_df.Proportion).sum()
 
-        score_df = score_df.sort_values(by=['F1score', 'Precision', 'Recall'], ascending=False)
-
-        score_df = score_df.reset_index()
-
-        # overall scores 
-        overall_precision = (score_df.Precision * score_df.Proportion).sum()
-
-        overall_recall = (score_df.Recall * score_df.Proportion).sum()
-
-        overall_f1score = (score_df.F1score * score_df.Proportion).sum()
-
-        score_df.loc['OVERALL'] = [
-            '---',
-            score_df.Count.sum(),
-            score_df.Proportion.sum(),
+        overall_f1score = (topic_stats_df.F1score * topic_stats_df.Proportion).sum()
+        
+        topic_stats_df.loc['Overall'] = [
+            'Overall',
+            topic_stats_df.Occurrences.sum(),
+            topic_stats_df.Proportion.sum(),
             overall_precision,
             overall_recall,
             overall_f1score]
         
-        score_df = score_df.sort_values(by='Topic')
+        my_topics = ["Overall", 'None', 'abraham', 'passover', 'moses']
+        
+        selected_topics_df = topic_stats_df.loc[topic_stats_df['Topic'].isin(my_topics)]
+        
+        selected_topics_list = selected_topics_df['Topic'].to_list()
 
-        my_topics = ['None', 'abraham', 'passover', 'torah', 'prayer', 'moses', 'laws-of-judges-and-courts']
-        
-        # print('topics =',score_df.loc[score_df['Topic'].isin(my_topics)]['Topic'].to_list())
-        # print(               f'{dataset}_expt_{expt_num}_none_ratio_{none_ratio} =',score_df.loc[score_df['Topic'].isin(my_topics)]['F1score'].to_list())
-        # print(f'{row_lim}_rows_{dataset}_expt_{expt_num} =',score_df.loc[score_df['Topic'].isin(my_topics)]['F1score'].to_list())
-        
-        selected_topics_df = score_df.loc[score_df['Topic'].isin(my_topics)]
-        
         selected_scores_list = selected_topics_df['F1score'].to_list()
 
-        print(f'{dataset}_expt_{expt_num} =', selected_scores_list)
-        
-        # print('topics =',score_df['Topic'].to_list())
-        # print('scores =',score_df['F1score'].to_list())
+        if self.should_print:
+            # print(f'{dataset}')
+            # print(topic_stats_df.round(2))
+            print(f'\ntopics = ', selected_topics_list)
+            print(f'{dataset}_expt_{expt_num} =', selected_scores_list)
 
-
-        return score_df
+        return topic_stats_df
 
 class Trainer:
     
@@ -674,11 +676,9 @@ class Trainer:
         classifier = self.classifier
         
         try:
-            
             classifier.fit(x_train, y_train)
 
         except:        
-            
             y_train = y_train.values.toarray()
             
             classifier.fit(x_train, y_train)

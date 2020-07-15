@@ -1,10 +1,11 @@
 Unidecode
 bs4
-fastxml
+# fastxml
 gensim
 ipykernel
 ipynb-py-convert
 itertools-s
+jinja2
 lxml
 matplotlib
 mglearn

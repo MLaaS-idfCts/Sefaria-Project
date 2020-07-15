@@ -44,7 +44,7 @@ pd.set_option('display.max_rows', None)
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # width of column to dispaly in dataframe
-pd.options.display.max_colwidth = 40
+pd.options.display.max_colwidth = 50
 
 
 start_time = datetime.now()
@@ -63,16 +63,9 @@ classifiers = [
     # GridSearchCV(BinaryRelevance(), parameters, scoring='accuracy'),
     ]
 
-# count passages with no topics
-COUNT_NONE = True
-
-# how many topics to consider
-NUM_TOPICS = 20
-
-# max num of nones to allow, e.g. 1/8 means to allow 
-# only enough nones so that they will number no more 
-# than 1/8 of the passages with non-trivial topic
-# Note: i am changing this to be ratio compared with num of occurrences of top topic.
+# Ratio of nones compared with num of occurrences of top topic.
+# For example the first is 0.3 which means the max nones we allow 
+# is 30% of the total occurrences of the top topic.
 none_ratios = {
     0:0.3,
     1:0.6,
@@ -84,135 +77,130 @@ none_ratios = {
     7:2.4,
     8:2.7,
     9:3.0,
-    # 7:5,
-    # 8:10,
-    # 9:20,
 }
 
-row_lim = 5000
-print("row_lim:",row_lim)
+row_lims = {
+    0:250,
+    1:500,
+    2:1000,
+    3:2500,
+    4:5000,
+    5:10000,
+    6:25000,
+    7:50000,
+    8:100000,
+    9:250000,
+}
 
-for expt_num, none_ratio in none_ratios.items():
-# for expt_num, row_lim in ROW_LIMITS.items():
+# how many topics to consider
+NUM_TOPICS = 6
 
+# for expt_num, row_lim in tqdm(row_lims.items()):
+# for expt_num, none_ratio in tqdm(none_ratios.items()):
+if True:
+    expt_num = 0
+    none_ratio = 10.0
+    row_lim = 80000
+    print("row_lim =",row_lim)
     
     # raw dataframe
     raw_df = pd.read_csv(DATA_PATH).sample(row_lim)
-    # raw_df = pd.read_csv(DATA_PATH)[:ROW_LIMIT]
-
-    # check shape
-    # print("Raw shape:",raw_df.shape)
 
     # preprocessed data
     data = DataManager(
         raw_df = raw_df, 
-        none_ratio = none_ratio, 
         num_topics = NUM_TOPICS, 
-        should_stem = True, 
-        # should_clean = False, 
-        should_remove_stopwords = True, 
-        # count_none = COUNT_NONE,
-        # none_ratio = 10,
+
+        # how many nones to keep 
+        none_ratio = none_ratio, # same as top topic
+        # none_ratio = none_ratio, 
+        # none_ratio = 'all', 
+
+        # how to modify passage text
+        should_stem = False, 
+        should_clean = True, 
+        should_remove_stopwords = False, 
         )
 
 
     # list of most commonly occurring topics
-    top_topics = data.get_top_topics()
-    # top_topics = data._get_top_topics() + ['None']
+    reduced_topics_df = data.get_reduced_topics_df()
 
-    # data in usable fromat, e.g. cleaned, stemmed, etc.
-    # e.g. should have column for passage text, and for each topic
-    data = data.preprocess_dataframe()
+    limited_nones_df = data.limit_nones(reduced_topics_df)
 
-    # how many passages belong to each topic
-    topic_counts = data.get_topic_counts()
-    # print(topic_counts)
+    one_hot_encoded_df = data.one_hot_encode(limited_nones_df)
 
-    # check shape
-    # print("Processed shape:",data.shape)
+    tidied_up_df = data.tidy_up(one_hot_encoded_df)
 
-    data.to_csv(DATA_PATH[:-4]+'processed.csv')
+    tidied_up_df.to_csv(DATA_PATH[:-4] + 'tidied_up_df.csv')
 
+    data_df = tidied_up_df
 
     # init a vectorizer that will convert string of words into numerical format
-    vectorizer = TfidfVectorizer(
-        # norm = 'l2',
-        # min_df = 3, 
-        # max_df = 0.9, 
-        # use_idf = 1,
-        # analyzer = 'word', 
-        # stop_words = 'english',
-        # smooth_idf = 1, 
-        # ngram_range = (1,3),
-        # max_features = 10000,
-        # sublinear_tf = 1,
-        # strip_accents = 'unicode', 
-        )
+    vectorizer = TfidfVectorizer()
 
-    splitter = DataSplitter(data)
+    # init class to split data
+    splitter = DataSplitter(data_df)
+    # get subdivided datasets
     train, test, x_train, x_test, y_train, y_test = splitter.get_datasets(vectorizer)
 
+    # init series of predictors, one for each classifier
     predictors = []
 
     # loop thru various classifier types
     for classifier in classifiers:
 
-        classifier = Trainer(classifier).train(x_train, y_train)
+        trainer = Trainer(classifier)
+        classifier = trainer.train(x_train, y_train)
         
-        predictor = Predictor(classifier, top_topics)
-        # predictor = Predictor(classifier, train, top_topics)
+        # init class of predictor based on classifier and list of chosen topics
+        predictor = Predictor(classifier, data.top_topics_list)
         
+        # store predictor in arsenal
         predictors.append(predictor)
 
-    # if __name__ == "__main__":
-
+        # loop through all predictors
         for predictor in predictors:
 
+            # list of predictions
             test_pred_list = predictor.get_preds_list(x_test)
             train_pred_list = predictor.get_preds_list(x_train)
 
+            # columns to compare pred and true labels
             train_pred_vs_true = predictor.get_pred_vs_true(train, train_pred_list)
             test_pred_vs_true = predictor.get_pred_vs_true(test, test_pred_list)
 
+            # save results
             train_pred_vs_true.to_pickle(f'/persistent/Sefaria-Project/ML/data/train_pred_vs_true_{none_ratio}.pkl')
             test_pred_vs_true.to_pickle(f'/persistent/Sefaria-Project/ML/data/test_pred_vs_true_{none_ratio}.pkl')
 
-            train_cm = ConfusionMatrix(train_pred_vs_true, top_topics, 
-                # should_print = True
-                )
+            # init class to constrcut confusion matrix
+            cm_maker = ConfusionMatrix(data.top_topics_list, 
+                                        should_print = True
+                                        )
 
-            test_cm = ConfusionMatrix(test_pred_vs_true, top_topics, 
-                # should_print = True
-                )
-            
-            train_cm = train_cm.get_values()
-            test_cm = test_cm.get_values()
+            # get confusion matrices
+            train_cm = cm_maker.get_cm_values(train_pred_vs_true)
+            test_cm = cm_maker.get_cm_values(test_pred_vs_true)
 
-            train_cm.dump(f"/persistent/Sefaria-Project/ML/data/train_cm_{none_ratio}.dat")
-            test_cm.dump(f"/persistent/Sefaria-Project/ML/data/test_cm_{none_ratio}.dat")
-            # cm.dump(f"/persistent/Sefaria-Project/ML/data/cm_{row_lim}.dat")
-            # cm = numpy.load("cm_{row_lim}.dat")
-
-            # print(cm)
-            print()
-
-            scorer = Scorer(top_topics, topic_counts, row_lim, expt_num, none_ratio)
+            # init class to compute scores
+            scorer = Scorer(data.top_topics_list, data.top_topic_counts_list, row_lim, expt_num, none_ratio, 
+                            # should_print = True
+                            )
  
-            train_score_df = scorer.get_result(train_cm, dataset = 'train')
-            test_score_df = scorer.get_result(test_cm, dataset = 'test')
+            # get actual scores 
+            train_score_df = scorer.get_stats_df(train_cm, dataset = 'train')
+            test_score_df = scorer.get_stats_df(test_cm, dataset = 'test')
  
+            # save results
             train_score_df.to_pickle(f'/persistent/Sefaria-Project/ML/data/train_score_df{none_ratio}.pkl')
             test_score_df.to_pickle(f'/persistent/Sefaria-Project/ML/data/test_score_df_{none_ratio}.pkl')
 
-            # print(score_df.round(2))
-            # print('Overall F1score:',score_df.loc['OVERALL','F1score'].round(5))
-
-        
+        # compute and display time elapsed
         end_time = datetime.now()
-
         total_time = end_time - start_time
-        
         print("# Time taken:", total_time)
+        print()
 
     # RANK MODELS
 

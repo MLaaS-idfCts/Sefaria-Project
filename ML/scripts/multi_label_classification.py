@@ -7,6 +7,7 @@ import pandas as pd
 import warnings
 
 from tqdm import tqdm
+from numpy import arange
 from classes import DataManager, ConfusionMatrix, Predictor, DataSplitter, Scorer, Trainer
 from datetime import datetime
 from sklearn.svm import SVC, LinearSVC
@@ -31,7 +32,7 @@ def time_and_reset(start_time):
     Usage: To print the time elapsed since previous call, type:
     start_time = time_and_reset(start_time)
     """
-    print(datetime.now() - start_time)
+    print('#',datetime.now() - start_time)
     return datetime.now()
     
 # ignore warnings regarding column assignment, e.g. df['col1'] = list1 -- not 100% sure about this
@@ -66,18 +67,8 @@ classifiers = [
 # Ratio of nones compared with num of occurrences of top topic.
 # For example the first is 0.3 which means the max nones we allow 
 # is 30% of the total occurrences of the top topic.
-none_ratios = {
-    0:0.3,
-    1:0.6,
-    2:0.9,
-    3:1.2,
-    4:1.5,
-    5:1.8,
-    6:2.1,
-    7:2.4,
-    8:2.7,
-    9:3.0,
-}
+
+none_ratioes = list(arange(0.2, 2.2, 0.2))
 
 row_lims = {
     0:250,
@@ -89,21 +80,22 @@ row_lims = {
     6:25000,
     7:50000,
     8:100000,
-    9:250000,
+    9:180000,
 }
 
-row_lim = 18000
+row_lim = 5000
 print("row_lim =",row_lim)
+print(f"# expt_nums:none_ratio {[f'{i}:{round(none_ratio,1)}' for i,none_ratio in enumerate(none_ratioes)]}")
 
 # how many topics to consider
-NUM_TOPICS = 30
+NUM_TOPICS = 3
 
 # for expt_num, row_lim in tqdm(row_lims.items()):
 # for expt_num, none_ratio in tqdm(none_ratios.items()):
-for expt_num, none_ratio in (none_ratios.items()):
-# if True:
-    # expt_num = 0
-    # none_ratio = 1.1
+# for expt_num, none_ratio in enumerate(none_ratioes):
+if True:
+    expt_num = 0
+    none_ratio = 0.5
     
     start_time = time_and_reset(start_time)
     
@@ -191,7 +183,7 @@ for expt_num, none_ratio in (none_ratios.items()):
 
             # init class to compute scores
             scorer = Scorer(data.ranked_topic_names_with_none, data.ranked_topic_counts_with_none, row_lim, expt_num, none_ratio, 
-                            should_print = True
+                            # should_print = True
                             )
  
             # get actual scores 

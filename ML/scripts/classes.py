@@ -28,20 +28,11 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 nltk.download('stopwords')
 stemmer = SnowballStemmer('english')
+np.seterr(divide='ignore', invalid='ignore')
 
 class DataManager:
 
-    def __init__(
-        self, 
-        raw_df, 
-        num_topics, 
-        none_ratio, 
-        should_limit_nones = False,
-        should_stem = False, 
-        should_clean = True, 
-        keep_all_nones = False,
-        should_remove_stopwords = False, 
-        ):
+    def __init__(self, raw_df, num_topics, none_ratio, should_limit_nones = False,should_stem = False, should_clean = True, keep_all_nones = False, should_remove_stopwords = False):
         
         self.raw_df = raw_df
         self.should_limit_nones = should_limit_nones
@@ -109,10 +100,6 @@ class DataManager:
 
         # keep only topics that i want to study
         df['true_topics'] = df.pop('Topics').apply(self.topic_selector)
-
-        # **************************************************
-        # df['true_topics'].replace('', 'None', inplace=True)
-        # **************************************************
 
         return df
 
@@ -398,75 +385,46 @@ class DataManager:
         df['ref_features'] = df.Ref.apply(self._get_ref_features)
         return df
 
-class ConfusionMatrix:
-    def __init__(self, 
-    # result, 
-    top_topics, should_print = False):
-        # self.result = result
-        self.top_topics = top_topics
-        self.should_print = should_print
 
-    def get_cm_values(self, pred_vs_true):
+class DataSplitter:
 
-        top_topics = self.top_topics
+    def __init__(self, data_df):
+    
+        self.data_df = data_df
 
-        true_label_lists = pred_vs_true.true_topics.tolist()
-        pred_label_lists = pred_vs_true.pred_topics.tolist()
+    def get_datasets(self, vectorizer):
 
-        assert len(true_label_lists) == len(pred_label_lists)
+        # arrange in ordr of index for passage
+        self.data_df.sort_values(by='Ref')
+        # randomly split into training and testing sets
+        train, test = train_test_split(
+            self.data_df, 
+            shuffle=True,
+            test_size=0.30, 
+            random_state=42, 
+        )
 
-        num_passages = len(true_label_lists)
+        start_time = datetime.now()
 
-        y_true = []
-        y_pred = []
+        # select just the words of each passage
+        train_text = train['passage_text']
+        test_text = test['passage_text']
 
-        for i in range(num_passages):
 
-            true_label_list = []
-            pred_label_list = []
-            
-            try:
-                true_label_list = true_label_lists[i]
-            except:
-                pass
-            
-            try:
-                pred_label_list = pred_label_lists[i]
-            except:
-                pass
+        # create document-term matrix, i.e. numerical version of passage text
+        # Note: We only fit with training data, but NOT with testing data, because testing data should be "UNSEEN"
+        x_train = vectorizer.fit_transform(train_text)
+        x_test = vectorizer.transform(test_text)
+        #print("Time taken for vectorizer:\n", datetime.now() - start_time)
+        start_time = datetime.now()
 
-            # 0) NULL CASE --> No true or pred labels 
-            if len(pred_label_list) == 0 and len(pred_label_list) == 0:
-                    y_true.append('None')
-                    y_pred.append('None')
-        
-            # 1) MATCH --> true label == pred label 
-            for true_label in true_label_list:
-                if true_label in pred_label_list:
-                    y_true.append(true_label)
-                    y_pred.append(true_label)
+        # topics columns, with 0/1 indicating if the topic of this column relates to that row's passage
+        y_train = train.drop(labels = ['passage_text','true_topics'], axis=1)
+        y_test = test.drop(labels = ['passage_text','true_topics'], axis=1)
 
-            # 2) FALSE NEGATIVE --> true label was not predicted
-                else:
-                    y_true.append(true_label)
-                    y_pred.append("None")
+        return train, test, x_train, x_test, y_train, y_test
 
-            # 3) FALSE POSITIVE --> pred label was not true
-            for pred_label in pred_label_list:
-                if pred_label not in true_label_list:
-                    y_true.append("None")
-                    y_pred.append(pred_label)
-        
-        # topics_list = ['None'] + top_topics
-        topics_list = top_topics
-                
-        y_actu = pd.Categorical(y_true, categories=topics_list)
-        y_pred = pd.Categorical(y_pred, categories=topics_list)
 
-        cm = pd.crosstab(y_actu, y_pred, rownames=['True'], colnames = ['Pred'], dropna=False) 
-        if self.should_print:
-            print(cm)
-        return cm
 
 
 
@@ -521,45 +479,106 @@ class Predictor:
         return true_vs_pred_labels_df
 
 
+class ConfusionMatrix:
 
-class DataSplitter:
+    def __init__(self, top_topics, should_print = False):
 
-    def __init__(self, data_df):
-    
-        self.data_df = data_df
+        self.top_topics = top_topics
+        self.should_print = should_print
 
-    def get_datasets(self, vectorizer):
+    def get_cm_values(self, pred_vs_true):
 
-        # arrange in ordr of index for passage
-        self.data_df.sort_values(by='Ref')
-        # randomly split into training and testing sets
-        train, test = train_test_split(
-            self.data_df, 
-            shuffle=True,
-            test_size=0.30, 
-            random_state=42, 
-        )
-        #print("Time taken for train test split:\n", datetime.now() - start_time)
-        start_time = datetime.now()
+        # top_topics = 
 
-        # select just the words of each passage
-        train_text = train['passage_text']
-        test_text = test['passage_text']
+        true_label_set_list = pred_vs_true.true_topics.tolist()
+        pred_label_set_list = pred_vs_true.pred_topics.tolist()
 
 
-        # create document-term matrix, i.e. numerical version of passage text
-        # Note: We only fit with training data, but NOT with testing data, because testing data should be "UNSEEN"
-        x_train = vectorizer.fit_transform(train_text)
-        x_test = vectorizer.transform(test_text)
-        #print("Time taken for vectorizer:\n", datetime.now() - start_time)
-        start_time = datetime.now()
+        # check that we predicted label sets for the same number of passages as truly exist
+        assert len(true_label_set_list) == len(pred_label_set_list)
 
-        # topics columns, with 0/1 indicating if the topic of this column relates to that row's passage
-        y_train = train.drop(labels = ['passage_text','true_topics'], axis=1)
-        y_test = test.drop(labels = ['passage_text','true_topics'], axis=1)
+        # how many passages in this set
+        num_passages = len(true_label_set_list)
 
-        return train, test, x_train, x_test, y_train, y_test
+        # init 
+        # e.g. 
+        y_true = []
+        y_pred = []
 
+        for i in range(num_passages):
+
+            # init, this parallel pair of lists is going to record what topics were (mis)matched
+            # e.g. if there is one passage with 
+            # true labels 'moses' and 'prayer', and 
+            # pred labels 'moses' and 'abraham', then we would obtain
+            # true_label_set = ['moses','prayer','None']
+            # pred_label_set = ['moses','None','abraham']
+            
+            true_label_set = []
+            pred_label_set = []
+            
+            try:
+                true_label_set = true_label_set_list[i]
+            except:
+                pass
+            
+            try:
+                pred_label_set = pred_label_set_list[i]
+            except:
+                pass
+
+            # 0) NULL CASE --> No true or pred labels 
+            # e.g. if there is one passage with no true labels and no pred labels 
+            # true_label_set = ['None']
+            # pred_label_set = ['None']
+
+            if len(pred_label_set) == 0 and len(pred_label_set) == 0:
+                    y_true.append('None')
+                    y_pred.append('None')
+        
+            # 1) MATCH --> true label == pred label 
+            # e.g. if there is one passage with 
+            # true label 'moses', and 
+            # pred label 'moses', then we would obtain
+            # true_label_set = ['moses']
+            # pred_label_set = ['moses']
+            for true_label in true_label_set:
+                if true_label in pred_label_set:
+                    y_true.append(true_label)
+                    y_pred.append(true_label)
+
+            # 2) FALSE NEGATIVE --> true label was not predicted
+            # e.g. if there is one passage with 
+            # true label 'prayer', and no pred labels,
+            # then we would obtain
+            # true_label_set = ['prayer']
+            # pred_label_set = ['None']
+                else:
+                    y_true.append(true_label)
+                    y_pred.append("None")
+
+            # 3) FALSE POSITIVE --> pred label was not true
+            # e.g. if there is no true label, and the pred label is 'abraham', 
+            # then we would obtain
+            # true_label_set = ['None']
+            # pred_label_set = ['abraham']
+            for pred_label in pred_label_set:
+                if pred_label not in true_label_set:
+                    y_true.append("None")
+                    y_pred.append(pred_label)
+        
+        y_actu = pd.Categorical(y_true, categories=self.top_topics)
+        y_pred = pd.Categorical(y_pred, categories=self.top_topics)
+
+        cm_with_nones = pd.crosstab(y_actu, y_pred, rownames=['True'], colnames = ['Prediction'], dropna=False) 
+
+        if self.should_print:
+        
+            print(cm_with_nones)
+            # print(cm_without_nones)
+        
+        return cm_with_nones
+        # return {'cm_with_nones':cm_with_nones, 'cm_without_nones':cm_without_nones}
 
 
 class Scorer:
@@ -574,24 +593,44 @@ class Scorer:
         self.topic_counts = topic_counts
 
 
-    def get_scores(self, cm):
+    def get_scores(self, cm_with_nones):
 
-        topic_counts = self.topic_counts
+        abridged_cm = cm_with_nones.drop(columns='None')
+        
+        # cm_without_nones = # cm_without_nones = cm_with_nones.drop(index='None', columns='None')
 
-        TP = np.diag(cm)
+        # # keep stats for with and without nones
+        # score_info = {}
+
+        # # loop thru both types, with or without nones
+        # for type,cm in cm.items():
+
+        #     # init dict to store TP,FP,FN figures
+        #     score_info[type] = {}
+
+        # true pos = anything labeled correctly
+        # e.g. None as None, or moses as moses
+        
+        TP_with_nones = np.diag(cm_with_nones)
+
+        TP_without_nones = np.diag(cm_without_nones)
+        
+        # false pos = anything in a given row (true label), but was marked incorrectly
         FP = np.sum(cm, axis=0) - TP
+        
+        # false neg = anything in a given col (pred label), but truly was not that topic
         FN = np.sum(cm, axis=1) - TP
         
-        np.seterr(divide='ignore', invalid='ignore')
+        score_info[type]['TP'], score_info[type]['FP'], score_info[type]['FN'] = TP, FP, FN
 
         # precision = how many predicted were correct
-        precision = TP/(TP+FP)
+        precision = score_info['cm_without_nones']['TP']/(score_info['cm_without_nones']['TP']+score_info['cm_without_nones']['FP'])
         
         # recall = how many correct were predicted
-        recall = TP/(TP+FN)
+        recall = score_info['cm_with_nones']['TP']/(score_info['cm_with_nones']['TP']+score_info['cm_with_nones']['FN'])
         
         # f1 score = harmonic mean of precision and recall
-        f1score = TP/(TP+(FP+FN)/2)
+        f1score = 0
 
         scores = {
             'precision':precision, 

@@ -136,6 +136,9 @@ class DataManager:
 
         return df
 
+    def get_topic_named_from_counts(self, ranked_topic_counts):
+        return  [topic_tuple[0] for topic_tuple in ranked_topic_counts]
+
 
     def get_reduced_topics_df(self):
 
@@ -147,9 +150,8 @@ class DataManager:
             
             all_topics_df = self.preprocess_dataframe()
 
-            self.top_topic_counts_list = self.get_top_topic_counts(all_topics_df)
-
-            self.top_topics_list = [topic_tuple[0] for topic_tuple in self.top_topic_counts_list]
+            self.ranked_topic_counts_without_none = self.get_top_topic_counts(all_topics_df)
+            self.ranked_topic_names_without_none = self.get_topic_named_from_counts(self.ranked_topic_counts_without_none)
 
             # eliminate topic rows with no top topics
             reduced_topics_df = self.reduce_topics(all_topics_df)
@@ -169,10 +171,10 @@ class DataManager:
         num_nones = df.loc[df['true_topics'] == ""].shape[0]
 
         # most commonly occurring topic
-        top_topic_name = self.top_topic_counts_list[0][0]
+        top_topic_name = self.ranked_topic_names_without_none[0]
 
         # num of occurrences of most popular topic 
-        top_topic_counts = self.top_topic_counts_list[0][1]
+        top_topic_counts = self.ranked_topic_counts_without_none[0][1]
 
         # init
         nones_to_drop = 0
@@ -198,15 +200,13 @@ class DataManager:
             df = df.iloc[:-1 * nones_to_drop]
 
         # update list of topic counts
-        top_topic_counts_list = self.top_topic_counts_list + [('None',nones_to_keep)]
+        self.ranked_topic_counts_with_none = self.ranked_topic_counts_without_none + [('None',nones_to_keep)]
         
-        # ensure 'None' is placed at the beginning iff it has the most
-        top_topic_counts_list.sort(key=lambda x:x[1],reverse=True)
+        # ensure 'None' is ordered acc to rank or occurrences, e.g. at the beginning if has most
+        self.ranked_topic_counts_with_none.sort(key=lambda x:x[1],reverse=True)
 
-        self.top_topic_counts_list = top_topic_counts_list
+        self.ranked_topic_names_with_none = self.get_topic_named_from_counts(self.ranked_topic_counts_with_none)
 
-        self.top_topics_list = [topic_tuple[0] for topic_tuple in self.top_topic_counts_list]
-        
         return df
 
     
@@ -215,9 +215,10 @@ class DataManager:
         # one hot encode each topic
         df = pd.concat([df, df['true_topics'].str.get_dummies(sep=' ')], axis=1)
 
-        # # don't need a col for "None" because it is just the absence of all substantice topics
-        # del df['None']
-
+        # rank topic cols in order of frequenly occurring
+        cols = ['passage_text', 'true_topics'] + self.ranked_topic_names_without_none
+        df = df[cols]
+        
         # make topic string into list
         df['true_topics'] = df['true_topics'].str.split()
 
@@ -230,7 +231,9 @@ class DataManager:
         old_passage_topics_string = row
 
         # keep only the topics which are popular
-        passage_topics_list = [topic for topic in old_passage_topics_string.split() if topic in self.top_topics_list]
+        permitted_topics = [topic_tuple[0] for topic_tuple in self.ranked_topic_counts_without_none]
+
+        passage_topics_list = [topic for topic in old_passage_topics_string.split() if topic in permitted_topics]
         
         # reconnect the topics in the list to form a string separated by spaces
         new_passage_topics_string = ' '.join(passage_topics_list)
@@ -470,36 +473,27 @@ class ConfusionMatrix:
 class Predictor:
     def __init__(self, classifier, 
     # train, test, 
-    top_topics):
+    top_topic_names):
     # def __init__(self, classifier, test, x_test, top_topics):
         
         self.classifier = classifier
-        # self.test = test
-        # self.train = train
-        # self.x_test = x_test
-        self.top_topics = top_topics
+        self.top_topic_names = top_topic_names
     
 
     def get_preds_list(self, x_input):
 
         classifier = self.classifier
-        top_topics = self.top_topics 
-        substantive_topics = [topic for topic in top_topics if topic != "None"]
+        top_topic_names = self.top_topic_names 
 
-        # make predictions on input dataset -- could be train or test
-        # it should be in csc matrix format
-        predictions = classifier.predict(x_input)
+        # list of csr matrices, e.g. preds_list = [[0,1,0,1,0],[0,0,0,1,0],...,[1,0,0,0,0]]
+        pred_arrays_list = list(classifier.predict(x_input))
 
-        # convert prrediction from csc matrix format into list of csr matrices, e.g. preds_list = [[0,1,0,1,0],[0,0,0,1,0],...,[1,0,0,0,0]]
-        # one matrix per passage, e.g. [0,0,0,1,1] inidicates this passage corrseponds to the last two topics
-        preds_list = list(predictions)
-        
         # init list of sublists, one sublist per passage, 
-        # e.g. pred_labels_list = [['prayer'],['prayer','judges'],['moses']]
+        # e.g. pred_labels_list = [['prayer'], ['prayer','judges'], [], ['moses']]
         pred_labels_list = []
         
         # loop thru each matrix in list, again one matrix per passage, 
-        for passage_pred_array in preds_list:
+        for passage_pred_array in pred_arrays_list:
         
             if isinstance(passage_pred_array, scipy.sparse.csr.csr_matrix) or isinstance(passage_pred_array, np.int64) or isinstance(passage_pred_array, scipy.sparse.lil.lil_matrix):
                 # array = array.tolil().data.tolist()
@@ -511,28 +505,20 @@ class Predictor:
             # if 1 occurs in ith element in the array, record ith topic
             for topic_index, pred_value in enumerate(passage_pred_list):
                 if pred_value != 0:
-                    passage_labels.append(substantive_topics[topic_index])
+                    passage_labels.append(top_topic_names[topic_index])
 
             pred_labels_list.append(passage_labels)
 
         return pred_labels_list
 
 
-    def get_pred_vs_true(self, passage_labels_df, pred_list):
+    def get_pred_vs_true(self, true_labels_df, pred_list):
         
-        # test = self.test
-        pred_labels_list = pred_list
+        true_vs_pred_labels_df = true_labels_df[['passage_text','true_topics']]
 
-        passage_labels_df['pred_topics'] = pred_labels_list
+        true_vs_pred_labels_df['pred_topics'] = pred_list
 
-        cols=['passage_text','true_topics','pred_topics']
-
-        pred_vs_true = passage_labels_df[cols]
-        
-        # print(pred_vs_true.sample(30).to_string(index=False))
-        # print(pred_vs_true.sample(30))
-
-        return pred_vs_true
+        return true_vs_pred_labels_df
 
 
 
@@ -659,7 +645,7 @@ class Scorer:
         selected_scores_list = selected_topics_df['F1score'].to_list()
 
         if self.should_print:
-            # print(f'{dataset}')
+            # print(f'\n\n{dataset}\n')
             # print(topic_stats_df.round(2))
             print(f'\ntopics = ', selected_topics_list)
             print(f'{dataset}_expt_{expt_num} =', selected_scores_list)

@@ -44,7 +44,7 @@ pd.set_option('display.max_rows', None)
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # width of column to dispaly in dataframe
-pd.options.display.max_colwidth = 50
+pd.options.display.max_colwidth = 35
 
 
 start_time = datetime.now()
@@ -92,16 +92,20 @@ row_lims = {
     9:250000,
 }
 
+row_lim = 18000
+print("row_lim =",row_lim)
+
 # how many topics to consider
-NUM_TOPICS = 6
+NUM_TOPICS = 30
 
 # for expt_num, row_lim in tqdm(row_lims.items()):
 # for expt_num, none_ratio in tqdm(none_ratios.items()):
-if True:
-    expt_num = 0
-    none_ratio = 1.1
-    row_lim = 180000
-    print("row_lim =",row_lim)
+for expt_num, none_ratio in (none_ratios.items()):
+# if True:
+    # expt_num = 0
+    # none_ratio = 1.1
+    
+    start_time = time_and_reset(start_time)
     
     # raw dataframe
     raw_df = pd.read_csv(DATA_PATH).sample(row_lim)
@@ -155,7 +159,7 @@ if True:
         classifier = trainer.train(x_train, y_train)
         
         # init class of predictor based on classifier and list of chosen topics
-        predictor = Predictor(classifier, data.top_topics_list)
+        predictor = Predictor(classifier, data.ranked_topic_names_without_none)
         
         # store predictor in arsenal
         predictors.append(predictor)
@@ -176,8 +180,9 @@ if True:
             test_pred_vs_true.to_pickle(f'/persistent/Sefaria-Project/ML/data/test_pred_vs_true_{none_ratio}.pkl')
 
             # init class to constrcut confusion matrix
-            cm_maker = ConfusionMatrix(data.top_topics_list, 
-                                        should_print = True
+            cm_maker = ConfusionMatrix(
+                                        data.ranked_topic_names_with_none, 
+                                        # should_print = True
                                         )
 
             # get confusion matrices
@@ -185,8 +190,8 @@ if True:
             test_cm = cm_maker.get_cm_values(test_pred_vs_true)
 
             # init class to compute scores
-            scorer = Scorer(data.top_topics_list, data.top_topic_counts_list, row_lim, expt_num, none_ratio, 
-                            # should_print = True
+            scorer = Scorer(data.ranked_topic_names_with_none, data.ranked_topic_counts_with_none, row_lim, expt_num, none_ratio, 
+                            should_print = True
                             )
  
             # get actual scores 
@@ -197,11 +202,11 @@ if True:
             train_score_df.to_pickle(f'/persistent/Sefaria-Project/ML/data/train_score_df{none_ratio}.pkl')
             test_score_df.to_pickle(f'/persistent/Sefaria-Project/ML/data/test_score_df_{none_ratio}.pkl')
 
-        # compute and display time elapsed
-        end_time = datetime.now()
-        total_time = end_time - start_time
-        print("# Time taken:", total_time)
-        print()
+# compute and display time elapsed
+end_time = datetime.now()
+total_time = end_time - start_time
+print("# Total time taken:", total_time)
+print()
 
     # RANK MODELS
 

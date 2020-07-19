@@ -11,6 +11,7 @@ import sklearn.model_selection
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 from string import printable
+from operator import itemgetter 
 from datetime import datetime
 from unidecode import unidecode
 from nltk.stem import SnowballStemmer
@@ -284,7 +285,7 @@ class DataManager:
             # use Ref as index instead of number
             df = df.set_index('Ref',drop=True)
         
-            # keep only these columns
+            # keep only these columns, because we are examining ust english text
             df = df[['En','Topics']]
         
             # make more descriptive name
@@ -429,17 +430,20 @@ class DataSplitter:
 
 
 class Predictor:
-    def __init__(self, classifier, 
+    def __init__(self, classifier, implement_rules,
+    # text_df,
     # train, test, 
     top_topic_names):
     # def __init__(self, classifier, test, x_test, top_topics):
         
         self.classifier = classifier
+        self.implement_rules = implement_rules
         self.top_topic_names = top_topic_names
     
 
-    def get_preds_list(self, x_input):
+    def get_preds_list(self, x_input, text_df):
 
+        # text_df = self.text_df
         classifier = self.classifier
         top_topic_names = self.top_topic_names 
 
@@ -451,7 +455,8 @@ class Predictor:
         pred_labels_list = []
         
         # loop thru each matrix in list, again one matrix per passage, 
-        for passage_pred_array in pred_arrays_list:
+        for passage_index, passage_pred_array in enumerate(pred_arrays_list):
+        # for passage_index, passage_pred_array in enumerate(pred_arrays_list):
         
             if isinstance(passage_pred_array, scipy.sparse.csr.csr_matrix) or isinstance(passage_pred_array, np.int64) or isinstance(passage_pred_array, scipy.sparse.lil.lil_matrix):
                 # array = array.tolil().data.tolist()
@@ -462,10 +467,27 @@ class Predictor:
         
             # if 1 occurs in ith element in the array, record ith topic
             for topic_index, pred_value in enumerate(passage_pred_list):
+                
+                topic_name = top_topic_names[topic_index]
+                
                 if pred_value != 0:
-                    passage_labels.append(top_topic_names[topic_index])
+
+                    passage_labels.append(topic_name)
+       
+                # try to catch based on rules
+                elif self.implement_rules:
+
+                    passage_text = text_df['passage_text'].iloc[passage_index]
+       
+                    if topic_name in passage_text:
+
+                        if topic_name not in passage_labels:
+                            
+                            passage_labels.append(topic_name)
+
 
             pred_labels_list.append(passage_labels)
+
 
         return pred_labels_list
 
@@ -570,16 +592,51 @@ class ConfusionMatrix:
         y_actu = pd.Categorical(y_true, categories=self.top_topics)
         y_pred = pd.Categorical(y_pred, categories=self.top_topics)
 
-        cm_with_nones = pd.crosstab(y_actu, y_pred, rownames=['True'], colnames = ['Prediction'], dropna=False) 
+        cm = pd.crosstab(y_actu, y_pred, rownames=['True'], colnames = ['Prediction'], dropna=False) 
+
+        return cm
+
+
+    def check_worst(self,cm, labels_df):
+        """
+        Given confusion matrix, calculate which topic statistically performs the worst, and produce those examples.
+        """
+
+        cm_norm = cm.div(cm.sum(axis=1), axis=0)
 
         if self.should_print:
         
-            print(cm_with_nones)
-            # print(cm_without_nones)
-        
-        return cm_with_nones
-        # return {'cm_with_nones':cm_with_nones, 'cm_without_nones':cm_without_nones}
+            print(cm_norm.round(2))
 
+        TP_rates = {}
+        for topic in self.top_topics:
+            TP_rate = cm_norm.loc[topic,topic]
+            TP_rates[topic] = TP_rate
+
+        # TP rate for each topic, ordered worst to best, as a list of tuples
+        ranked_TP_rates = sorted(TP_rates.items(), key=itemgetter(1))
+        
+        k = 6
+
+        worst_topic = ranked_TP_rates[k][0]
+        # worst_topic = ranked_TP_rates[0][0]
+
+        # true, but not pred
+        FN_df = labels_df[labels_df.true_topics.astype(str).str.contains(worst_topic) & ~labels_df.pred_topics.astype(str).str.contains(worst_topic)]
+        # usage: print(FN_passages.to_string(index=False))
+        FN_passages = FN_df[['passage_text']]
+
+        FNs_with_keyword = FN_df[FN_df['passage_text'].str.contains(worst_topic)]
+
+
+        # pred, but not true
+        FP_df = labels_df[~labels_df.true_topics.astype(str).str.contains(worst_topic) & labels_df.pred_topics.astype(str).str.contains(worst_topic)]
+        # usage: print(FP_passages.to_string(index=False))
+        FP_passages = FP_df[['passage_text']]
+        
+        # easy_misses = FN_df[FN_df['passage_text'].str.contains(worst_topic)]
+
+        return cm
 
 class Scorer:
 
@@ -593,49 +650,34 @@ class Scorer:
         self.topic_counts = topic_counts
 
 
-    def get_scores(self, cm_with_nones):
+    def get_scores(self, cm):
 
-        abridged_cm = cm_with_nones.drop(columns='None')
-        
-        # cm_without_nones = # cm_without_nones = cm_with_nones.drop(index='None', columns='None')
+        meaningful_topics = list(cm.columns)
 
-        # # keep stats for with and without nones
-        # score_info = {}
+        meaningful_topics.remove("None")
 
-        # # loop thru both types, with or without nones
-        # for type,cm in cm.items():
+        precision_dict, recall_dict, f1score_dict = {}, {}, {}
 
-        #     # init dict to store TP,FP,FN figures
-        #     score_info[type] = {}
+        for topic in meaningful_topics:
 
-        # true pos = anything labeled correctly
-        # e.g. None as None, or moses as moses
-        
-        TP_with_nones = np.diag(cm_with_nones)
+            TP = cm.loc[topic,topic]
+            
+            FN = cm.loc[topic].sum() - TP
 
-        TP_without_nones = np.diag(cm_without_nones)
-        
-        # false pos = anything in a given row (true label), but was marked incorrectly
-        FP = np.sum(cm, axis=0) - TP
-        
-        # false neg = anything in a given col (pred label), but truly was not that topic
-        FN = np.sum(cm, axis=1) - TP
-        
-        score_info[type]['TP'], score_info[type]['FP'], score_info[type]['FN'] = TP, FP, FN
+            recall = TP/(TP + FN)
 
-        # precision = how many predicted were correct
-        precision = score_info['cm_without_nones']['TP']/(score_info['cm_without_nones']['TP']+score_info['cm_without_nones']['FP'])
-        
-        # recall = how many correct were predicted
-        recall = score_info['cm_with_nones']['TP']/(score_info['cm_with_nones']['TP']+score_info['cm_with_nones']['FN'])
-        
-        # f1 score = harmonic mean of precision and recall
-        f1score = 0
+            FP = cm[topic].sum() - TP - cm.loc["None",topic]
+
+            precision = TP/(TP + FP)
+            
+            f1score = 2 * (precision * recall)/(precision + recall)
+            
+            precision_dict[topic], recall_dict[topic], f1score_dict[topic] = precision, recall, f1score
 
         scores = {
-            'precision':precision, 
-            "recall":recall, 
-            'f1score':f1score,
+            "recall":recall_dict, 
+            'f1score':f1score_dict,
+            'precision':precision_dict, 
         } 
 
         return scores
@@ -644,44 +686,47 @@ class Scorer:
     def get_stats_df(self, cm, dataset = "None"):
 
         scores = self.get_scores(cm)
+
         row_lim = self.row_lim
         expt_num = self.expt_num
         none_ratio = self.none_ratio
 
-        recall = scores['recall']
-        f1score = scores['f1score']
-        precision = scores['precision']
+        recall_dict = scores['recall']
+        f1score_dict = scores['f1score']
+        precision_dict = scores['precision']
 
         topic_stats_df = pd.DataFrame(self.topic_counts,columns=['Topic','Occurrences'])
         
-        total_occurrences = topic_stats_df.Occurrences.sum()
+        total_occurrences = sum(occurrences for topic, occurrences in self.topic_counts)
+
+        assert total_occurrences == topic_stats_df.Occurrences.sum()
 
         topic_stats_df['Proportion'] = topic_stats_df.Occurrences/total_occurrences
-        topic_stats_df['Precision'] = precision.tolist()
-        topic_stats_df['Recall'] = recall.tolist()
-        topic_stats_df['F1score'] = f1score.tolist()
 
-        overall_precision = (topic_stats_df.Precision * topic_stats_df.Proportion).sum()
+        topic_stats_df['Precision'] = topic_stats_df['Topic'].map(precision_dict)
+        # topic_stats_df['Precision_using_series'] = pd.Series(precision_dict) # this way the dict keys need to be index of df
+        topic_stats_df['Recall'] = topic_stats_df['Topic'].map(recall_dict)
+        topic_stats_df['F1score'] = topic_stats_df['Topic'].map(f1score_dict)
 
-        overall_recall = (topic_stats_df.Recall * topic_stats_df.Proportion).sum()
+        over_all_stats = {}
 
-        overall_f1score = (topic_stats_df.F1score * topic_stats_df.Proportion).sum()
+        over_all_stats['Recall'] = (topic_stats_df.Recall * topic_stats_df.Proportion).sum()
+        over_all_stats['F1score'] = (topic_stats_df.F1score * topic_stats_df.Proportion).sum()
+        over_all_stats['Precision']= (topic_stats_df.Precision * topic_stats_df.Proportion).sum()
         
-        topic_stats_df.loc['Overall'] = [
-            'Overall',
-            topic_stats_df.Occurrences.sum(),
-            topic_stats_df.Proportion.sum(),
-            overall_precision,
-            overall_recall,
-            overall_f1score]
+        over_all_stats['Topic']= 'Overall'
+        over_all_stats['Proportion'] = topic_stats_df.Proportion.sum() # ibid
+        over_all_stats['Occurrences'] = topic_stats_df.Occurrences.sum() # exlcuding none occurrences
+
+        topic_stats_df = topic_stats_df.append(over_all_stats, ignore_index=True)
         
-        my_topics = ["Overall", 'None', 'abraham', 'passover', 'moses']
+        my_topics = ["Overall", 'passover', 'abraham', 'moses', 'laws-of-judges-and-courts', 'jacob', 'prayer', 'procedures-for-judges-and-conduct-towards-them', 'torah', 'joseph', 'women', 'leadership', 'haggadah', 'financial-ramifications-of-marriage']
         
         selected_topics_df = topic_stats_df.loc[topic_stats_df['Topic'].isin(my_topics)]
         
         selected_topics_list = selected_topics_df['Topic'].to_list()
 
-        selected_scores_list = selected_topics_df['F1score'].to_list()
+        selected_scores_list = selected_topics_df['Recall'].to_list()
 
         if self.should_print:
             # print(f'\n\n{dataset}\n')

@@ -43,8 +43,8 @@ topic_cache = {}
 
 parent_cache = {}
 
-# for passage in tqdm(passage_list[:100]):
-for passage in tqdm(passage_list):
+for passage in tqdm(passage_list[:100]):
+# for passage in tqdm(passage_list):
  
     try:
         ref = Ref(passage['_id'])
@@ -53,11 +53,23 @@ for passage in tqdm(passage_list):
         print(f"Problem reading Ref(passage['_id']) for this passage --> {passage}.")
         continue
 
-    version_titles = [
-        version['versionTitle'] 
-        for version in ref.version_list() 
-        if version['language'] == 'en' and version['versionTitle'][-5:-3] != ' ['
-        ]
+    # init
+    version_titles = []
+
+    version_list = ref.version_list()
+    
+    for version in version_list:
+    
+        version_language = version['language']
+        version_title = version['versionTitle']
+    
+        has_eng_chars = version_language == 'en' 
+        is_foreign_lang = version_title[-5:-3] == ' ['
+
+        if has_eng_chars and not is_foreign_lang:
+
+            version_titles += [version_title]
+            pass
 
     topics = []
     
@@ -81,19 +93,30 @@ for passage in tqdm(passage_list):
             parent_cache[topic.slug] = parents
         expanded_topics |= parents
     
+    # concatenate all versions
+    english_texts_lst = []
+
     for version_title in version_titles:
+            
+        english_text = ref.text('en',version_title).as_string()
 
-        rows += [{
-            # "Ref_only": passage['_id'],
-            "Ref": passage['_id'] + ' -- ' + version_title,
-            # "Version": version_title,
-            "En": ref.text('en',version_title).as_string(),
-            "He": ref.text('he').as_string(),
-            "Topics": " ".join(passage['topics']),
-            "Expanded Topics": " ".join(expanded_topics)
-        }]
+        english_texts_lst.append(english_text)
+    
+    english_texts_str = ' '.join(english_texts_lst)
 
-with open("/persistent/Sefaria-Project/ML/data/multi_version_english.csv", "w") as fout:
+    hebrew_text_str = ref.text('he').as_string()
+
+    rows += [{
+        "Ref": passage['_id'],
+        # "Ref": passage['_id'] + ' -- ' + version_title,
+        # "Version": version_title,
+        "En": english_texts_str,
+        "He": hebrew_text_str,
+        "Topics": " ".join(passage['topics']),
+        "Expanded Topics": " ".join(expanded_topics)
+    }]
+
+with open("/persistent/Sefaria-Project/ML/data/concat_english_texts_small.csv", "w") as fout:
     c = csv.DictWriter(fout, [
         # "Ref only", 
         "Ref", 

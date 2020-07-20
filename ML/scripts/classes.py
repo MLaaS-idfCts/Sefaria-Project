@@ -47,14 +47,20 @@ class DataManager:
     
     def get_top_topic_counts(self, df):
 
-        # make str out of all topic lists in topics column
-        all_topics_list = ' '.join(df['Topics'].tolist()).split()
+        # each item in list is a string of lists for one passage
+        all_passage_topics_lst = df['Topics'].tolist()
+        
+        # huge string of all topic for all psasages
+        all_topics_str = ' '.join(all_passage_topics_lst)
+        
+        # list of all topic instances
+        all_topics_lst = all_topics_str.split()
         
         # init dict
         topic_counts = {}
         
         # loop thru all topic occurrences
-        for topic in all_topics_list:
+        for topic in all_topics_lst:
         
             # increment if seen already
             if topic in topic_counts:
@@ -71,8 +77,10 @@ class DataManager:
                                 reverse=True)
                             }
         
+        # convert ranked dict into ranked list
         topic_counts_list = [(k, v) for k, v in topic_counts_dict.items()] 
 
+        # select only num of topics that you wish, e.g. top 20
         top_topic_counts_list = topic_counts_list[:self.num_topics]
 
         return top_topic_counts_list
@@ -81,8 +89,11 @@ class DataManager:
     def remove_junk_rows(self):
         
         if isinstance(getattr(self, "without_junk_rows", None), pd.DataFrame):
+            
             return self.without_junk_rows
+
         else:
+
             df = self.raw_df
             
             # remove repeats
@@ -124,7 +135,9 @@ class DataManager:
 
         return df
 
+
     def get_topic_named_from_counts(self, ranked_topic_counts):
+
         return  [topic_tuple[0] for topic_tuple in ranked_topic_counts]
 
 
@@ -141,7 +154,7 @@ class DataManager:
             self.ranked_topic_counts_without_none = self.get_top_topic_counts(all_topics_df)
             self.ranked_topic_names_without_none = self.get_topic_named_from_counts(self.ranked_topic_counts_without_none)
 
-            # eliminate topic rows with no top topics
+            # eliminate topics that are not amongst top topics
             reduced_topics_df = self.reduce_topics(all_topics_df)
 
             # store as attribute
@@ -221,10 +234,11 @@ class DataManager:
         # keep only the topics which are popular
         permitted_topics = [topic_tuple[0] for topic_tuple in self.ranked_topic_counts_without_none]
 
-        passage_topics_list = [topic for topic in old_passage_topics_string.split() if topic in permitted_topics]
+        # compile list of this passage's topics, only including those which were top ranked
+        new_passage_topics_list = [topic for topic in old_passage_topics_string.split() if topic in permitted_topics]
         
         # reconnect the topics in the list to form a string separated by spaces
-        new_passage_topics_string = ' '.join(passage_topics_list)
+        new_passage_topics_string = ' '.join(new_passage_topics_list)
         
         return new_passage_topics_string
 
@@ -237,17 +251,20 @@ class DataManager:
 
     def cleanPunc(self,sentence): #function to clean the word of any punctuation or special characters
         cleaned = re.sub(r'[?|!|\'|"|#]',r'',sentence)
-        cleaned = re.sub(r'[.|,|)|(|\|/]',r' ',cleaned)
+        cleaned = re.sub(r'[.|,|)|(|\|/]',r'',cleaned)
         cleaned = cleaned.strip()
         cleaned = cleaned.replace("\n"," ")
         return cleaned
 
 
     def keepAlpha(self,sentence):
+
         # convert chars to acceptable format
         sentence = unidecode(sentence)
+        
         # init
         alpha_sent = ""
+        
         for word in sentence.split():
             alpha_word = re.sub('[^a-z A-Z]+', ' ', word)
             alpha_sent += alpha_word
@@ -286,10 +303,13 @@ class DataManager:
             df = df.set_index('Ref',drop=True)
         
             # keep only these columns, because we are examining ust english text
-            df = df[['En','Topics']]
+            df = df[['En',"He",'Topics']]
         
             # make more descriptive name
-            df = df.rename(columns={'En': 'passage_text'})
+            df = df.rename(columns={
+                'En': 'english_passage_text',
+                'He': 'hebrew_passage_text',
+                })
     
             self.preprocessed_dataframe = df
 

@@ -58,36 +58,18 @@ parameters = [
     ]
 
 # DATA_PATH = '/persistent/Sefaria-Project/ML/data/multi_version_english.csv'
-# DATA_PATH = '/persistent/Sefaria-Project/ML/data/concat_english_texts_small.csv'
-DATA_PATH = '/persistent/Sefaria-Project/ML/data/concat_english_texts.csv'
+# DATA_PATH = '/persistent/Sefaria-Project/ML/data/concat_english_texts_big.csv'
+DATA_PATH = '/persistent/Sefaria-Project/ML/data/concat_english_prefix_hebrew.csv'
+# DATA_PATH = '/persistent/Sefaria-Project/ML/data/concat_english_texts.csv'
 
 classifiers = [
     BinaryRelevance(classifier=LinearSVC()),
-    # GridSearchCV(BinaryRelevance(), parameters, scoring='accuracy'),
     ]
 
-# Ratio of nones compared with num of occurrences of top topic.
-# For example the first is 0.3 which means the max nones we allow 
-# is 30% of the total occurrences of the top topic.
-
-none_ratioes = list(arange(0.2, 2.2, 0.2))
-
-row_lims = {
-    0:250,
-    1:500,
-    2:1000,
-    3:2500,
-    4:5000,
-    5:10000,
-    6:25000,
-    7:50000,
-    8:100000,
-    9:180000,
-}
-
-row_lim = 10000
+# row_lim = 10000
+row_lim = None
 print("row_lim =",row_lim)
-print(f"# expt_nums:none_ratio {[f'{i}:{round(none_ratio,1)}' for i,none_ratio in enumerate(none_ratioes)]}")
+# print(f"# expt_nums:none_ratio {[f'{i}:{round(none_ratio,1)}' for i,none_ratio in enumerate(none_ratioes)]}")
 
 # how many topics to consider
 NUM_TOPICS = 20
@@ -108,28 +90,16 @@ if True:
     # raw dataframe
     
     # english
-    raw_df = pd.read_csv(DATA_PATH).sample(row_lim)
+    raw_df = pd.read_csv(DATA_PATH)
+    # [:row_lim]
+    # raw_df = pd.read_csv(DATA_PATH).sample(row_lim)
     
     # hebrew
     # raw_df = pd.read_csv(DATA_PATH).sample(row_lim)
 
     # preprocessed data
-    data = DataManager(
-        
-        raw_df = raw_df, 
-        num_topics = NUM_TOPICS, 
-
-        # how many nones to keep 
-        none_ratio = none_ratio, # same as top topic
-        # none_ratio = none_ratio, 
-        # none_ratio = 'all', 
-
-        # how to modify passage text
-        should_stem = False, 
-        should_clean = True, 
-        should_remove_stopwords = False, 
-        )
-
+    data = DataManager(raw_df = raw_df, num_topics = NUM_TOPICS, none_ratio = none_ratio, 
+                        should_stem = False, should_clean = True, should_remove_stopwords = False, )
 
     # list of most commonly occurring topics
     reduced_topics_df = data.get_reduced_topics_df()

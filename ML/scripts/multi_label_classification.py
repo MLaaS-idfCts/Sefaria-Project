@@ -59,36 +59,50 @@ parameters = [
     {'classifier': [SVC()],'classifier__kernel': ['rbf', 'linear'],},
     ]
 
-# DATA_PATH = '/persistent/Sefaria-Project/ML/data/multi_version_english.csv'
-# DATA_PATH = '/persistent/Sefaria-Project/ML/data/concat_english_texts_big.csv'
-# DATA_PATH = '/persistent/Sefaria-Project/ML/data/concat_english_prefix_hebrew.csv'
-DATA_PATH = 'data\concat_english_prefix_hebrew.csv'
-# DATA_PATH = '/persistent/Sefaria-Project/ML/data/concat_english_texts.csv'
+DATA_PATHS = []
+
+# DATA_PATH = 'data/concat_english_prefix_hebrew.csv'
+# DATA_PATHS.append(DATA_PATH)
+
+DATA_PATH = 'data/multi_version_english.csv'
+DATA_PATHS.append(DATA_PATH)
 
 classifiers = [
     BinaryRelevance(classifier=LinearSVC()),
     ]
 
-row_lim = 50
+row_lim = 1800
 # row_lim = None
 print("row_lim =",row_lim)
 # print(f"# expt_nums:none_ratio {[f'{i}:{round(none_ratio,1)}' for i,none_ratio in enumerate(none_ratioes)]}")
 
 # how many topics to consider
-NUM_TOPICS = 1
-print("# num_topics =",NUM_TOPICS)
+NUM_TOPICS = 3
+print("# num_topics =", NUM_TOPICS)
 
-implement_rules = [True,False]
+# implement_rules = [True,False]
+implement_rules = False
 
-# use_cached_df = False
-use_cached_df = True
+use_cached_df = False
+# use_cached_df = True
 
 # for expt_num, none_ratio in enumerate(none_ratioes):
 # for expt_num, none_ratio in enumerate(implement_rules):
-if True:
 
+# langs_to_vec = ['eng','heb','both']
+lang_to_vec = 'eng'
 
-    expt_num = 0
+shuffle_options = [True,False]
+
+# for expt_num, DATA_PATH in enumerate(DATA_PATHS):
+# for expt_num, lang_to_vec in enumerate(langs_to_vec):
+for expt_num, should_shuffle in enumerate(shuffle_options):
+
+# if True:
+    # expt_num = 0
+
+    # print(f'# expt #{expt_num} = {DATA_PATH}')
+
     
     none_ratio = 1.1
     
@@ -122,23 +136,24 @@ if True:
 
         tidied_up_df = pd.read_csv(DATA_PATH[:-4] + '_tidied_up_df.csv')
 
-
     data_df = tidied_up_df
 
-    # combine english and hebrew
-    cols_to_vec = [
-        'passage_text_english',
-        'passage_text_hebrew_parsed',
-    ]
 
-    data_df['passage_words'] = data_df[cols_to_vec[0]] + ' ' + data_df[cols_to_vec[1]]
-    # data_df['passage_words'] = ' '.join([data_df[col] for col in cols_to_vec])
+    # combine english and hebrew
+    if lang_to_vec == 'eng':
+        data_df['passage_words'] = data_df['passage_text_english']
+
+    if lang_to_vec == 'heb':
+        data_df['passage_words'] = data_df['passage_text_hebrew_parsed']
+
+    if lang_to_vec == 'both':
+        data_df['passage_words'] = data_df['passage_text_english'] + ' ' + data_df['passage_text_hebrew_parsed'] 
 
     # init a vectorizer that will convert string of words into numerical format
     vectorizer = TfidfVectorizer()
 
     # init class to split data
-    splitter = DataSplitter(data_df)
+    splitter = DataSplitter(data_df, should_shuffle)
 
     # get subdivided datasets
     train, test, x_train, x_test, y_train, y_test = splitter.get_datasets(vectorizer)

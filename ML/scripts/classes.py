@@ -10,6 +10,7 @@ import sklearn.model_selection
 
 from bs4 import BeautifulSoup
 from tqdm import tqdm
+from random import shuffle
 from string import printable
 from operator import itemgetter 
 from datetime import datetime
@@ -123,10 +124,17 @@ class DataManager:
             df['passage_text_english'] = df['passage_text_english'].str.lower()
 
             df['passage_text_english'] = df['passage_text_english'].apply(self.cleanHtml)
-            df['passage_text_hebrew_parsed'] = df['passage_text_hebrew_parsed'].apply(self.cleanHtml)
-            
+            try:
+                df['passage_text_hebrew_parsed'] = df['passage_text_hebrew_parsed'].apply(self.cleanHtml)
+            except:
+                pass
+
             df['passage_text_english'] = df['passage_text_english'].apply(self.cleanPunc)
-            df['passage_text_hebrew_parsed'] = df['passage_text_hebrew_parsed'].apply(self.cleanPunc)
+            try:
+                df['passage_text_hebrew_parsed'] = df['passage_text_hebrew_parsed'].apply(self.cleanPunc)
+                # df['passage_text_hebrew_parsed'] = df['passage_text_hebrew_parsed'].apply(self.cleanHtml)
+            except:
+                pass
             
             df['passage_text_english'] = df['passage_text_english'].apply(self.keepAlpha)
     
@@ -222,7 +230,10 @@ class DataManager:
         df = pd.concat([df, df['true_topics'].str.get_dummies(sep=' ')], axis=1)
 
         # rank topic cols in order of frequenly occurring
-        cols = ['passage_text_english', 'passage_text_hebrew_parsed', 'passage_text_hebrew_unparsed', 'true_topics'] + self.ranked_topic_names_without_none
+        all_cols = list(df.columns)
+        cols_to_keep = all_cols[:all_cols.index('true_topics') + 1]
+
+        cols = cols_to_keep + self.ranked_topic_names_without_none
         df = df[cols]
         
         # make topic string into list
@@ -268,10 +279,15 @@ class DataManager:
 
 
     def cleanHtml(self,sentence):
-        # cleanr = re.compile(r'<.*?>')
-        # cleantext = cleanr.sub('', sentence)
-        soup = BeautifulSoup(sentence,features="lxml")
-        cleantext = soup.get_text()
+
+        try:
+            soup = BeautifulSoup(sentence,features="lxml")
+            cleantext = soup.get_text()
+
+        except:
+            cleanr = re.compile(r'<.*?>')
+            cleantext = cleanr.sub('', sentence)
+
         return cleantext
 
 
@@ -339,19 +355,25 @@ class DataManager:
             # use Ref as index instead of number
             df = df.set_index('Ref',drop=True)
         
-            # keep only these columns, because we are examining ust english text
-            df = df[['En',"He",'He_prefixed','Topics']]
-        
-            df['He_no_prefix'] = df.pop('He_prefixed').apply(self.remove_prefix)
-
-
+            df.drop(columns=['Topics'])
 
             # make more descriptive name
             df = df.rename(columns={
                 'En': 'passage_text_english',
                 'He': 'passage_text_hebrew_unparsed',
-                'He_no_prefix': 'passage_text_hebrew_parsed',
                 })
+
+            try:
+                # remove prefixes from hebrew
+                df['He_no_prefix'] = df.pop('He_prefixed').apply(self.remove_prefix)
+
+                # make more descriptive name
+                df = df.rename(columns={
+                    'He_no_prefix': 'passage_text_hebrew_parsed',
+                    })
+
+            except:
+                pass
     
             self.preprocessed_dataframe = df
 
@@ -437,19 +459,31 @@ class DataManager:
 
 class DataSplitter:
 
-    def __init__(self, data_df):
+    def __init__(self, data_df, should_shuffle):
     
         self.data_df = data_df
+        self.should_shuffle = should_shuffle
 
     def get_datasets(self, vectorizer):
 
         # arrange in order of index for passage
-        self.data_df.sort_values(by='Ref')
+        df = self.data_df.sort_values(by='Ref')
+
+        print('\n# should_shuffle =',self.should_shuffle)
+
+        all_refs_list = [ref_vsn[:ref_vsn.find(' -')] for ref_vsn in list(df.index)]
+        refs_set = set(all_refs_list)
+        refs_list = list(refs_set)
+
+        
+        x = [[i] for i in range(10)]
+        shuffle(x)
+
 
         # randomly split into training and testing sets
         train, test = train_test_split(
-            self.data_df, 
-            shuffle=True,
+            df, 
+            shuffle = self.should_shuffle,
             test_size=0.30, 
             random_state=42, 
         )
@@ -465,12 +499,13 @@ class DataSplitter:
         # Note: We only fit with training data, but NOT with testing data, because testing data should be "UNSEEN"
         x_train = vectorizer.fit_transform(train_text)
         x_test = vectorizer.transform(test_text)
-        #print("Time taken for vectorizer:\n", datetime.now() - start_time)
         start_time = datetime.now()
 
         # topics columns, with 0/1 indicating if the topic of this column relates to that row's passage
-        y_train = train.drop(labels = ['passage_words','true_topics'], axis=1)
-        y_test = test.drop(labels = ['passage_words','true_topics'], axis=1)
+        all_cols = list(self.data_df.columns)
+        cols_to_keep = all_cols[all_cols.index('true_topics') + 1:-1]
+        y_train = train[cols_to_keep]
+        y_test = test[cols_to_keep]
 
         return train, test, x_train, x_test, y_train, y_test
 
@@ -526,7 +561,7 @@ class Predictor:
                 # try to catch based on rules
                 elif self.implement_rules:
 
-                    passage_text = text_df['passage_text'].iloc[passage_index]
+                    passage_text = text_df['passage_words'].iloc[passage_index]
        
                     if topic_name in passage_text:
 
@@ -543,7 +578,7 @@ class Predictor:
 
     def get_pred_vs_true(self, true_labels_df, pred_list):
         
-        true_vs_pred_labels_df = true_labels_df[['passage_text','true_topics']]
+        true_vs_pred_labels_df = true_labels_df[['passage_words','true_topics']]
 
         true_vs_pred_labels_df['pred_topics'] = pred_list
 
@@ -665,7 +700,7 @@ class ConfusionMatrix:
         # TP rate for each topic, ordered worst to best, as a list of tuples
         ranked_TP_rates = sorted(TP_rates.items(), key=itemgetter(1))
         
-        k = 6
+        k = 1
 
         worst_topic = ranked_TP_rates[k][0]
         # worst_topic = ranked_TP_rates[0][0]
@@ -673,17 +708,17 @@ class ConfusionMatrix:
         # true, but not pred
         FN_df = labels_df[labels_df.true_topics.astype(str).str.contains(worst_topic) & ~labels_df.pred_topics.astype(str).str.contains(worst_topic)]
         # usage: print(FN_passages.to_string(index=False))
-        FN_passages = FN_df[['passage_text']]
+        FN_passages = FN_df[['passage_words']]
 
-        FNs_with_keyword = FN_df[FN_df['passage_text'].str.contains(worst_topic)]
+        FNs_with_keyword = FN_df[FN_df['passage_words'].str.contains(worst_topic)]
 
 
         # pred, but not true
         FP_df = labels_df[~labels_df.true_topics.astype(str).str.contains(worst_topic) & labels_df.pred_topics.astype(str).str.contains(worst_topic)]
         # usage: print(FP_passages.to_string(index=False))
-        FP_passages = FP_df[['passage_text']]
+        FP_passages = FP_df[['passage_words']]
         
-        # easy_misses = FN_df[FN_df['passage_text'].str.contains(worst_topic)]
+        # easy_misses = FN_df[FN_df['passage_words'].str.contains(worst_topic)]
 
         return cm
 
@@ -769,7 +804,7 @@ class Scorer:
 
         topic_stats_df = topic_stats_df.append(over_all_stats, ignore_index=True)
         
-        my_topics = ["Overall", 'passover', 'abraham', 'moses', 'laws-of-judges-and-courts', 'jacob', 'prayer', 'procedures-for-judges-and-conduct-towards-them', 'torah', 'joseph', 'women', 'leadership', 'haggadah', 'financial-ramifications-of-marriage']
+        my_topics = ["Overall", 'abraham', 'moses', 'laws-of-judges-and-courts', 'prayer', 'procedures-for-judges-and-conduct-towards-them']
         
         selected_topics_df = topic_stats_df.loc[topic_stats_df['Topic'].isin(my_topics)]
         

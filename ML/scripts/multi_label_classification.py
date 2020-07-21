@@ -27,6 +27,7 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from skmultilearn.problem_transform import LabelPowerset, BinaryRelevance, ClassifierChain
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+
 def time_and_reset(start_time):
     """
     Usage: To print the time elapsed since previous call, type:
@@ -34,6 +35,7 @@ def time_and_reset(start_time):
     """
     print('#',datetime.now() - start_time)
     return datetime.now()
+
     
 # ignore warnings regarding column assignment, e.g. df['col1'] = list1 -- not 100% sure about this
 pd.options.mode.chained_assignment = None  # default='warn'
@@ -59,27 +61,32 @@ parameters = [
 
 # DATA_PATH = '/persistent/Sefaria-Project/ML/data/multi_version_english.csv'
 # DATA_PATH = '/persistent/Sefaria-Project/ML/data/concat_english_texts_big.csv'
-DATA_PATH = '/persistent/Sefaria-Project/ML/data/concat_english_prefix_hebrew.csv'
+# DATA_PATH = '/persistent/Sefaria-Project/ML/data/concat_english_prefix_hebrew.csv'
+DATA_PATH = 'data\concat_english_prefix_hebrew.csv'
 # DATA_PATH = '/persistent/Sefaria-Project/ML/data/concat_english_texts.csv'
 
 classifiers = [
     BinaryRelevance(classifier=LinearSVC()),
     ]
 
-# row_lim = 10000
-row_lim = None
+row_lim = 50
+# row_lim = None
 print("row_lim =",row_lim)
 # print(f"# expt_nums:none_ratio {[f'{i}:{round(none_ratio,1)}' for i,none_ratio in enumerate(none_ratioes)]}")
 
 # how many topics to consider
-NUM_TOPICS = 20
+NUM_TOPICS = 1
 print("# num_topics =",NUM_TOPICS)
 
 implement_rules = [True,False]
 
+# use_cached_df = False
+use_cached_df = True
+
 # for expt_num, none_ratio in enumerate(none_ratioes):
 # for expt_num, none_ratio in enumerate(implement_rules):
 if True:
+
 
     expt_num = 0
     
@@ -87,38 +94,52 @@ if True:
     
     start_time = time_and_reset(start_time)
     
-    # raw dataframe
-    
-    # english
-    raw_df = pd.read_csv(DATA_PATH)
-    # [:row_lim]
-    # raw_df = pd.read_csv(DATA_PATH).sample(row_lim)
-    
-    # hebrew
-    # raw_df = pd.read_csv(DATA_PATH).sample(row_lim)
+    if not use_cached_df:
 
-    # preprocessed data
-    data = DataManager(raw_df = raw_df, num_topics = NUM_TOPICS, none_ratio = none_ratio, 
-                        should_stem = False, should_clean = True, should_remove_stopwords = False, )
+        # shuffle
+        raw_df = pd.read_csv(DATA_PATH).sample(frac=1)
 
-    # list of most commonly occurring topics
-    reduced_topics_df = data.get_reduced_topics_df()
+        # take subportion
+        raw_df = pd.read_csv(DATA_PATH)[:row_lim]
 
-    limited_nones_df = data.limit_nones(reduced_topics_df)
+        # preprocessed data
+        data = DataManager(raw_df = raw_df, num_topics = NUM_TOPICS, none_ratio = none_ratio, 
+                            should_stem = False, should_clean = True, should_remove_stopwords = False, )
 
-    one_hot_encoded_df = data.one_hot_encode(limited_nones_df)
+        # list of most commonly occurring topics
+        reduced_topics_df = data.get_reduced_topics_df()
 
-    tidied_up_df = data.tidy_up(one_hot_encoded_df)
+        limited_nones_df = data.limit_nones(reduced_topics_df)
 
-    tidied_up_df.to_csv(DATA_PATH[:-4] + 'tidied_up_df.csv')
+        one_hot_encoded_df = data.one_hot_encode(limited_nones_df)
+
+        tidied_up_df = data.tidy_up(one_hot_encoded_df)
+
+        tidied_up_df.to_csv(DATA_PATH[:-4] + '_tidied_up_df.csv')
+        
+
+    elif use_cached_df:
+
+        tidied_up_df = pd.read_csv(DATA_PATH[:-4] + '_tidied_up_df.csv')
+
 
     data_df = tidied_up_df
+
+    # combine english and hebrew
+    cols_to_vec = [
+        'passage_text_english',
+        'passage_text_hebrew_parsed',
+    ]
+
+    data_df['passage_words'] = data_df[cols_to_vec[0]] + ' ' + data_df[cols_to_vec[1]]
+    # data_df['passage_words'] = ' '.join([data_df[col] for col in cols_to_vec])
 
     # init a vectorizer that will convert string of words into numerical format
     vectorizer = TfidfVectorizer()
 
     # init class to split data
     splitter = DataSplitter(data_df)
+
     # get subdivided datasets
     train, test, x_train, x_test, y_train, y_test = splitter.get_datasets(vectorizer)
 

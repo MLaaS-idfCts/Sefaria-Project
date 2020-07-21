@@ -120,18 +120,23 @@ class DataManager:
 
         # clean passage text
         if self.should_clean:
-            df['passage_text'] = df['passage_text'].str.lower()
-            df['passage_text'] = df['passage_text'].apply(self.cleanHtml)
-            df['passage_text'] = df['passage_text'].apply(self.cleanPunc)
-            df['passage_text'] = df['passage_text'].apply(self.keepAlpha)
+            df['passage_text_english'] = df['passage_text_english'].str.lower()
+
+            df['passage_text_english'] = df['passage_text_english'].apply(self.cleanHtml)
+            df['passage_text_hebrew_parsed'] = df['passage_text_hebrew_parsed'].apply(self.cleanHtml)
+            
+            df['passage_text_english'] = df['passage_text_english'].apply(self.cleanPunc)
+            df['passage_text_hebrew_parsed'] = df['passage_text_hebrew_parsed'].apply(self.cleanPunc)
+            
+            df['passage_text_english'] = df['passage_text_english'].apply(self.keepAlpha)
     
         # remove stopwords, if you so chose  
         if self.should_remove_stopwords:
-            df['passage_text'] = df['passage_text'].apply(self.stopword_cleaner)
+            df['passage_text_english'] = df['passage_text_english'].apply(self.stopword_cleaner)
     
         # stem words, if you so chose  
         if self.should_stem:
-            df['passage_text'] = df['passage_text'].apply(self.stemmer)
+            df['passage_text_english'] = df['passage_text_english'].apply(self.stemmer)
 
         return df
 
@@ -217,7 +222,7 @@ class DataManager:
         df = pd.concat([df, df['true_topics'].str.get_dummies(sep=' ')], axis=1)
 
         # rank topic cols in order of frequenly occurring
-        cols = ['passage_text', 'true_topics'] + self.ranked_topic_names_without_none
+        cols = ['passage_text_english', 'passage_text_hebrew_parsed', 'passage_text_hebrew_unparsed', 'true_topics'] + self.ranked_topic_names_without_none
         df = df[cols]
         
         # make topic string into list
@@ -243,17 +248,49 @@ class DataManager:
         return new_passage_topics_string
 
 
+    def remove_prefix(self, row):
+
+        with_prefix_str = row
+
+        with_prefix_lst = with_prefix_str.split()
+
+        without_prefix_lst = []
+
+        for word in with_prefix_lst:
+
+            word_no_prefix = word[word.find('|') + 1:]
+
+            without_prefix_lst.append(word_no_prefix)
+
+        without_prefix_str = ' '.join(without_prefix_lst)
+        
+        return without_prefix_str
+
+
     def cleanHtml(self,sentence):
-        cleanr = re.compile('<.*?>')
-        cleantext = re.sub(cleanr, ' ', str(sentence))
+        # cleanr = re.compile(r'<.*?>')
+        # cleantext = cleanr.sub('', sentence)
+        soup = BeautifulSoup(sentence,features="lxml")
+        cleantext = soup.get_text()
         return cleantext
 
 
     def cleanPunc(self,sentence): #function to clean the word of any punctuation or special characters
-        cleaned = re.sub(r'[?|!|\'|"|#]',r'',sentence)
-        cleaned = re.sub(r'[.|,|)|(|\|/]',r'',cleaned)
+        
+        # remove portions in parenthsesis or brackets
+        cleaned = re.sub("([\(\[]).*?([\)\]])", "", sentence)
+        
+        # remove punctuation characters
+        cleaned = re.sub(r'[?|!|\'|"|#|.|,|)|(|\|/|:|-|—]',r' ',cleaned)
+        
+        # 
         cleaned = cleaned.strip()
+        
         cleaned = cleaned.replace("\n"," ")
+        
+        # remove extra spaces
+        cleaned = re.sub(' +', ' ',cleaned)
+        
         return cleaned
 
 
@@ -303,31 +340,22 @@ class DataManager:
             df = df.set_index('Ref',drop=True)
         
             # keep only these columns, because we are examining ust english text
-            df = df[['En',"He",'Topics']]
+            df = df[['En',"He",'He_prefixed','Topics']]
         
+            df['He_no_prefix'] = df.pop('He_prefixed').apply(self.remove_prefix)
+
+
+
             # make more descriptive name
             df = df.rename(columns={
-                'En': 'english_passage_text',
-                'He': 'hebrew_passage_text',
+                'En': 'passage_text_english',
+                'He': 'passage_text_hebrew_unparsed',
+                'He_no_prefix': 'passage_text_hebrew_parsed',
                 })
     
             self.preprocessed_dataframe = df
 
         return df
-
-
-    # def get_topic_counts(self):
-    #     if getattr(self, "topic_counts_list", None):
-    #         return self.topic_counts_list
-    #     else:
-            
-    #         df = self.preprocess_dataframe()
-    #         counts = []
-    #         for topic in self.top_topics:
-    #             counts.append((topic, df[topic].sum()))
-    #         topic_counts = pd.DataFrame(counts, columns=['Topic', 'Occurrences'])
-
-    #     return topic_counts
 
 
     def show_topic_counts(self):
@@ -415,8 +443,9 @@ class DataSplitter:
 
     def get_datasets(self, vectorizer):
 
-        # arrange in ordr of index for passage
+        # arrange in order of index for passage
         self.data_df.sort_values(by='Ref')
+
         # randomly split into training and testing sets
         train, test = train_test_split(
             self.data_df, 
@@ -428,8 +457,8 @@ class DataSplitter:
         start_time = datetime.now()
 
         # select just the words of each passage
-        train_text = train['passage_text']
-        test_text = test['passage_text']
+        train_text = train['passage_words']
+        test_text = test['passage_words']
 
 
         # create document-term matrix, i.e. numerical version of passage text
@@ -440,8 +469,8 @@ class DataSplitter:
         start_time = datetime.now()
 
         # topics columns, with 0/1 indicating if the topic of this column relates to that row's passage
-        y_train = train.drop(labels = ['passage_text','true_topics'], axis=1)
-        y_test = test.drop(labels = ['passage_text','true_topics'], axis=1)
+        y_train = train.drop(labels = ['passage_words','true_topics'], axis=1)
+        y_test = test.drop(labels = ['passage_words','true_topics'], axis=1)
 
         return train, test, x_train, x_test, y_train, y_test
 

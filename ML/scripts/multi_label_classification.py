@@ -61,8 +61,8 @@ parameters = [
 
 DATA_PATHS = []
 
-# DATA_PATH = 'data/concat_english_prefix_hebrew.csv'
-# DATA_PATHS.append(DATA_PATH)
+DATA_PATH = 'data/concat_english_prefix_hebrew.csv'
+DATA_PATHS.append(DATA_PATH)
 
 DATA_PATH = 'data/multi_version_english.csv'
 DATA_PATHS.append(DATA_PATH)
@@ -71,13 +71,12 @@ classifiers = [
     BinaryRelevance(classifier=LinearSVC()),
     ]
 
-row_lim = 1800
+row_lim = 400
 # row_lim = None
 print("row_lim =",row_lim)
-# print(f"# expt_nums:none_ratio {[f'{i}:{round(none_ratio,1)}' for i,none_ratio in enumerate(none_ratioes)]}")
 
 # how many topics to consider
-NUM_TOPICS = 3
+NUM_TOPICS = 2
 print("# num_topics =", NUM_TOPICS)
 
 # implement_rules = [True,False]
@@ -89,19 +88,21 @@ use_cached_df = False
 # for expt_num, none_ratio in enumerate(none_ratioes):
 # for expt_num, none_ratio in enumerate(implement_rules):
 
+# which language(s) do you want to vectorize
 # langs_to_vec = ['eng','heb','both']
 lang_to_vec = 'eng'
 
-shuffle_options = [True,False]
+should_separate = True
+# separate_options = [True,False]
 
-# for expt_num, DATA_PATH in enumerate(DATA_PATHS):
+for expt_num, DATA_PATH in enumerate(DATA_PATHS):
 # for expt_num, lang_to_vec in enumerate(langs_to_vec):
-for expt_num, should_shuffle in enumerate(shuffle_options):
+# for expt_num, should_separate in enumerate(separate_options):
 
 # if True:
     # expt_num = 0
 
-    # print(f'# expt #{expt_num} = {DATA_PATH}')
+    print(f'# expt #{expt_num} = {DATA_PATH}')
 
     
     none_ratio = 1.1
@@ -115,6 +116,9 @@ for expt_num, should_shuffle in enumerate(shuffle_options):
 
         # take subportion
         raw_df = pd.read_csv(DATA_PATH)[:row_lim]
+
+        print("# actual num rows taken =",raw_df.shape[0])
+
 
         # preprocessed data
         data = DataManager(raw_df = raw_df, num_topics = NUM_TOPICS, none_ratio = none_ratio, 
@@ -153,7 +157,7 @@ for expt_num, should_shuffle in enumerate(shuffle_options):
     vectorizer = TfidfVectorizer()
 
     # init class to split data
-    splitter = DataSplitter(data_df, should_shuffle)
+    splitter = DataSplitter(data_df, should_separate)
 
     # get subdivided datasets
     train, test, x_train, x_test, y_train, y_test = splitter.get_datasets(vectorizer)

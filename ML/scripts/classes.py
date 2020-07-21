@@ -3,6 +3,7 @@ import nltk
 import scipy
 import numpy as np
 import pandas as pd
+import random
 import sklearn
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -459,46 +460,60 @@ class DataManager:
 
 class DataSplitter:
 
-    def __init__(self, data_df, should_shuffle):
+    def __init__(self, data_df, should_separate):
     
         self.data_df = data_df
-        self.should_shuffle = should_shuffle
+        self.should_separate = should_separate
 
     def get_datasets(self, vectorizer):
 
         # arrange in order of index for passage
         df = self.data_df.sort_values(by='Ref')
 
-        print('\n# should_shuffle =',self.should_shuffle)
+        print('\n# should_separate =',self.should_separate)
 
-        all_refs_list = [ref_vsn[:ref_vsn.find(' -')] for ref_vsn in list(df.index)]
-        refs_set = set(all_refs_list)
-        refs_list = list(refs_set)
-        shuffle(refs_list)
+        if self.should_separate:
 
-        test_portion = 0.3
+            all_refs_list = [ref_vsn[:ref_vsn.find(' -')] for ref_vsn in list(df.index)]
+            refs_set = set(all_refs_list)
+            refs_list = list(refs_set)
 
-        num_refs = len(refs_list)
-        
-        first_test_index = int(test_portion * num_refs)
+            random.seed(4)
+            random.shuffle(refs_list)
 
-        train_refs = refs_list[:first_test_index]
-        test_refs = refs_list[first_test_index:]
+            test_portion = 0.3
+            
+            num_refs = len(refs_list)
+            
+            first_test_index = int(test_portion * num_refs)
 
-        # randomly split into training and testing sets
-        train, test = train_test_split(
-            df, 
-            shuffle = self.should_shuffle,
-            test_size=0.30, 
-            random_state=42, 
-        )
+            train_refs = refs_list[:-1*first_test_index]
+            test_refs = refs_list[-1*first_test_index:]
 
-        start_time = datetime.now()
+            df['Ref_with_version'] = df.index
+            df['Ref_only'] = df.Ref_with_version.str.split(' -').str[0]
+
+            train = df[df['Ref_only'].isin(train_refs)]
+            test = df[df['Ref_only'].isin(test_refs)]
+
+            actual_test_portion = test.shape[0]/(test.shape[0] + train.shape[0])
+
+            print(f'# actual test portion = {actual_test_portion}')
+
+
+        if not self.should_separate:
+            
+            train, test = train_test_split(
+                        df, 
+                        shuffle = True,
+                        # shuffle = False,
+                        test_size=0.30, 
+                        random_state=42, 
+                    )
 
         # select just the words of each passage
         train_text = train['passage_words']
         test_text = test['passage_words']
-
 
         # create document-term matrix, i.e. numerical version of passage text
         # Note: We only fit with training data, but NOT with testing data, because testing data should be "UNSEEN"
@@ -840,6 +855,7 @@ class Trainer:
             classifier.fit(x_train, y_train)
 
         except:        
+            pass
             y_train = y_train.values.toarray()
             
             classifier.fit(x_train, y_train)

@@ -474,11 +474,16 @@ class DataSplitter:
         all_refs_list = [ref_vsn[:ref_vsn.find(' -')] for ref_vsn in list(df.index)]
         refs_set = set(all_refs_list)
         refs_list = list(refs_set)
+        shuffle(refs_list)
 
+        test_portion = 0.3
+
+        num_refs = len(refs_list)
         
-        x = [[i] for i in range(10)]
-        shuffle(x)
+        first_test_index = int(test_portion * num_refs)
 
+        train_refs = refs_list[:first_test_index]
+        test_refs = refs_list[first_test_index:]
 
         # randomly split into training and testing sets
         train, test = train_test_split(

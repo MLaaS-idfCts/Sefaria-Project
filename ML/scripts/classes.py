@@ -460,9 +460,10 @@ class DataManager:
 
 class DataSplitter:
 
-    def __init__(self, data_df, should_separate):
+    def __init__(self, data_df, should_separate, DATA_PATH):
     
         self.data_df = data_df
+        self.DATA_PATH = DATA_PATH
         self.should_separate = should_separate
 
     def get_datasets(self, vectorizer):
@@ -473,8 +474,15 @@ class DataSplitter:
         print('\n# should_separate =',self.should_separate)
 
         if self.should_separate:
+            
+            if 'concat' in self.DATA_PATH:
 
-            all_refs_list = [ref_vsn[:ref_vsn.find(' -')] for ref_vsn in list(df.index)]
+                all_refs_list = list(df.index)
+
+            if 'multi_version' in self.DATA_PATH:
+
+                all_refs_list = [ref_vsn[:ref_vsn.find(' -')] for ref_vsn in list(df.index)]
+
             refs_set = set(all_refs_list)
             refs_list = list(refs_set)
 
@@ -485,18 +493,32 @@ class DataSplitter:
             
             num_refs = len(refs_list)
             
-            first_test_index = int(test_portion * num_refs)
+            num_test_rows = int(test_portion * num_refs)
 
-            train_refs = refs_list[:-1*first_test_index]
-            test_refs = refs_list[-1*first_test_index:]
+            num_train_rows = num_refs - num_test_rows
 
-            df['Ref_with_version'] = df.index
-            df['Ref_only'] = df.Ref_with_version.str.split(' -').str[0]
+            actual_test_portion = num_test_rows/num_refs
+
+            train_refs = refs_list[:num_train_rows + 1]
+            test_refs = refs_list[num_train_rows + 1:]
+
+            if 'multi_version' in self.DATA_PATH:
+
+                df['Ref_with_version'] = df.index
+                # df['Ref_only'] = df.Ref_with_version.str[:df.Ref_with_version.str.find(' -- ')]
+                with_version = df.Ref_with_version.str
+                parsed_list = with_version.split(' -- ')
+                df['Ref_only'] = parsed_list.str[0]
+                # print()
+
+            if 'concat' in self.DATA_PATH:
+
+                df['Ref_only'] = df.index
+
 
             train = df[df['Ref_only'].isin(train_refs)]
             test = df[df['Ref_only'].isin(test_refs)]
 
-            actual_test_portion = test.shape[0]/(test.shape[0] + train.shape[0])
 
             print(f'# actual test portion = {actual_test_portion}')
 
@@ -824,7 +846,8 @@ class Scorer:
 
         topic_stats_df = topic_stats_df.append(over_all_stats, ignore_index=True)
         
-        my_topics = ["Overall", 'abraham', 'moses', 'laws-of-judges-and-courts', 'prayer', 'procedures-for-judges-and-conduct-towards-them']
+        my_topics = ["Overall",'laws-of-judges-and-courts', 'prayer', 'procedures-for-judges-and-conduct-towards-them']
+        # my_topics = ["Overall", 'abraham', 'moses', 'laws-of-judges-and-courts', 'prayer', 'procedures-for-judges-and-conduct-towards-them']
         
         selected_topics_df = topic_stats_df.loc[topic_stats_df['Topic'].isin(my_topics)]
         

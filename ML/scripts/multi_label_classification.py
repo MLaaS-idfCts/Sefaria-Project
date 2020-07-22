@@ -67,16 +67,18 @@ DATA_PATHS.append(DATA_PATH)
 DATA_PATH = 'data/multi_version_english.csv'
 DATA_PATHS.append(DATA_PATH)
 
+
+
 classifiers = [
     BinaryRelevance(classifier=LinearSVC()),
     ]
 
-row_lim = 400
+row_lim = 1000
 # row_lim = None
 print("row_lim =",row_lim)
 
 # how many topics to consider
-NUM_TOPICS = 2
+NUM_TOPICS = 1
 print("# num_topics =", NUM_TOPICS)
 
 # implement_rules = [True,False]
@@ -102,7 +104,7 @@ for expt_num, DATA_PATH in enumerate(DATA_PATHS):
 # if True:
     # expt_num = 0
 
-    print(f'# expt #{expt_num} = {DATA_PATH}')
+    print(f'\n\n# expt #{expt_num} = {DATA_PATH}')
 
     
     none_ratio = 1.1
@@ -112,7 +114,7 @@ for expt_num, DATA_PATH in enumerate(DATA_PATHS):
     if not use_cached_df:
 
         # shuffle
-        raw_df = pd.read_csv(DATA_PATH).sample(frac=1)
+        # raw_df = pd.read_csv(DATA_PATH).sample(frac=1)
 
         # take subportion
         raw_df = pd.read_csv(DATA_PATH)[:row_lim]
@@ -140,8 +142,8 @@ for expt_num, DATA_PATH in enumerate(DATA_PATHS):
 
         tidied_up_df = pd.read_csv(DATA_PATH[:-4] + '_tidied_up_df.csv')
 
-    data_df = tidied_up_df
 
+    data_df = tidied_up_df
 
     # combine english and hebrew
     if lang_to_vec == 'eng':
@@ -157,7 +159,7 @@ for expt_num, DATA_PATH in enumerate(DATA_PATHS):
     vectorizer = TfidfVectorizer()
 
     # init class to split data
-    splitter = DataSplitter(data_df, should_separate)
+    splitter = DataSplitter(data_df, should_separate, DATA_PATH = DATA_PATH)
 
     # get subdivided datasets
     train, test, x_train, x_test, y_train, y_test = splitter.get_datasets(vectorizer)

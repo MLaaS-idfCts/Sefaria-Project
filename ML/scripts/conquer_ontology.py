@@ -95,7 +95,7 @@ threshold = 50
 #   threshold
 # output:
 
-test_output = ["b", "z", "k", "m", "p"]
+test_output = {"b", "z", "k", "m", "p"}
 
 parent = 'a'
 
@@ -105,19 +105,23 @@ def get_last_leaves(parent,children,threshold):
 	
 	# base cases
 	if children == None:
-		return parent
+		return {parent}
 
 	for key in children.keys():
-		if counts[key] < 50:
-			return parent
+		if counts[key] < threshold:
+			return {parent}
 
 	# recursion case
 	last_leaves = []
 
 	for child, grandchildren in children.items():
-		for leaf in get_last_leaves(child, grandchildren,threshold):
+		for leaf in get_last_leaves(child, grandchildren, threshold):
 			last_leaves.append(leaf)
-
-	return last_leaves
 	
-print(get_last_leaves(parent, children, threshold))
+	leaf_set = set(last_leaves)
+
+	return leaf_set
+	
+my_output = get_last_leaves(parent, children, threshold)
+
+print("Does the test output match my output?",my_output==test_output)

@@ -97,22 +97,27 @@ threshold = 50
 
 test_output = ["b", "z", "k", "m", "p"]
 
-parent_init = 'a'
+parent = 'a'
 
-children_init = ontology[parent]
+children = ontology[parent]
 
-def get_last_leaves(parent,children):
-	# base case
+def get_last_leaves(parent,children,threshold):
+	
+	# base cases
+	if children == None:
+		return parent
+
 	for key in children.keys():
 		if counts[key] < 50:
 			return parent
 
+	# recursion case
 	last_leaves = []
 
-		for key in children.keys():
-			last_leaves.append(get_last_leaves(children[key]))
+	for child, grandchildren in children.items():
+		for leaf in get_last_leaves(child, grandchildren,threshold):
+			last_leaves.append(leaf)
 
 	return last_leaves
 	
-print(get_last_leaves(parent_init,children_init))
-print()
+print(get_last_leaves(parent, children, threshold))

@@ -13,6 +13,7 @@ don't run on all ontology
 "mocking" -- focus on concpt
 
 """
+
 ontology = {
   "a": {
     "b": {
@@ -55,6 +56,7 @@ ontology = {
     }
   }
 }
+
 counts = {
   "z": 50,
   "y": 50,
@@ -83,25 +85,34 @@ counts = {
   "b": 212,
   "a": 2100
 }
+
 root = ontology['a']
+
 threshold = 50
 # input:
 #   counts,
 #   root,
 #   threshold
 # output:
+
 test_output = ["b", "z", "k", "m", "p"]
 
-print(root)
+parent_init = 'a'
 
-def get_children():
+children_init = ontology[parent]
 
-    return None
+def get_last_leaves(parent,children):
+	# base case
+	for key in children.keys():
+		if counts[key] < 50:
+			return parent
 
-def get_end_nodes()
+	last_leaves = []
 
-    # if 
+		for key in children.keys():
+			last_leaves.append(get_last_leaves(children[key]))
 
-    return end_nodes
-
+	return last_leaves
+	
+print(get_last_leaves(parent_init,children_init))
 print()

@@ -124,11 +124,15 @@ threshold = 50
 
 parent = 'a'
 
-#%%
 counts = None
 
-with open('data\ontology_counts_dict.pkl', 'rb') as handle:
+
+with open('data/ontology_counts_dict.pkl', 'rb') as handle:
+
     counts = pickle.load(handle)
+
+counts
+
 
 
 import matplotlib.pyplot as plt

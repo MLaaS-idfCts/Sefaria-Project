@@ -131,10 +131,15 @@ for expt_num, DATA_PATH in enumerate(DATA_PATHS):
         # list of most commonly occurring topics
         ontology_counts_dict = data.get_ontology_counts_dict()
 
-        mpu.io.write(f'data\ontology_counts_dict_row_lim_{row_lim}.pkl', ontology_counts_dict)
+        # pickle.dump(ontology_counts_dict, open(f'data/ontology_counts_dict_row_lim_{row_lim}_file.pkl', "wb"))  # save it into a file named save.p
 
-        # with open('data\ontology_counts_dict.pkl', 'wb') as handle:
-        #     pickle.dump(ontology_counts_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        # mpu.io.write(f'data/ontology_counts_dict_row_lim_{row_lim}_file.pkl', ontology_counts_dict)
+
+        with open('data/ontology_counts_dict.pkl', 'wb') as handle:
+            pickle.dump(ontology_counts_dict, handle, 
+                protocol=3
+                # protocol=pickle.HIGHEST_PROTOCOL
+            )
 
 
         # list of most commonly occurring topics

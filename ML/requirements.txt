@@ -10,6 +10,7 @@ lxml
 matplotlib
 mglearn
 mplcursors
+mpu
 nano
 nltk
 numpy

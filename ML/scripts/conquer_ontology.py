@@ -137,8 +137,8 @@ for file_name in os.listdir(directory):
 
 	plt.xlabel('X = Number of children')
 	plt.ylabel('Y = Number of nodes with X children')
-	plt.xlim(1, 200)
-	plt.ylim(0, 2000)
+	plt.xlim(1, 60)
+	plt.ylim(0, 600)
 
 	plt.hist( counts.values(), bins=max(counts.values()), width = 15.0, color='g')
 	plt.savefig(f'images/{file_name[:-7]}.png')

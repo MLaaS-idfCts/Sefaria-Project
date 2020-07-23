@@ -120,14 +120,17 @@ def get_last_leaves(parent,children,threshold):
 
 test_output = {"b", "z", "k", "m", "p"}
 
-root = ontology['a']
+if __name__ == '__main__':
 
-threshold = 50
 
-parent = 'a'
+    root = ontology['a']
 
-children = ontology[parent]
+    threshold = 50
 
-my_output = get_last_leaves(parent, children, threshold)
+    parent = 'a'
 
-print("Does the test output match my output?", my_output == test_output)
+    children = ontology[parent]
+
+    my_output = get_last_leaves(parent, children, threshold)
+
+    print("Does the test output match my output?", my_output == test_output)

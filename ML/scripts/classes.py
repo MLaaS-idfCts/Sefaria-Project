@@ -35,15 +35,18 @@ np.seterr(divide='ignore', invalid='ignore')
 
 class DataManager:
 
-    def __init__(self, raw_df, num_topics, none_ratio, should_limit_nones = False,should_stem = False, should_clean = True, keep_all_nones = False, should_remove_stopwords = False):
+    def __init__(self, raw_df, num_topics, none_ratio, should_limit_nones = False,
+                should_stem = False, should_clean = True, keep_all_nones = False, 
+                should_remove_stopwords = False, use_expanded_topics = False):
         
         self.raw_df = raw_df
-        self.should_limit_nones = should_limit_nones
-        self.none_ratio = none_ratio
         self.num_topics = num_topics
+        self.none_ratio = none_ratio
         self.should_stem = should_stem
         self.should_clean = should_clean
         self.keep_all_nones = keep_all_nones
+        self.should_limit_nones = should_limit_nones
+        self.use_expanded_topics = use_expanded_topics
         self.should_remove_stopwords = should_remove_stopwords
 
     
@@ -90,8 +93,16 @@ class DataManager:
     
     def get_top_topic_counts(self, df):
 
+        if self.use_expanded_topics:
+
+            self.topic_column = 'Expanded Topics'
+
+
+        else:
+            self.topic_column = 'Topics'
+
         # each item in list is a string of lists for one passage
-        all_passage_topics_lst = df['Topics'].tolist()
+        all_passage_topics_lst = df[self.topic_column].tolist()
         
         # huge string of all topic for all psasages
         all_topics_str = ' '.join(all_passage_topics_lst)
@@ -154,7 +165,10 @@ class DataManager:
     def reduce_topics(self, df):
 
         # keep only topics that i want to study
-        df['true_topics'] = df.pop('Topics').apply(self.topic_selector)
+        if self.use_expanded_topics:
+            df['true_topics'] = df.pop('Expanded Topics').apply(self.topic_selector)
+        else:
+            df['true_topics'] = df.pop('Topics').apply(self.topic_selector)
 
         return df
 
@@ -252,8 +266,10 @@ class DataManager:
                 # calc how many nones to drop
                 nones_to_drop = num_nones - nones_to_keep
 
-            # remove final excess 'none' rows
-            df = df.iloc[:-1 * nones_to_drop]
+            if nones_to_drop > 0:
+
+                # remove final excess 'none' rows
+                df = df.iloc[:-1 * nones_to_drop]
 
         # update list of topic counts
         self.ranked_topic_counts_with_none = self.ranked_topic_counts_without_none + [('None',nones_to_keep)]
@@ -275,7 +291,16 @@ class DataManager:
         all_cols = list(df.columns)
         cols_to_keep = all_cols[:all_cols.index('true_topics') + 1]
 
-        cols = cols_to_keep + self.ranked_topic_names_without_none
+        if self.use_expanded_topics:
+
+            cols = cols_to_keep + list({'group-of-living-creatures', 'occurent', 'group-of-inanimate-objects', 'object', 'realizable-entity', 'generically-dependent-continuant', 'continuant-fiat-boundary', 'places', 'fiat-object-part', 'quality'})
+
+            cols = [col for col in cols if col in df.columns] 
+
+        else:
+
+            cols = cols_to_keep + self.ranked_topic_names_without_none
+
         df = df[cols]
         
         # make topic string into list
@@ -289,9 +314,16 @@ class DataManager:
         # this cell contains more topics than we might want
         old_passage_topics_string = row
 
-        # keep only the topics which are popular
-        permitted_topics = [topic_tuple[0] for topic_tuple in self.ranked_topic_counts_without_none]
+        if self.use_expanded_topics:
+        
+            # keep only the topics which are popular
+            permitted_topics = list({'group-of-living-creatures', 'occurent', 'group-of-inanimate-objects', 'object', 'realizable-entity', 'generically-dependent-continuant', 'continuant-fiat-boundary', 'places', 'fiat-object-part', 'quality'})
 
+        else:
+
+            # keep only the topics which are popular
+            permitted_topics = [topic_tuple[0] for topic_tuple in self.ranked_topic_counts_without_none]
+        
         # compile list of this passage's topics, only including those which were top ranked
         new_passage_topics_list = [topic for topic in old_passage_topics_string.split() if topic in permitted_topics]
         
@@ -677,11 +709,8 @@ class ConfusionMatrix:
 
     def get_cm_values(self, pred_vs_true):
 
-        # top_topics = 
-
         true_label_set_list = pred_vs_true.true_topics.tolist()
         pred_label_set_list = pred_vs_true.pred_topics.tolist()
-
 
         # check that we predicted label sets for the same number of passages as truly exist
         assert len(true_label_set_list) == len(pred_label_set_list)
@@ -807,7 +836,8 @@ class ConfusionMatrix:
 
 class Scorer:
 
-    def __init__(self, top_topics, topic_counts, row_lim, expt_num, none_ratio, should_print = False):
+    def __init__(self, top_topics, topic_counts, row_lim, expt_num, 
+                none_ratio, use_expanded_topics, should_print = False):
     
         self.row_lim = row_lim
         self.expt_num = expt_num
@@ -815,6 +845,8 @@ class Scorer:
         self.none_ratio = none_ratio
         self.should_print = should_print
         self.topic_counts = topic_counts
+        self.use_expanded_topics = use_expanded_topics
+
 
 
     def get_scores(self, cm):
@@ -887,11 +919,19 @@ class Scorer:
 
         topic_stats_df = topic_stats_df.append(over_all_stats, ignore_index=True)
         
-        my_topics = ["Overall",'laws-of-judges-and-courts', 'prayer', 'procedures-for-judges-and-conduct-towards-them']
-        # my_topics = ["Overall", 'abraham', 'moses', 'laws-of-judges-and-courts', 'prayer', 'procedures-for-judges-and-conduct-towards-them']
+        if self.use_expanded_topics:
+            my_topics = list({'group-of-living-creatures', 'occurent', 'group-of-inanimate-objects', 'object', 'realizable-entity', 'generically-dependent-continuant', 'continuant-fiat-boundary', 'places', 'fiat-object-part', 'quality'})
+            # selected_topics_df = topic_stats_df.loc[topic_stats_df['Expanded Topics'].isin(my_topics)]
+            # selected_topics_list = selected_topics_df['Expanded Topics'].to_list()
+
+        else:
+
+            my_topics = ["Overall",'laws-of-judges-and-courts', 'prayer', 'procedures-for-judges-and-conduct-towards-them']
+            # my_topics = ["Overall", 'abraham', 'moses', 'laws-of-judges-and-courts', 'prayer', 'procedures-for-judges-and-conduct-towards-them']
+        
+        
         
         selected_topics_df = topic_stats_df.loc[topic_stats_df['Topic'].isin(my_topics)]
-        
         selected_topics_list = selected_topics_df['Topic'].to_list()
 
         selected_scores_list = selected_topics_df['Recall'].to_list()

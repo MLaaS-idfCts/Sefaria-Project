@@ -75,11 +75,12 @@ classifiers = [
     ]
 
 # row_lim = 40000
-row_lims = [10000,40000,80000,100000,170000]
+row_lims = [1000, 10000,40000,80000,100000,170000, None]
 # row_lim = N
 
 # how many topics to consider
-NUM_TOPICS = 2
+# NUM_TOPICS = 4000
+NUM_TOPICS = None
 print("# num_topics =", NUM_TOPICS)
 
 # implement_rules = [True,False]
@@ -95,6 +96,11 @@ use_cached_df = False
 # langs_to_vec = ['eng','heb','both']
 lang_to_vec = 'eng'
 
+get_ontology_counts = False
+
+use_expanded_topics = True
+# use_expanded_topics = False
+
 should_separate = True
 # separate_options = [True,False]
 
@@ -103,7 +109,7 @@ should_separate = True
 # for expt_num, should_separate in enumerate(separate_options):
 for expt_num, row_lim in enumerate(row_lims):
 
-    # print("row_lim =",row_lim)
+    print("# row_lim =",row_lim)
     print(f'\n\n# expt #{expt_num} = {row_lim}')
 # if True:
     # expt_num = 0
@@ -129,23 +135,18 @@ for expt_num, row_lim in enumerate(row_lims):
 
         # preprocessed data
         data = DataManager(raw_df = raw_df, num_topics = NUM_TOPICS, none_ratio = none_ratio, 
-                            should_stem = False, should_clean = True, should_remove_stopwords = False, )
+                            should_stem = False, should_clean = True, should_remove_stopwords = False, 
+                            use_expanded_topics = use_expanded_topics
+                            )
 
-        # list of most commonly occurring topics
-        ontology_counts_dict = data.get_ontology_counts_dict()
+        if get_ontology_counts:
 
-        # pickle.dump(ontology_counts_dict, open(f'data/ontology_counts_dict_row_lim_{row_lim}_file.pkl', "wb"))  # save it into a file named save.p
+            # list of most commonly occurring topics
+            ontology_counts_dict = data.get_ontology_counts_dict()
 
-        # mpu.io.write(f'data/ontology_counts_dict_row_lim_{row_lim}_file.pkl', ontology_counts_dict)
+            with open(f'data/ontology_counts_dict_row_lim_{row_lim}.pickle', 'wb') as handle:
+                pickle.dump(ontology_counts_dict, handle, protocol=3)
 
-        with open(f'data/ontology_counts_dict_row_lim_{row_lim}.pickle', 'wb') as handle:
-            pickle.dump(ontology_counts_dict, handle, 
-                protocol=3
-                # protocol=pickle.HIGHEST_PROTOCOL
-            )
-
-        continue
-        
         # list of most commonly occurring topics
         reduced_topics_df = data.get_reduced_topics_df()
 
@@ -194,10 +195,22 @@ for expt_num, row_lim in enumerate(row_lims):
         classifier = trainer.train(x_train, y_train)
         
         # init class of predictor based on classifier and list of chosen topics
-        predictor = Predictor(classifier,  implement_rules = implement_rules, top_topic_names = data.ranked_topic_names_without_none)
+        predictor = Predictor(classifier, implement_rules = implement_rules, top_topic_names = data.ranked_topic_names_without_none)
         
         # store predictor in arsenal
         predictors.append(predictor)
+
+        # init class to constrcut confusion matrix
+        cm_maker = ConfusionMatrix(data.ranked_topic_names_with_none, 
+                                    # should_print = True
+                                    )
+
+        # init class to compute scores
+        scorer = Scorer(data.ranked_topic_names_without_none, data.ranked_topic_counts_without_none, row_lim, expt_num, none_ratio, 
+        # scorer = Scorer(data.ranked_topic_names_with_none, data.ranked_topic_counts_with_none, row_lim, expt_num, none_ratio, 
+                        should_print = True,
+                        use_expanded_topics = use_expanded_topics
+                        )
 
         # loop through all predictors
         for predictor in predictors:
@@ -214,25 +227,14 @@ for expt_num, row_lim in enumerate(row_lims):
             train_pred_vs_true.to_pickle(f'/persistent/Sefaria-Project/ML/data/train_pred_vs_true_{none_ratio}.pkl')
             test_pred_vs_true.to_pickle(f'/persistent/Sefaria-Project/ML/data/test_pred_vs_true_{none_ratio}.pkl')
 
-            # init class to constrcut confusion matrix
-            cm_maker = ConfusionMatrix(data.ranked_topic_names_with_none, 
-                                        # should_print = True
-                                        )
-
             # get confusion matrices
-            test_cm = cm_maker.get_cm_values(test_pred_vs_true)
             train_cm = cm_maker.get_cm_values(train_pred_vs_true)
+            test_cm = cm_maker.get_cm_values(test_pred_vs_true)
 
             # check the worst performing examples to see what's going wrong
-            worst_test = cm_maker.check_worst(test_cm, test_pred_vs_true)
             worst_train = cm_maker.check_worst(train_cm, train_pred_vs_true)
+            worst_test = cm_maker.check_worst(test_cm, test_pred_vs_true)
 
-            # init class to compute scores
-            scorer = Scorer(data.ranked_topic_names_without_none, data.ranked_topic_counts_without_none, row_lim, expt_num, none_ratio, 
-            # scorer = Scorer(data.ranked_topic_names_with_none, data.ranked_topic_counts_with_none, row_lim, expt_num, none_ratio, 
-                            should_print = True
-                            )
- 
             # get actual scores 
             train_score_df = scorer.get_stats_df(train_cm, dataset = 'train')
             test_score_df = scorer.get_stats_df(test_cm, dataset = 'test')

@@ -47,6 +47,47 @@ class DataManager:
         self.should_remove_stopwords = should_remove_stopwords
 
     
+    def get_ontology_counts_dict(self):
+
+        # is it ok to keep all data points,
+        # and to not remove any junk,
+        # because this is a statistical evaluation 
+        # of the general ontology structure
+        df = self.preprocess_dataframe()
+
+        # each item in list is a string of lists for one passage
+        all_passage_node_lst = df['Expanded Topics'].tolist()
+        
+        # huge string of all topic for all psasages
+        all_nodes_str = ' '.join(all_passage_node_lst)
+        
+        # list of all topic instances
+        all_nodes_lst = all_nodes_str.split()
+        
+        # init dict
+        ontology_counts_dict = {}
+        
+        # loop thru all topic occurrences
+        for node in all_nodes_lst:
+        
+            # increment if seen already
+            if node in ontology_counts_dict:
+                ontology_counts_dict[node] += 1
+        
+            # init if not seen yet
+            else:
+                ontology_counts_dict[node] = 1
+        
+        # rank the entries by most frequently occurring first
+        ontology_counts_dict = {
+                                k: v for k, v in sorted(ontology_counts_dict.items(), 
+                                key=lambda item: item[1],
+                                reverse=True)
+                            }
+
+        return ontology_counts_dict
+
+    
     def get_top_topic_counts(self, df):
 
         # each item in list is a string of lists for one passage

@@ -1,3 +1,4 @@
+import mpu
 import sys
 import time
 import scipy
@@ -64,8 +65,8 @@ DATA_PATHS = []
 DATA_PATH = 'data/concat_english_prefix_hebrew.csv'
 DATA_PATHS.append(DATA_PATH)
 
-DATA_PATH = 'data/multi_version_english.csv'
-DATA_PATHS.append(DATA_PATH)
+# DATA_PATH = 'data/multi_version_english.csv'
+# DATA_PATHS.append(DATA_PATH)
 
 
 
@@ -73,12 +74,12 @@ classifiers = [
     BinaryRelevance(classifier=LinearSVC()),
     ]
 
-row_lim = 10
-# row_lim = None
+row_lim = 1000
+# row_lim = N
 print("row_lim =",row_lim)
 
 # how many topics to consider
-NUM_TOPICS = 1
+NUM_TOPICS = 2
 print("# num_topics =", NUM_TOPICS)
 
 # implement_rules = [True,False]
@@ -118,6 +119,7 @@ for expt_num, DATA_PATH in enumerate(DATA_PATHS):
 
         # take subportion
         raw_df = pd.read_csv(DATA_PATH)[:row_lim]
+        # raw_df = pd.read_csv(DATA_PATH)
 
         print("# actual num rows taken =",raw_df.shape[0])
 
@@ -125,6 +127,15 @@ for expt_num, DATA_PATH in enumerate(DATA_PATHS):
         # preprocessed data
         data = DataManager(raw_df = raw_df, num_topics = NUM_TOPICS, none_ratio = none_ratio, 
                             should_stem = False, should_clean = True, should_remove_stopwords = False, )
+
+        # list of most commonly occurring topics
+        ontology_counts_dict = data.get_ontology_counts_dict()
+
+        mpu.io.write('data\ontology_counts_dict_v2.pkl', ontology_counts_dict)
+
+        # with open('data\ontology_counts_dict.pkl', 'wb') as handle:
+        #     pickle.dump(ontology_counts_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
 
         # list of most commonly occurring topics
         reduced_topics_df = data.get_reduced_topics_df()

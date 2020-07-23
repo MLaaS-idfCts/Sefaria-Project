@@ -1,3 +1,5 @@
+import pickle 
+import matplotlib.pyplot as plt
 """
 inputs:
 dict of counts of topics
@@ -85,10 +87,6 @@ counts = {
   "b": 212,
   "a": 2100
 }
-
-root = ontology['a']
-
-threshold = 50
 # input:
 
 #   counts,
@@ -96,11 +94,6 @@ threshold = 50
 #   threshold
 # output:
 
-test_output = {"b", "z", "k", "m", "p"}
-
-parent = 'a'
-
-children = ontology[parent]
 
 def get_last_leaves(parent,children,threshold):
 	
@@ -123,13 +116,48 @@ def get_last_leaves(parent,children,threshold):
 
 	return leaf_set
 	
+test_output = {"b", "z", "k", "m", "p"}
+
+root = ontology['a']
+
+threshold = 50
+
+parent = 'a'
+
+#%%
+counts = None
+
+with open('data\ontology_counts_dict.pkl', 'rb') as handle:
+    counts = pickle.load(handle)
+
+
+import matplotlib.pyplot as plt
+plt.hist( counts.values(), bins=max(counts.values()), width = 10, color='g')
+plt.show()
+
+children = ontology[parent]
 
 my_output = get_last_leaves(parent, children, threshold)
 
 print("Does the test output match my output?", my_output == test_output)
+
+
+
+
+
 
 def get_children(slug):
     topic = Topic.init(slug)
     children_links = topic.link_set(query_kwargs={"linkType": 'is-a', 'toTopic': slug})
     children_slugs = [child.topic for child in children_links]
     return children_slugs
+
+threshold = 50
+
+parent = 'entity'
+
+children = get_children[parent]
+
+my_output = get_last_leaves(parent, children, threshold)
+
+# %%

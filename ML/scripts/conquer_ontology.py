@@ -90,6 +90,7 @@ root = ontology['a']
 
 threshold = 50
 # input:
+
 #   counts,
 #   root,
 #   threshold
@@ -122,6 +123,13 @@ def get_last_leaves(parent,children,threshold):
 
 	return leaf_set
 	
+
 my_output = get_last_leaves(parent, children, threshold)
 
-print("Does the test output match my output?",my_output==test_output)
+print("Does the test output match my output?", my_output == test_output)
+
+def get_children(slug):
+    topic = Topic.init(slug)
+    children_links = topic.link_set(query_kwargs={"linkType": 'is-a', 'toTopic': slug})
+    children_slugs = [child.topic for child in children_links]
+    return children_slugs

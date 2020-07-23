@@ -73,7 +73,7 @@ classifiers = [
     BinaryRelevance(classifier=LinearSVC()),
     ]
 
-row_lim = 1000
+row_lim = 10
 # row_lim = None
 print("row_lim =",row_lim)
 

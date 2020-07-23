@@ -17,77 +17,92 @@ don't run on all ontology
 
 """
 
-ontology = {
-  "a": {
-    "b": {
-      "c": {
-        "d": None
-      },
-      "e": None,
-      "f": None,
-      "g": {
-        "h": {
-          "i": None
-        }
-      }
-    },
-    "j": {
-      "k": None,
-      "l": {
-        "m": {
-          "n": None,
-          "o": None
-        },
-        "p": {
-          "q": None,
-          "r": None,
-          "s": {
-            "t": None,
-            "u": None
-          }
-        }
-      },
-      "v": {
-        "w": {
-          "x": {
-            "y": {
-              "z": None
-            }
-          }
-        }
-      }
-    }
-  }
-}
+# ontology = {
+#   "a": {
+#     "b": {
+#       "c": {
+#         "d": None
+#       },
+#       "e": None,
+#       "f": None,
+#       "g": {
+#         "h": {
+#           "i": None
+#         }
+#       }
+#     },
+#     "j": {
+#       "k": None,
+#       "l": {
+#         "m": {
+#           "n": None,
+#           "o": None
+#         },
+#         "p": {
+#           "q": None,
+#           "r": None,
+#           "s": {
+#             "t": None,
+#             "u": None
+#           }
+#         }
+#       },
+#       "v": {
+#         "w": {
+#           "x": {
+#             "y": {
+#               "z": None
+#             }
+#           }
+#         }
+#       }
+#     }
+#   }
+# }
 
-counts = {
-  "z": 50,
-  "y": 50,
-  "x": 50,
-  "w": 50,
-  "v": 50,
-  "u": 1400,
-  "t": 67,
-  "s": 1467,
-  "r": 4,
-  "q": 0,
-  "p": 1471,
-  "o": 34,
-  "n": 99,
-  "m": 133,
-  "l": 1604,
-  "k": 234,
-  "j": 1888,
-  "i": 78,
-  "h": 78,
-  "g": 78,
-  "f": 24,
-  "e": 10,
-  "d": 100,
-  "c": 100,
-  "b": 212,
-  "a": 2100
-}
+ontology_path = 'data/entire_ontology_dict.pickle'
+with open(ontology_path, 'rb') as handle:
+	ontology = pickle.load(handle)
+
+
+# counts = {
+#   "z": 50,
+#   "y": 50,
+#   "x": 50,
+#   "w": 50,
+#   "v": 50,
+#   "u": 1400,
+#   "t": 67,
+#   "s": 1467,
+#   "r": 4,
+#   "q": 0,
+#   "p": 1471,
+#   "o": 34,
+#   "n": 99,
+#   "m": 133,
+#   "l": 1604,
+#   "k": 234,
+#   "j": 1888,
+#   "i": 78,
+#   "h": 78,
+#   "g": 78,
+#   "f": 24,
+#   "e": 10,
+#   "d": 100,
+#   "c": 100,
+#   "b": 212,
+#   "a": 2100
+# }
+
+counts_path = 'data\ontology_counts\ontology_counts_dict_row_lim_170000.pickle'
+# counts_path = 'data\ontology_counts\ontology_counts_dict_row_lim_100000.pickle'
+# counts_path = 'data\ontology_counts\ontology_counts_dict_row_lim_10000.pickle'
+with open(counts_path, 'rb') as handle:
+	counts = pickle.load(handle)
+
+counts = {key:val for key, val in counts.items() if val >= 10}
+
+
 # input:
 
 #   counts,
@@ -103,7 +118,11 @@ def get_last_leaves(parent,children,threshold):
 		return {parent}
 
 	for key in children.keys():
-		if counts[key] < threshold:
+		
+		if key not in counts:
+			return {parent}
+
+		if counts[key] < threshold: 
 			return {parent}
 
 	# recursion case
@@ -118,19 +137,25 @@ def get_last_leaves(parent,children,threshold):
 	return leaf_set
 
 
-test_output = {"b", "z", "k", "m", "p"}
+# test_output = {"b", "z", "k", "m", "p"}
 
 if __name__ == '__main__':
 
+	# thresholds = [40,30,20,10,5,3]
+	thresholds = [40]
 
-    root = ontology['a']
+	# parent = 'a'
+	parent = 'entity'
 
-    threshold = 50
+	children = ontology
 
-    parent = 'a'
+	for threshold in thresholds:
 
-    children = ontology[parent]
+		my_output = get_last_leaves(parent, children, threshold)
+		print()
+		print("threshold:", threshold)
+		print()
+		print(my_output)
 
-    my_output = get_last_leaves(parent, children, threshold)
-
-    print("Does the test output match my output?", my_output == test_output)
+	print()
+	# print("Does the test output match my output?", my_output == test_output)

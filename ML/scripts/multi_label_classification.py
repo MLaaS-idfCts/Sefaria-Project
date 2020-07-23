@@ -131,7 +131,7 @@ for expt_num, DATA_PATH in enumerate(DATA_PATHS):
         # list of most commonly occurring topics
         ontology_counts_dict = data.get_ontology_counts_dict()
 
-        mpu.io.write('data\ontology_counts_dict_v2.pkl', ontology_counts_dict)
+        mpu.io.write(f'data\ontology_counts_dict_row_lim_{row_lim}.pkl', ontology_counts_dict)
 
         # with open('data\ontology_counts_dict.pkl', 'wb') as handle:
         #     pickle.dump(ontology_counts_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)

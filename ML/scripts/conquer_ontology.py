@@ -116,7 +116,8 @@ def get_last_leaves(parent,children,threshold):
 	leaf_set = set(last_leaves)
 
 	return leaf_set
-	
+
+
 test_output = {"b", "z", "k", "m", "p"}
 
 root = ontology['a']
@@ -125,50 +126,8 @@ threshold = 50
 
 parent = 'a'
 
-counts = None
-
-import os
-directory = 'data/ontology_counts'
-for file_name in os.listdir(directory):
-	path = os.path.join(directory,file_name)
-	with open(path, 'rb') as handle:
-
-		counts = pickle.load(handle)
-
-	plt.xlabel('X = Number of children')
-	plt.ylabel('Y = Number of nodes with X children')
-	plt.xlim(1, 60)
-	plt.ylim(0, 600)
-
-	plt.hist( counts.values(), bins=max(counts.values()), width = 15.0, color='g')
-	plt.savefig(f'images/{file_name[:-7]}.png')
-	# continue
-
-import matplotlib.pyplot as plt
-plt.hist( counts.values(), bins=max(counts.values()), width = 10, color='g')
-plt.show()
-
 children = ontology[parent]
 
 my_output = get_last_leaves(parent, children, threshold)
 
 print("Does the test output match my output?", my_output == test_output)
-
-
-
-
-
-
-def get_children(slug):
-    topic = Topic.init(slug)
-    children_links = topic.link_set(query_kwargs={"linkType": 'is-a', 'toTopic': slug})
-    children_slugs = [child.topic for child in children_links]
-    return children_slugs
-
-threshold = 50
-
-parent = 'entity'
-
-children = get_children[parent]
-
-my_output = get_last_leaves(parent, children, threshold)

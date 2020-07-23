@@ -74,9 +74,9 @@ classifiers = [
     BinaryRelevance(classifier=LinearSVC()),
     ]
 
-row_lim = 1000
+# row_lim = 40000
+row_lims = [10000,40000,80000,100000,170000]
 # row_lim = N
-print("row_lim =",row_lim)
 
 # how many topics to consider
 NUM_TOPICS = 2
@@ -98,10 +98,13 @@ lang_to_vec = 'eng'
 should_separate = True
 # separate_options = [True,False]
 
-for expt_num, DATA_PATH in enumerate(DATA_PATHS):
+# for expt_num, DATA_PATH in enumerate(DATA_PATHS):
 # for expt_num, lang_to_vec in enumerate(langs_to_vec):
 # for expt_num, should_separate in enumerate(separate_options):
+for expt_num, row_lim in enumerate(row_lims):
 
+    # print("row_lim =",row_lim)
+    print(f'\n\n# expt #{expt_num} = {row_lim}')
 # if True:
     # expt_num = 0
 
@@ -135,13 +138,14 @@ for expt_num, DATA_PATH in enumerate(DATA_PATHS):
 
         # mpu.io.write(f'data/ontology_counts_dict_row_lim_{row_lim}_file.pkl', ontology_counts_dict)
 
-        with open('data/ontology_counts_dict.pkl', 'wb') as handle:
+        with open(f'data/ontology_counts_dict_row_lim_{row_lim}.pickle', 'wb') as handle:
             pickle.dump(ontology_counts_dict, handle, 
                 protocol=3
                 # protocol=pickle.HIGHEST_PROTOCOL
             )
 
-
+        continue
+        
         # list of most commonly occurring topics
         reduced_topics_df = data.get_reduced_topics_df()
 

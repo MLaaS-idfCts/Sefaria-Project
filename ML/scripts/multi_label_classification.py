@@ -1,3 +1,4 @@
+# imports 
 import mpu
 import sys
 import time
@@ -18,7 +19,6 @@ from sklearn.metrics import confusion_matrix, accuracy_score
 from sklearn.pipeline import Pipeline
 from sklearn.datasets import make_classification
 from sklearn.ensemble import RandomForestClassifier
-# from personal_settings import *
 from sklearn.multiclass import OneVsRestClassifier
 from skmultilearn.adapt import BRkNNaClassifier, MLkNN
 from sklearn.multioutput import MultiOutputClassifier
@@ -29,15 +29,14 @@ from skmultilearn.problem_transform import LabelPowerset, BinaryRelevance, Class
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 
+# functions
 def time_and_reset(start_time):
-    """
-    Usage: To print the time elapsed since previous call, type:
-    start_time = time_and_reset(start_time)
-    """
     print('#',datetime.now() - start_time)
     return datetime.now()
 
     
+# settings
+
 # ignore warnings regarding column assignment, e.g. df['col1'] = list1 -- not 100% sure about this
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -51,101 +50,81 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 pd.options.display.max_colwidth = 50
 
 
+# actual code begins
+
 start_time = datetime.now()
 
-# start_time = time_and_reset(start_time)
-
-parameters = [
-    {'classifier': [MultinomialNB()],'classifier__alpha': [0.8, 1.1],},
-    {'classifier': [SVC()],'classifier__kernel': ['rbf', 'linear'],},
-    ]
-
-DATA_PATHS = []
-
 DATA_PATH = 'data/concat_english_prefix_hebrew.csv'
-DATA_PATHS.append(DATA_PATH)
 
-# DATA_PATH = 'data/multi_version_english.csv'
-# DATA_PATHS.append(DATA_PATH)
+classifiers = [BinaryRelevance(classifier=LinearSVC()),]
 
-
-
-classifiers = [
-    BinaryRelevance(classifier=LinearSVC()),
-    ]
-
-# row_lim = 40000
 row_lims = [1000, 10000,40000,80000,100000,170000, None]
-# row_lim = N
 
+# list of topics that you want to train and analyze
+chosen_topics = ['quality', 
+                'generically-dependent-continuant', 
+                'object', 'occurent', 
+                'fiat-object-part', 'immaterial-entity', 'group-of-inanimate-objects', 
+                'realizable-entity', 
+                'group-of-living-creatures']
 # how many topics to consider
-# NUM_TOPICS = 4000
-NUM_TOPICS = None
-print("# num_topics =", NUM_TOPICS)
+topic_limit = None
+print("# topic_limit =", topic_limit)
 
-# implement_rules = [True,False]
+# whether to use rule based logic after machine learning algorithm
 implement_rules = False
 
+# use cleaned stored dataframe, instead of always reprocessing it
 use_cached_df = False
-# use_cached_df = True
-
-# for expt_num, none_ratio in enumerate(none_ratioes):
-# for expt_num, none_ratio in enumerate(implement_rules):
 
 # which language(s) do you want to vectorize
 # langs_to_vec = ['eng','heb','both']
 lang_to_vec = 'eng'
 
+# compute number of children for each node
 get_ontology_counts = False
 
+# do you want to train on all nodes of ontology
 use_expanded_topics = True
 # use_expanded_topics = False
 
+# keep training examples from leaking into the test set
 should_separate = True
-# separate_options = [True,False]
 
-# for expt_num, DATA_PATH in enumerate(DATA_PATHS):
-# for expt_num, lang_to_vec in enumerate(langs_to_vec):
-# for expt_num, should_separate in enumerate(separate_options):
 for expt_num, row_lim in enumerate(row_lims):
-
-    print("# row_lim =",row_lim)
-    print(f'\n\n# expt #{expt_num} = {row_lim}')
 # if True:
     # expt_num = 0
 
-    print(f'\n\n# expt #{expt_num} = {DATA_PATH}')
+    print(f'\n\n# expt #{expt_num} = {row_lim}')
 
-    
+    # use number of nones that slightly greater than the most prevalent topic
     none_ratio = 1.1
-    
-    start_time = time_and_reset(start_time)
     
     if not use_cached_df:
 
         # shuffle
-        # raw_df = pd.read_csv(DATA_PATH).sample(frac=1)
+        raw_df = pd.read_csv(DATA_PATH).sample(frac=1)
 
         # take subportion
-        raw_df = pd.read_csv(DATA_PATH)[:row_lim]
-        # raw_df = pd.read_csv(DATA_PATH)
-
+        raw_df = raw_df[:row_lim]
         print("# actual num rows taken =",raw_df.shape[0])
 
-
         # preprocessed data
-        data = DataManager(raw_df = raw_df, num_topics = NUM_TOPICS, none_ratio = none_ratio, 
+        data = DataManager(raw_df = raw_df, topic_limit = topic_limit, none_ratio = none_ratio, 
                             should_stem = False, should_clean = True, should_remove_stopwords = False, 
-                            use_expanded_topics = use_expanded_topics
+                            use_expanded_topics = use_expanded_topics, chosen_topics = chosen_topics
                             )
+
 
         if get_ontology_counts:
 
-            # list of most commonly occurring topics
+            # capture list of most commonly occurring topics
             ontology_counts_dict = data.get_ontology_counts_dict()
 
+            # store result
             with open(f'data/ontology_counts_dict_row_lim_{row_lim}.pickle', 'wb') as handle:
                 pickle.dump(ontology_counts_dict, handle, protocol=3)
+
 
         # list of most commonly occurring topics
         reduced_topics_df = data.get_reduced_topics_df()
@@ -209,7 +188,7 @@ for expt_num, row_lim in enumerate(row_lims):
         scorer = Scorer(data.ranked_topic_names_without_none, data.ranked_topic_counts_without_none, row_lim, expt_num, none_ratio, 
         # scorer = Scorer(data.ranked_topic_names_with_none, data.ranked_topic_counts_with_none, row_lim, expt_num, none_ratio, 
                         should_print = True,
-                        use_expanded_topics = use_expanded_topics
+                        use_expanded_topics = use_expanded_topics, chosen_topics = chosen_topics
                         )
 
         # loop through all predictors

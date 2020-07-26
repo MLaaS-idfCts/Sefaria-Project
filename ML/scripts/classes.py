@@ -35,15 +35,17 @@ np.seterr(divide='ignore', invalid='ignore')
 
 class DataManager:
 
-    def __init__(self, raw_df, num_topics, none_ratio, should_limit_nones = False,
+    def __init__(self, raw_df, topic_limit, none_ratio, should_limit_nones = False,
                 should_stem = False, should_clean = True, keep_all_nones = False, 
-                should_remove_stopwords = False, use_expanded_topics = False):
+                should_remove_stopwords = False, use_expanded_topics = False,
+                chosen_topics = None):
         
         self.raw_df = raw_df
-        self.num_topics = num_topics
         self.none_ratio = none_ratio
         self.should_stem = should_stem
+        self.topic_limit = topic_limit
         self.should_clean = should_clean
+        self.chosen_topics = chosen_topics
         self.keep_all_nones = keep_all_nones
         self.should_limit_nones = should_limit_nones
         self.use_expanded_topics = use_expanded_topics
@@ -52,10 +54,6 @@ class DataManager:
     
     def get_ontology_counts_dict(self):
 
-        # is it ok to keep all data points,
-        # and to not remove any junk,
-        # because this is a statistical evaluation 
-        # of the general ontology structure
         df = self.preprocess_dataframe()
 
         # each item in list is a string of lists for one passage
@@ -93,11 +91,9 @@ class DataManager:
     
     def get_top_topic_counts(self, df):
 
+        # select which column you want topics from
         if self.use_expanded_topics:
-
             self.topic_column = 'Expanded Topics'
-
-
         else:
             self.topic_column = 'Topics'
 
@@ -111,31 +107,36 @@ class DataManager:
         all_topics_lst = all_topics_str.split()
         
         # init dict
-        topic_counts = {}
+        topic_counts_dict = {}
         
         # loop thru all topic occurrences
         for topic in all_topics_lst:
         
             # increment if seen already
-            if topic in topic_counts:
-                topic_counts[topic] += 1
+            if topic in topic_counts_dict:
+                topic_counts_dict[topic] += 1
         
             # init if not seen yet
             else:
-                topic_counts[topic] = 1
+                topic_counts_dict[topic] = 1
         
+
+        if self.chosen_topics:
+
+            topic_counts_dict = { topic: topic_counts_dict[topic] for topic in self.chosen_topics }
+
         # rank the entries by most frequently occurring first
         topic_counts_dict = {
-                                k: v for k, v in sorted(topic_counts.items(), 
+                                k: v for k, v in sorted(topic_counts_dict.items(), 
                                 key=lambda item: item[1],
                                 reverse=True)
                             }
-        
+            
         # convert ranked dict into ranked list
         topic_counts_list = [(k, v) for k, v in topic_counts_dict.items()] 
 
         # select only num of topics that you wish, e.g. top 20
-        top_topic_counts_list = topic_counts_list[:self.num_topics]
+        top_topic_counts_list = topic_counts_list[:self.topic_limit]
 
         return top_topic_counts_list
 
@@ -291,13 +292,16 @@ class DataManager:
         all_cols = list(df.columns)
         cols_to_keep = all_cols[:all_cols.index('true_topics') + 1]
 
-        if self.use_expanded_topics:
+        if True:
 
-            cols = cols_to_keep + list({'group-of-living-creatures', 'occurent', 'group-of-inanimate-objects', 'object', 'realizable-entity', 'generically-dependent-continuant', 'continuant-fiat-boundary', 'places', 'fiat-object-part', 'quality'})
+        # if self.use_expanded_topics:
 
-            cols = [col for col in cols if col in df.columns] 
+        #     # cols = cols_to_keep + list({'group-of-living-creatures', 'occurent', 'group-of-inanimate-objects', 'object', 'realizable-entity', 'generically-dependent-continuant', 'continuant-fiat-boundary', 'places', 'fiat-object-part', 'quality'})
+        #     cols = cols_to_keep + list(self.chosen_topics)
 
-        else:
+        #     cols = [col for col in cols if col in df.columns] 
+
+        # else:
 
             cols = cols_to_keep + self.ranked_topic_names_without_none
 
@@ -317,7 +321,7 @@ class DataManager:
         if self.use_expanded_topics:
         
             # keep only the topics which are popular
-            permitted_topics = list({'group-of-living-creatures', 'occurent', 'group-of-inanimate-objects', 'object', 'realizable-entity', 'generically-dependent-continuant', 'continuant-fiat-boundary', 'places', 'fiat-object-part', 'quality'})
+            permitted_topics = list(self.chosen_topics)
 
         else:
 
@@ -429,7 +433,7 @@ class DataManager:
             # use Ref as index instead of number
             df = df.set_index('Ref',drop=True)
         
-            df.drop(columns=['Topics'])
+            # df = df.drop(columns=['Topics'])
 
             # make more descriptive name
             df = df.rename(columns={
@@ -837,7 +841,8 @@ class ConfusionMatrix:
 class Scorer:
 
     def __init__(self, top_topics, topic_counts, row_lim, expt_num, 
-                none_ratio, use_expanded_topics, should_print = False):
+                none_ratio, use_expanded_topics, should_print = False,
+                chosen_topics = None):
     
         self.row_lim = row_lim
         self.expt_num = expt_num
@@ -845,8 +850,8 @@ class Scorer:
         self.none_ratio = none_ratio
         self.should_print = should_print
         self.topic_counts = topic_counts
+        self.chosen_topics = chosen_topics
         self.use_expanded_topics = use_expanded_topics
-
 
 
     def get_scores(self, cm):
@@ -919,28 +924,23 @@ class Scorer:
 
         topic_stats_df = topic_stats_df.append(over_all_stats, ignore_index=True)
         
-        if self.use_expanded_topics:
-            my_topics = list({'group-of-living-creatures', 'occurent', 'group-of-inanimate-objects', 'object', 'realizable-entity', 'generically-dependent-continuant', 'continuant-fiat-boundary', 'places', 'fiat-object-part', 'quality'})
-            # selected_topics_df = topic_stats_df.loc[topic_stats_df['Expanded Topics'].isin(my_topics)]
-            # selected_topics_list = selected_topics_df['Expanded Topics'].to_list()
-
-        else:
-
-            my_topics = ["Overall",'laws-of-judges-and-courts', 'prayer', 'procedures-for-judges-and-conduct-towards-them']
-            # my_topics = ["Overall", 'abraham', 'moses', 'laws-of-judges-and-courts', 'prayer', 'procedures-for-judges-and-conduct-towards-them']
+        # my_topics = ["Overall",'laws-of-judges-and-courts', 'prayer', 'procedures-for-judges-and-conduct-towards-them']
+        my_topics = self.chosen_topics + ['Overall']
         
         
         
         selected_topics_df = topic_stats_df.loc[topic_stats_df['Topic'].isin(my_topics)]
         selected_topics_list = selected_topics_df['Topic'].to_list()
 
-        selected_scores_list = selected_topics_df['Recall'].to_list()
+        selected_scores_list = selected_topics_df['F1score'].to_list()
 
         if self.should_print:
             # print(f'\n\n{dataset}\n')
-            # print(topic_stats_df.round(2))
-            print(f'\ntopics = ', selected_topics_list)
-            print(f'{dataset}_expt_{expt_num} =', selected_scores_list)
+            print(topic_stats_df.round(2))
+            # print(f'\ntopics = ', selected_topics_list)
+            # print(f'{dataset}_expt_{expt_num} =', selected_scores_list)
+
+
 
         return topic_stats_df
 

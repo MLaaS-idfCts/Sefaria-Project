@@ -1,5 +1,4 @@
 # imports 
-import mpu
 import sys
 import time
 import scipy
@@ -24,6 +23,7 @@ from skmultilearn.adapt import BRkNNaClassifier, MLkNN
 from sklearn.multioutput import MultiOutputClassifier
 from sklearn.naive_bayes import GaussianNB, MultinomialNB
 from sklearn.linear_model import LogisticRegression, SGDClassifier
+from multi_stage_classifer import multi_stage_classifer
 from sklearn.model_selection import train_test_split, GridSearchCV
 from skmultilearn.problem_transform import LabelPowerset, BinaryRelevance, ClassifierChain
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -58,7 +58,7 @@ DATA_PATH = 'data/concat_english_prefix_hebrew.csv'
 
 classifiers = [BinaryRelevance(classifier=LinearSVC()),]
 
-row_lims = [20000,40000,80000,100000,170000, None]
+# row_lims = [20000,40000,80000,100000,170000, None]
 
 # list of topics that you want to train and analyze
 chosen_topics_list = []
@@ -94,14 +94,17 @@ should_separate = True
 for expt_num, chosen_topics in enumerate(chosen_topics_list):
 # for expt_num, row_lim in enumerate(row_lims):
 # if True:
-    row_lim = 40000
+    row_lim = 1000
 
     print(f'\n\n# expt #{expt_num} = {row_lim}')
 
     # use number of nones that slightly greater than the most prevalent topic
     none_ratio = 1.1
     
-    if not use_cached_df:
+    if use_cached_df:
+        tidied_up_df = pd.read_csv(DATA_PATH[:-4] + '_tidied_up_df.csv')
+
+    elif not use_cached_df:
 
         # shuffle
         raw_df = pd.read_csv(DATA_PATH).sample(frac=1)
@@ -116,18 +119,7 @@ for expt_num, chosen_topics in enumerate(chosen_topics_list):
                             use_expanded_topics = use_expanded_topics, chosen_topics = chosen_topics
                             )
 
-
-        if get_ontology_counts:
-
-            # capture list of most commonly occurring topics
-            ontology_counts_dict = data.get_ontology_counts_dict()
-
-            # store result
-            with open(f'data/ontology_counts_dict_row_lim_{row_lim}.pickle', 'wb') as handle:
-                pickle.dump(ontology_counts_dict, handle, protocol=3)
-
-
-        # list of most commonly occurring topics
+        # list of most chosen topics
         reduced_topics_df = data.get_reduced_topics_df()
 
         limited_nones_df = data.limit_nones(reduced_topics_df)
@@ -138,10 +130,6 @@ for expt_num, chosen_topics in enumerate(chosen_topics_list):
 
         tidied_up_df.to_csv(DATA_PATH[:-4] + '_tidied_up_df.csv')
         
-
-    elif use_cached_df:
-
-        tidied_up_df = pd.read_csv(DATA_PATH[:-4] + '_tidied_up_df.csv')
 
 
     data_df = tidied_up_df

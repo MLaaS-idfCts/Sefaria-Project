@@ -58,15 +58,15 @@ DATA_PATH = 'data/concat_english_prefix_hebrew.csv'
 
 classifiers = [BinaryRelevance(classifier=LinearSVC()),]
 
-row_lims = [1000, 10000,40000,80000,100000,170000, None]
+row_lims = [20000,40000,80000,100000,170000, None]
 
 # list of topics that you want to train and analyze
-chosen_topics = ['quality', 
-                'generically-dependent-continuant', 
-                'object', 'occurent', 
-                'fiat-object-part', 'immaterial-entity', 'group-of-inanimate-objects', 
-                'realizable-entity', 
-                'group-of-living-creatures']
+chosen_topics_list = []
+chosen_topics = ['generically-dependent-continuant', 'independent-continuant', 'occurent', 'specifically-dependent-continuant']
+chosen_topics_list.append(chosen_topics)
+chosen_topics = ['generically-dependent-continuant', 'independent-continuant', 'occurent', 'quality', 'realizable-entity']
+chosen_topics_list.append(chosen_topics)
+
 # how many topics to consider
 topic_limit = None
 print("# topic_limit =", topic_limit)
@@ -91,9 +91,10 @@ use_expanded_topics = True
 # keep training examples from leaking into the test set
 should_separate = True
 
-for expt_num, row_lim in enumerate(row_lims):
+for expt_num, chosen_topics in enumerate(chosen_topics_list):
+# for expt_num, row_lim in enumerate(row_lims):
 # if True:
-    # expt_num = 0
+    row_lim = 40000
 
     print(f'\n\n# expt #{expt_num} = {row_lim}')
 

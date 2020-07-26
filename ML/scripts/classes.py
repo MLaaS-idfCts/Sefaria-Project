@@ -940,9 +940,8 @@ class Scorer:
             # print(f'\ntopics = ', selected_topics_list)
             # print(f'{dataset}_expt_{expt_num} =', selected_scores_list)
 
-
-
         return topic_stats_df
+
 
 class Trainer:
     
@@ -969,6 +968,3 @@ class Trainer:
             print("Best score:",classifier.best_score_)
         
         return classifier
-
-# # class Classifier
-# # class Evaluator

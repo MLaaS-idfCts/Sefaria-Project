@@ -132,7 +132,8 @@ def get_last_leaves(parent,children,threshold):
 		for leaf in get_last_leaves(child, grandchildren, threshold):
 			last_leaves.append(leaf)
 	
-	leaf_set = set(last_leaves)
+	leaf_set = last_leaves
+	# leaf_set = set(last_leaves)
 
 	return leaf_set
 
@@ -141,8 +142,8 @@ def get_last_leaves(parent,children,threshold):
 
 if __name__ == '__main__':
 
-	# thresholds = [40,30,20,10,5,3]
-	thresholds = [40]
+	thresholds = [16000, 16500, 17000, 17500, 18000]
+	# thresholds = [40]
 
 	# parent = 'a'
 	parent = 'entity'
@@ -155,6 +156,8 @@ if __name__ == '__main__':
 		print()
 		print("threshold:", threshold)
 		print()
+
+		my_output.sort()
 		print(my_output)
 
 	print()

@@ -1,3 +1,22 @@
+import os
+import sys
+import csv
+import pickle
+import django
+import os.path
+
+from os import path
+
+sys.path.insert(1, '/persistent/Sefaria-Project/')
+os.environ['DJANGO_SETTINGS_MODULE'] = 'sefaria.settings'
+django.setup()
+
+from tqdm import tqdm
+from sefaria.model import *
+# from sefaria.model.topic import topics_by_link_type_recursively
+from sefaria.system.database import db
+
+
 import re
 import nltk
 import scipy
@@ -35,17 +54,18 @@ np.seterr(divide='ignore', invalid='ignore')
 
 class DataManager:
 
-    def __init__(self, raw_df, topic_limit, none_ratio, should_limit_nones = False,
+    def __init__(self, raw_df, topic_limit, 
+    # none_ratio = 1.1, 
+    should_limit_nones = False,
                 should_stem = False, should_clean = True, keep_all_nones = False, 
                 should_remove_stopwords = False, use_expanded_topics = False,
-                chosen_topics = None):
+                ):
         
         self.raw_df = raw_df
-        self.none_ratio = none_ratio
+        # self.none_ratio = none_ratio
         self.should_stem = should_stem
         self.topic_limit = topic_limit
         self.should_clean = should_clean
-        self.chosen_topics = chosen_topics
         self.keep_all_nones = keep_all_nones
         self.should_limit_nones = should_limit_nones
         self.use_expanded_topics = use_expanded_topics
@@ -88,57 +108,6 @@ class DataManager:
 
         return ontology_counts_dict
 
-    
-    def get_top_topic_counts(self, df):
-
-        # select which column you want topics from
-        if self.use_expanded_topics:
-            self.topic_column = 'Expanded Topics'
-        else:
-            self.topic_column = 'Topics'
-
-        # each item in list is a string of lists for one passage
-        all_passage_topics_lst = df[self.topic_column].tolist()
-        
-        # huge string of all topic for all psasages
-        all_topics_str = ' '.join(all_passage_topics_lst)
-        
-        # list of all topic instances
-        all_topics_lst = all_topics_str.split()
-        
-        # init dict
-        topic_counts_dict = {}
-        
-        # loop thru all topic occurrences
-        for topic in all_topics_lst:
-        
-            # increment if seen already
-            if topic in topic_counts_dict:
-                topic_counts_dict[topic] += 1
-        
-            # init if not seen yet
-            else:
-                topic_counts_dict[topic] = 1
-        
-
-        if self.chosen_topics:
-
-            topic_counts_dict = { topic: topic_counts_dict[topic] for topic in self.chosen_topics }
-
-        # rank the entries by most frequently occurring first
-        topic_counts_dict = {
-                                k: v for k, v in sorted(topic_counts_dict.items(), 
-                                key=lambda item: item[1],
-                                reverse=True)
-                            }
-            
-        # convert ranked dict into ranked list
-        topic_counts_list = [(k, v) for k, v in topic_counts_dict.items()] 
-
-        # select only num of topics that you wish, e.g. top 20
-        top_topic_counts_list = topic_counts_list[:self.topic_limit]
-
-        return top_topic_counts_list
 
 
     def remove_junk_rows(self):
@@ -163,36 +132,22 @@ class DataManager:
         return df
 
 
-    def reduce_topics(self, df):
+    def tidy_up(self, lang_to_vec):
 
-        # keep only topics that i want to study
-        if self.use_expanded_topics:
-            df['true_topics'] = df.pop('Expanded Topics').apply(self.topic_selector)
-        else:
-            df['true_topics'] = df.pop('Topics').apply(self.topic_selector)
-
-        return df
-
-
-    def tidy_up(self, df):
-
-        # clean passage text
         if self.should_clean:
-            df['passage_text_english'] = df['passage_text_english'].str.lower()
 
+            df = self.preprocess_dataframe()
+
+            df['passage_text_english'] = df['passage_text_english'].str.lower()
             df['passage_text_english'] = df['passage_text_english'].apply(self.cleanHtml)
+            df['passage_text_english'] = df['passage_text_english'].apply(self.cleanPunc)
+
             try:
                 df['passage_text_hebrew_parsed'] = df['passage_text_hebrew_parsed'].apply(self.cleanHtml)
+                df['passage_text_hebrew_parsed'] = df['passage_text_hebrew_parsed'].apply(self.cleanPunc)
             except:
                 pass
 
-            df['passage_text_english'] = df['passage_text_english'].apply(self.cleanPunc)
-            try:
-                df['passage_text_hebrew_parsed'] = df['passage_text_hebrew_parsed'].apply(self.cleanPunc)
-                # df['passage_text_hebrew_parsed'] = df['passage_text_hebrew_parsed'].apply(self.cleanHtml)
-            except:
-                pass
-            
             df['passage_text_english'] = df['passage_text_english'].apply(self.keepAlpha)
     
         # remove stopwords, if you so chose  
@@ -202,139 +157,26 @@ class DataManager:
         # stem words, if you so chose  
         if self.should_stem:
             df['passage_text_english'] = df['passage_text_english'].apply(self.stemmer)
-
-        return df
-
-
-    def get_topic_named_from_counts(self, ranked_topic_counts):
-
-        return  [topic_tuple[0] for topic_tuple in ranked_topic_counts]
-
-
-    def get_reduced_topics_df(self):
-
-        if getattr(self, "reduced_topics_df", None):
-
-            return self.reduced_topics_df
-        
-        else:
             
-            all_topics_df = self.preprocess_dataframe()
+        # combine english and hebrew
+        if lang_to_vec == 'eng':
+            df['passage_words'] = df['passage_text_english']
 
-            self.ranked_topic_counts_without_none = self.get_top_topic_counts(all_topics_df)
-            self.ranked_topic_names_without_none = self.get_topic_named_from_counts(self.ranked_topic_counts_without_none)
+        if lang_to_vec == 'heb':
+            df['passage_words'] = df['passage_text_hebrew_parsed']
 
-            # eliminate topics that are not amongst top topics
-            reduced_topics_df = self.reduce_topics(all_topics_df)
+        if lang_to_vec == 'both':
+            df['passage_words'] = df['passage_text_english'] + ' ' + df['passage_text_hebrew_parsed'] 
 
-            # store as attribute
-            self.reduced_topics_df = reduced_topics_df
+        wanted_cols = ['passage_words','Topics','Expanded Topics']
 
-        return reduced_topics_df
+        df = df[wanted_cols]
 
+        df.rename(columns={'Expanded Topics': 'Super Topics'}, inplace=True)
 
-    def limit_nones(self, df):
-
-        # place nones last
-        df = df.sort_values(by='true_topics', ascending=False)
-
-        # calc how many nones there are
-        num_nones = df.loc[df['true_topics'] == ""].shape[0]
-
-        # most commonly occurring topic
-        top_topic_name = self.ranked_topic_names_without_none[0]
-
-        # num of occurrences of most popular topic 
-        top_topic_counts = self.ranked_topic_counts_without_none[0][1]
-
-        # init
-        nones_to_drop = 0
-        nones_to_keep = num_nones
-        
-        if self.none_ratio == 'all':
-
-            pass
-            
-        else:
-
-            # compute num of nones to keep based upon ratio
-            nones_to_keep = int(top_topic_counts * self.none_ratio)
-
-
-            # check there are more nones than the computed limit
-            if nones_to_keep <= num_nones:
-                    
-                # calc how many nones to drop
-                nones_to_drop = num_nones - nones_to_keep
-
-            if nones_to_drop > 0:
-
-                # remove final excess 'none' rows
-                df = df.iloc[:-1 * nones_to_drop]
-
-        # update list of topic counts
-        self.ranked_topic_counts_with_none = self.ranked_topic_counts_without_none + [('None',nones_to_keep)]
-        
-        # ensure 'None' is ordered acc to rank or occurrences, e.g. at the beginning if has most
-        self.ranked_topic_counts_with_none.sort(key=lambda x:x[1],reverse=True)
-
-        self.ranked_topic_names_with_none = self.get_topic_named_from_counts(self.ranked_topic_counts_with_none)
 
         return df
 
-    
-    def one_hot_encode(self, df):
-
-        # one hot encode each topic
-        df = pd.concat([df, df['true_topics'].str.get_dummies(sep=' ')], axis=1)
-
-        # rank topic cols in order of frequenly occurring
-        all_cols = list(df.columns)
-        cols_to_keep = all_cols[:all_cols.index('true_topics') + 1]
-
-        if True:
-
-        # if self.use_expanded_topics:
-
-        #     # cols = cols_to_keep + list({'group-of-living-creatures', 'occurent', 'group-of-inanimate-objects', 'object', 'realizable-entity', 'generically-dependent-continuant', 'continuant-fiat-boundary', 'places', 'fiat-object-part', 'quality'})
-        #     cols = cols_to_keep + list(self.chosen_topics)
-
-        #     cols = [col for col in cols if col in df.columns] 
-
-        # else:
-
-            cols = cols_to_keep + self.ranked_topic_names_without_none
-
-        df = df[cols]
-        
-        # make topic string into list
-        df['true_topics'] = df['true_topics'].str.split()
-
-        return df
-
-
-    def topic_selector(self, row):
-
-        # this cell contains more topics than we might want
-        old_passage_topics_string = row
-
-        if self.use_expanded_topics:
-        
-            # keep only the topics which are popular
-            permitted_topics = list(self.chosen_topics)
-
-        else:
-
-            # keep only the topics which are popular
-            permitted_topics = [topic_tuple[0] for topic_tuple in self.ranked_topic_counts_without_none]
-        
-        # compile list of this passage's topics, only including those which were top ranked
-        new_passage_topics_list = [topic for topic in old_passage_topics_string.split() if topic in permitted_topics]
-        
-        # reconnect the topics in the list to form a string separated by spaces
-        new_passage_topics_string = ' '.join(new_passage_topics_list)
-        
-        return new_passage_topics_string
 
 
     def remove_prefix(self, row):
@@ -425,6 +267,7 @@ class DataManager:
     def preprocess_dataframe(self):
 
         if isinstance(getattr(self, "preprocessed_dataframe", None),pd.DataFrame):
+
             return self.preprocessed_dataframe
         
         else:
@@ -535,6 +378,215 @@ class DataManager:
         return df
 
 
+class Categorizer:
+
+    def __init__(self, df, classification_stage, chosen_topics, none_ratio = 1.1):
+
+        self.df = df
+        self.none_ratio = none_ratio
+        self.chosen_topics = chosen_topics
+        self.classification_stage = classification_stage
+        
+
+    def get_topic_named_from_counts(self, ranked_topic_counts):
+
+        return  [topic_tuple[0] for topic_tuple in ranked_topic_counts]
+
+    
+    def get_topic_names_without_none(self):
+
+        if getattr(self, "topic_names_without_none", None):
+
+            pass
+
+        else:
+
+            topic_counts_without_none = self.get_topic_counts_without_none()
+
+            topic_names_without_none = self.get_topic_named_from_counts(topic_counts_without_none)
+
+            self.topic_names_without_none = topic_names_without_none
+        
+        return self.topic_names_without_none
+    
+
+    
+    def get_topic_counts_without_none(self):
+
+        if getattr(self, "topic_counts_without_none", None):
+
+            pass
+
+        else:
+
+            df = self.get_reduced_topics_df()
+
+            # each item in this list is the string of topics for one passage
+            all_passage_topics_lst = df[f'True {self.classification_stage}'].tolist()
+            
+            # huge string of all topics for all psasages
+            all_topics_str = ' '.join(all_passage_topics_lst)
+            
+            # list of all topic instances
+            all_topics_lst = all_topics_str.split()
+            
+            # init dict
+            topic_counts_without_none_dict = {}
+            
+            # loop thru all topic occurrences
+            for topic in all_topics_lst:
+            
+                # increment if seen already
+                if topic in topic_counts_without_none_dict:
+                    topic_counts_without_none_dict[topic] += 1
+            
+                # init if not seen yet
+                else:
+                    topic_counts_without_none_dict[topic] = 1
+            
+            # topic_counts_without_none_dict = {}
+            # for topic in self.chosen_topics:
+            #     topic_counts_without_none_dict[topic]: topic_counts_without_none_dict[topic] 
+
+            # rank the entries by most frequently occurring first
+            topic_counts_without_none_dict = {
+                                    k: v for k, v in sorted(topic_counts_without_none_dict.items(), 
+                                    key=lambda item: item[1],
+                                    reverse=True)
+                                }
+                
+            # convert ranked dict into ranked list
+            topic_counts_without_none_list = [(k, v) for k, v in topic_counts_without_none_dict.items()] 
+
+            self.topic_counts_without_none = topic_counts_without_none_list
+
+        return self.topic_counts_without_none
+
+
+    def get_reduced_topics_df(self):
+
+        if isinstance(getattr(self, "reduced_topics_df", None), pd.DataFrame):
+
+            pass
+
+        else:
+
+            # self.df[f'True {self.classification_stage}'] = self.df.pop(self.classification_stage).apply(self.topic_selector)
+            self.df[f'True {self.classification_stage}'] = self.df[self.classification_stage].apply(self.topic_selector)
+
+        return self.df
+
+
+
+    def limit_nones(self):
+
+        if getattr(self, "limited_nones_df", None):
+
+            pass
+
+        else:
+            
+            df = self.get_reduced_topics_df()
+
+            # place nones last
+            df = df.sort_values(by=f'True {self.classification_stage}', ascending=False)
+
+            # calc how many nones there are
+            none_count = df.loc[df[f'True {self.classification_stage}'] == ""].shape[0]
+
+            # num of occurrences of most popular topic 
+            top_substantive_topic_count = self.get_topic_counts_without_none()[0][1]
+
+            # init
+            nones_to_drop = 0
+            nones_to_keep = none_count
+            
+            if self.none_ratio == 'all':
+
+                pass
+                
+            else:
+
+                # compute num of nones to keep based upon ratio
+                nones_to_keep = int(top_substantive_topic_count * self.none_ratio)
+
+                # check there are more nones than the computed limit
+                if nones_to_keep <= none_count:
+                        
+                    # calc how many nones to drop
+                    nones_to_drop = none_count - nones_to_keep
+
+                if nones_to_drop > 0:
+
+                    # remove final excess 'none' rows
+                    df = df.iloc[:-1 * nones_to_drop]
+
+            # update list of topic counts
+            self.ranked_topic_counts_with_none = self.get_topic_counts_without_none() + [('None',nones_to_keep)]
+            
+            # ensure 'None' is ordered acc to rank or occurrences, e.g. at the beginning if has most
+            self.ranked_topic_counts_with_none.sort(key=lambda x:x[1],reverse=True)
+
+            self.ranked_topic_names_with_none = self.get_topic_named_from_counts(self.ranked_topic_counts_with_none)
+
+            self.limited_nones_df = df
+
+        return self.limited_nones_df
+
+    
+    def get_one_hot_encoded_df(self):
+
+        if getattr(self,'one_hot_encoded_df',None):
+
+            pass
+
+        else:
+
+            df = self.limit_nones()
+
+            # one hot encode each topic
+            df = pd.concat([df, df[f'True {self.classification_stage}'].str.get_dummies(sep=' ')], axis=1)
+
+            # rank topic cols in order of frequenly occurring
+            # all_cols = list(df.columns)
+            # cols_to_keep = all_cols[:all_cols.index(f'True {self.classification_stage}') + 1]
+
+            # cols = cols_to_keep + self.ranked_topic_names_without_none
+
+            # df = df[cols]
+            
+            # make topic string into list
+            df[f'True {self.classification_stage}'] = df[f'True {self.classification_stage}'].str.split()
+
+            self.one_hot_encoded_df = df
+
+        return self.one_hot_encoded_df
+
+
+    def topic_selector(self, row):
+
+        # this cell contains more topics than we might want
+        old_passage_topics_string = row
+
+        if self.classification_stage:
+        
+            # keep only the topics which are popular
+            permitted_topics = list(self.chosen_topics)
+
+        else:
+
+            # keep only the topics which are popular
+            permitted_topics = [topic_tuple[0] for topic_tuple in self.ranked_topic_counts_without_none]
+        
+        # compile list of this passage's topics, only including those which were top ranked
+        new_passage_topics_list = [topic for topic in old_passage_topics_string.split() if topic in permitted_topics]
+        
+        # reconnect the topics in the list to form a string separated by spaces
+        new_passage_topics_string = ' '.join(new_passage_topics_list)
+        
+        return new_passage_topics_string
+
+
 class DataSplitter:
 
     def __init__(self, data_df, should_separate, DATA_PATH):
@@ -542,6 +594,7 @@ class DataSplitter:
         self.data_df = data_df
         self.DATA_PATH = DATA_PATH
         self.should_separate = should_separate
+        
 
     def get_datasets(self, vectorizer):
 
@@ -621,10 +674,14 @@ class DataSplitter:
         start_time = datetime.now()
 
         # topics columns, with 0/1 indicating if the topic of this column relates to that row's passage
-        all_cols = list(self.data_df.columns)
-        cols_to_keep = all_cols[all_cols.index('true_topics') + 1:-1]
-        y_train = train[cols_to_keep]
-        y_test = test[cols_to_keep]
+        
+        # all_cols = list(self.data_df.columns)
+        
+        # cols_to_keep = all_cols[all_cols.index('true_topics') + 1:-1]
+        y_train = train._get_numeric_data()
+        y_test = test._get_numeric_data()
+        # y_train = train[cols_to_keep]
+        # y_test = test[cols_to_keep]
 
         return train, test, x_train, x_test, y_train, y_test
 
@@ -633,16 +690,12 @@ class DataSplitter:
 
 
 class Predictor:
-    def __init__(self, classifier, implement_rules,
-    # text_df,
-    # train, test, 
-    top_topic_names):
-    # def __init__(self, classifier, test, x_test, top_topics):
+    def __init__(self, classifier, implement_rules, classification_stage, top_topic_names):
         
         self.classifier = classifier
         self.implement_rules = implement_rules
         self.top_topic_names = top_topic_names
-    
+        self.classification_stage = classification_stage
 
     def get_preds_list(self, x_input, text_df):
 
@@ -688,18 +741,18 @@ class Predictor:
                             
                             passage_labels.append(topic_name)
 
-
             pred_labels_list.append(passage_labels)
-
 
         return pred_labels_list
 
 
     def get_pred_vs_true(self, true_labels_df, pred_list):
         
-        true_vs_pred_labels_df = true_labels_df[['passage_words','true_topics']]
+        wanted_cols = [col for col in true_labels_df.columns if 'topic' in col.lower()]
 
-        true_vs_pred_labels_df['pred_topics'] = pred_list
+        true_vs_pred_labels_df = true_labels_df[['passage_words'] + wanted_cols]
+        
+        true_vs_pred_labels_df[f'Pred {self.classification_stage}'] = pred_list
 
         return true_vs_pred_labels_df
 
@@ -840,13 +893,13 @@ class ConfusionMatrix:
 
 class Scorer:
 
-    def __init__(self, top_topics, topic_counts, row_lim, expt_num, 
+    def __init__(self, topic_names, topic_counts, row_lim, expt_num, 
                 none_ratio, use_expanded_topics, should_print = False,
                 chosen_topics = None):
     
         self.row_lim = row_lim
         self.expt_num = expt_num
-        self.top_topics = top_topics
+        self.topic_names = topic_names
         self.none_ratio = none_ratio
         self.should_print = should_print
         self.topic_counts = topic_counts
@@ -968,3 +1021,122 @@ class Trainer:
             print("Best score:",classifier.best_score_)
         
         return classifier
+
+
+class MultiStageClassifier:
+
+    def __init__(self, expt_num, super_topics):
+
+        # self.raw_df = raw_df
+        self.expt_num = expt_num
+        self.super_topics = super_topics
+
+    def super_classify():
+            
+            # df = all data with topics and exp topics
+
+            # super_topics = [top 4 or 5]
+
+        # limited_df = without extraneous super topics
+
+        # stage 1 result
+        # pred_super_df  = df with pred super_topics
+
+        # limiter = Limiter()
+
+        # now stage 2
+        return None
+
+
+    def get_children_list(self, super_topic):
+
+        self.super_topic = super_topic
+
+
+        children_list_name = f"children_of_{super_topic}"
+
+        path = f'data/{children_list_name}.pickle'
+
+        if os.path.exists(path):
+
+            with open(path, 'rb') as handle:
+
+                children_names_list = pickle.load(handle)
+
+        else:
+                
+            super_topic_obj = Topic.init(super_topic)
+
+            children_obj_lst = super_topic_obj.topics_by_link_type_recursively()
+
+            children_names_list = []
+
+            for child_obj in children_obj_lst:
+
+                child_name = child_obj.slug
+
+                children_names_list.append(child_name)
+
+            with open(path, 'wb') as handle:
+                
+                pickle.dump(children_names_list, handle, protocol=3)
+
+        return children_names_list
+
+
+    def child_selector(self, row, super_topic):
+
+        old_passage_topics_string = row
+
+        children_names_lst = self.get_children_list(super_topic)
+
+        abridged_topics_list = []
+
+        passage_topics_list = [topic for topic in old_passage_topics_string.split()]
+        
+        for topic in passage_topics_list:
+        
+            if topic in children_names_lst:
+        
+                abridged_topics_list.append(topic)
+
+        new_passage_topics_string = ' '.join(abridged_topics_list)
+        
+        return new_passage_topics_string
+
+
+    def get_numeric_df(self, df, super_topic):
+
+        children_topics = self.get_children_list(super_topic)
+
+        topic_col = [col for col in df.columns if super_topic in col][0]
+        
+        cols = ['passage_words',topic_col]
+
+        df = df[cols]
+
+        df.rename(columns={topic_col: 'Topics'}, inplace=True)
+
+        categorizer = Categorizer(df=df, classification_stage='Topics', chosen_topics=children_topics)
+
+        one_hot_encoded_df = categorizer.get_one_hot_encoded_df()
+
+        return one_hot_encoded_df
+
+
+    def sort_children(self, df):
+
+        for super_topic in self.super_topics:
+            
+            df[f'True Children of {super_topic}'] = df['Topics'].apply(self.child_selector,args=[super_topic])
+
+        return df
+
+
+    def sub_classify():
+        for super_topic in super_topics:
+            pass
+
+        result = None
+
+        return result

@@ -12,7 +12,7 @@ import warnings
 
 from tqdm import tqdm
 from numpy import arange
-from classes import DataManager, ConfusionMatrix, Predictor, DataSplitter, Scorer, Trainer, MultiStageClassifier, Categorizer
+from classes import DataManager, ConfusionMatrix, Predictor, DataSplitter, Scorer, Trainer, Categorizer
 from sklearn.svm import SVC, LinearSVC
 from scipy.sparse import csr_matrix, lil_matrix
 from sklearn.utils import shuffle

@@ -1,3 +1,6 @@
+from datetime import datetime
+start_time = datetime.now()
+
 # imports 
 import sys
 import time
@@ -9,8 +12,7 @@ import warnings
 
 from tqdm import tqdm
 from numpy import arange
-from classes import DataManager, ConfusionMatrix, Predictor, DataSplitter, Scorer, Trainer
-from datetime import datetime
+from classes import DataManager, ConfusionMatrix, Predictor, DataSplitter, Scorer, Trainer, MultiStageClassifier, Categorizer
 from sklearn.svm import SVC, LinearSVC
 from scipy.sparse import csr_matrix, lil_matrix
 from sklearn.utils import shuffle
@@ -23,7 +25,7 @@ from skmultilearn.adapt import BRkNNaClassifier, MLkNN
 from sklearn.multioutput import MultiOutputClassifier
 from sklearn.naive_bayes import GaussianNB, MultinomialNB
 from sklearn.linear_model import LogisticRegression, SGDClassifier
-from multi_stage_classifer import multi_stage_classifer
+# from multi_stage_classifier import multi_stage_classifier
 from sklearn.model_selection import train_test_split, GridSearchCV
 from skmultilearn.problem_transform import LabelPowerset, BinaryRelevance, ClassifierChain
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -31,6 +33,10 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 # functions
 def time_and_reset(start_time):
+    """
+    Usage: 
+    start_time = time_and_reset(start_time)
+    """
     print('#',datetime.now() - start_time)
     return datetime.now()
 
@@ -52,20 +58,20 @@ pd.options.display.max_colwidth = 50
 
 # actual code begins
 
-start_time = datetime.now()
 
 DATA_PATH = 'data/concat_english_prefix_hebrew.csv'
 
-classifiers = [BinaryRelevance(classifier=LinearSVC()),]
+# classifiers = [BinaryRelevance(classifier=LinearSVC()),]
+classifier = BinaryRelevance(classifier=LinearSVC())
 
 # row_lims = [20000,40000,80000,100000,170000, None]
 
 # list of topics that you want to train and analyze
-chosen_topics_list = []
-chosen_topics = ['generically-dependent-continuant', 'independent-continuant', 'occurent', 'specifically-dependent-continuant']
-chosen_topics_list.append(chosen_topics)
-chosen_topics = ['generically-dependent-continuant', 'independent-continuant', 'occurent', 'quality', 'realizable-entity']
-chosen_topics_list.append(chosen_topics)
+chosen_super_topics_list = []
+chosen_super_topics = ['generically-dependent-continuant', 'independent-continuant', 'occurent', 'specifically-dependent-continuant']
+chosen_super_topics_list.append(chosen_super_topics)
+# chosen_super_topics = ['generically-dependent-continuant', 'independent-continuant', 'occurent', 'quality', 'realizable-entity']
+# chosen_super_topics_list.append(chosen_super_topics)
 
 # how many topics to consider
 topic_limit = None
@@ -91,10 +97,13 @@ use_expanded_topics = True
 # keep training examples from leaking into the test set
 should_separate = True
 
-for expt_num, chosen_topics in enumerate(chosen_topics_list):
+stages = [1,2]
+
+# for expt_num, chosen_super_topics in enumerate(chosen_super_topics_list):
+for expt_num, stage in enumerate(stages):
 # for expt_num, row_lim in enumerate(row_lims):
 # if True:
-    row_lim = 1000
+    row_lim = 100
 
     print(f'\n\n# expt #{expt_num} = {row_lim}')
 
@@ -102,6 +111,7 @@ for expt_num, chosen_topics in enumerate(chosen_topics_list):
     none_ratio = 1.1
     
     if use_cached_df:
+
         tidied_up_df = pd.read_csv(DATA_PATH[:-4] + '_tidied_up_df.csv')
 
     elif not use_cached_df:
@@ -111,105 +121,102 @@ for expt_num, chosen_topics in enumerate(chosen_topics_list):
 
         # take subportion
         raw_df = raw_df[:row_lim]
-        print("# actual num rows taken =",raw_df.shape[0])
+
+        num_rows, _ = raw_df.shape
+        
+        print(f"# actual num rows taken = {num_rows}",)
 
         # preprocessed data
-        data = DataManager(raw_df = raw_df, topic_limit = topic_limit, none_ratio = none_ratio, 
+        data = DataManager(raw_df = raw_df, topic_limit = topic_limit, 
                             should_stem = False, should_clean = True, should_remove_stopwords = False, 
-                            use_expanded_topics = use_expanded_topics, chosen_topics = chosen_topics
+                            use_expanded_topics = use_expanded_topics,
                             )
 
-        # list of most chosen topics
-        reduced_topics_df = data.get_reduced_topics_df()
+    tidy_df = data.tidy_up(lang_to_vec)
 
-        limited_nones_df = data.limit_nones(reduced_topics_df)
+    classification_stage='Super Topics'
 
-        one_hot_encoded_df = data.one_hot_encode(limited_nones_df)
+    categorizer = Categorizer(df=tidy_df, none_ratio=none_ratio, 
+                                classification_stage=classification_stage, 
+                                chosen_topics=chosen_super_topics)
 
-        tidied_up_df = data.tidy_up(one_hot_encoded_df)
-
-        tidied_up_df.to_csv(DATA_PATH[:-4] + '_tidied_up_df.csv')
-        
-
-
-    data_df = tidied_up_df
-
-    # combine english and hebrew
-    if lang_to_vec == 'eng':
-        data_df['passage_words'] = data_df['passage_text_english']
-
-    if lang_to_vec == 'heb':
-        data_df['passage_words'] = data_df['passage_text_hebrew_parsed']
-
-    if lang_to_vec == 'both':
-        data_df['passage_words'] = data_df['passage_text_english'] + ' ' + data_df['passage_text_hebrew_parsed'] 
+    OHE_df = categorizer.get_one_hot_encoded_df()
 
     # init a vectorizer that will convert string of words into numerical format
     vectorizer = TfidfVectorizer()
 
     # init class to split data
-    splitter = DataSplitter(data_df, should_separate, DATA_PATH = DATA_PATH)
+    splitter = DataSplitter(OHE_df, should_separate, DATA_PATH = DATA_PATH)
 
     # get subdivided datasets
     train, test, x_train, x_test, y_train, y_test = splitter.get_datasets(vectorizer)
 
-    # init series of predictors, one for each classifier
-    predictors = []
 
-    # loop thru various classifier types
-    for classifier in classifiers:
+    trainer = Trainer(classifier)
 
-        trainer = Trainer(classifier)
-        classifier = trainer.train(x_train, y_train)
+    trained_classifier = trainer.train(x_train, y_train)
+    
+    # init class of predictor based on classifier and list of chosen topics
+    predictor = Predictor(trained_classifier, implement_rules = implement_rules, 
+                            classification_stage = classification_stage,
+                            top_topic_names = chosen_super_topics)
+    
+    # init class to constrcut confusion matrix
+    cm_maker = ConfusionMatrix(categorizer.ranked_topic_names_with_none, 
+                                # should_print = True
+                                )
+
+    # init class to compute scores
+    scorer = Scorer(categorizer.get_topic_names_without_none(), categorizer.get_topic_counts_without_none(), row_lim, expt_num, none_ratio, 
+                    should_print = True,
+                    use_expanded_topics = use_expanded_topics, chosen_topics = chosen_super_topics
+                    )
+
+    # list of predictions
+    train_pred_list = predictor.get_preds_list(x_train, text_df = train)
+    test_pred_list = predictor.get_preds_list(x_test, text_df = test)
+
+    # columns to compare pred and true labels
+    train_pred_vs_true = predictor.get_pred_vs_true(train, train_pred_list)
+    test_pred_vs_true = predictor.get_pred_vs_true(test, test_pred_list)
+
+    multistage_classifier = MultiStageClassifier(expt_num, super_topics = chosen_super_topics)
+    
+    train_sorted_children_df = multistage_classifier.sort_children(train_pred_vs_true)
+    test_sorted_children_df = multistage_classifier.sort_children(test_pred_vs_true)
+
+    # probably need to evaluate -- i.e. score -- both stages of classification separately, as well as together.
+
+    for super_topic in chosen_super_topics:
+
+        # children_list = multistage_classifier.get_children_list(super_topic)
+
+        y_train_df = multistage_classifier.get_numeric_df(train_sorted_children_df, super_topic)
+
         
-        # init class of predictor based on classifier and list of chosen topics
-        predictor = Predictor(classifier, implement_rules = implement_rules, top_topic_names = data.ranked_topic_names_without_none)
-        
-        # store predictor in arsenal
-        predictors.append(predictor)
 
-        # init class to constrcut confusion matrix
-        cm_maker = ConfusionMatrix(data.ranked_topic_names_with_none, 
-                                    # should_print = True
-                                    )
+        numeric_test_df = multistage_classifier.get_numeric_df(test_sorted_children_df, super_topic)
 
-        # init class to compute scores
-        scorer = Scorer(data.ranked_topic_names_without_none, data.ranked_topic_counts_without_none, row_lim, expt_num, none_ratio, 
-        # scorer = Scorer(data.ranked_topic_names_with_none, data.ranked_topic_counts_with_none, row_lim, expt_num, none_ratio, 
-                        should_print = True,
-                        use_expanded_topics = use_expanded_topics, chosen_topics = chosen_topics
-                        )
 
-        # loop through all predictors
-        for predictor in predictors:
 
-            # list of predictions
-            train_pred_list = predictor.get_preds_list(x_train, text_df = train)
-            test_pred_list = predictor.get_preds_list(x_test, text_df = test)
 
-            # columns to compare pred and true labels
-            train_pred_vs_true = predictor.get_pred_vs_true(train, train_pred_list)
-            test_pred_vs_true = predictor.get_pred_vs_true(test, test_pred_list)
+        print()
 
-            # save results
-            train_pred_vs_true.to_pickle(f'/persistent/Sefaria-Project/ML/data/train_pred_vs_true_{none_ratio}.pkl')
-            test_pred_vs_true.to_pickle(f'/persistent/Sefaria-Project/ML/data/test_pred_vs_true_{none_ratio}.pkl')
+    # get confusion matrices
+    train_cm = cm_maker.get_cm_values(train_pred_vs_true)
+    test_cm = cm_maker.get_cm_values(test_pred_vs_true)
 
-            # get confusion matrices
-            train_cm = cm_maker.get_cm_values(train_pred_vs_true)
-            test_cm = cm_maker.get_cm_values(test_pred_vs_true)
+    # check the worst performing examples to see what's going wrong
+    worst_train = cm_maker.check_worst(train_cm, train_pred_vs_true)
+    worst_test = cm_maker.check_worst(test_cm, test_pred_vs_true)
 
-            # check the worst performing examples to see what's going wrong
-            worst_train = cm_maker.check_worst(train_cm, train_pred_vs_true)
-            worst_test = cm_maker.check_worst(test_cm, test_pred_vs_true)
+    # get actual scores 
+    train_score_df = scorer.get_stats_df(train_cm, dataset = 'train')
+    test_score_df = scorer.get_stats_df(test_cm, dataset = 'test')
 
-            # get actual scores 
-            train_score_df = scorer.get_stats_df(train_cm, dataset = 'train')
-            test_score_df = scorer.get_stats_df(test_cm, dataset = 'test')
- 
-            # save results
-            train_score_df.to_pickle(f'/persistent/Sefaria-Project/ML/data/train_score_df{none_ratio}.pkl')
-            test_score_df.to_pickle(f'/persistent/Sefaria-Project/ML/data/test_score_df_{none_ratio}.pkl')
+    # save results
+    train_score_df.to_pickle(f'/persistent/Sefaria-Project/ML/data/train_score_df{none_ratio}.pkl')
+    test_score_df.to_pickle(f'/persistent/Sefaria-Project/ML/data/test_score_df_{none_ratio}.pkl')
 
 # compute and display time elapsed
 end_time = datetime.now()

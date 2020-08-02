@@ -380,15 +380,14 @@ class DataManager:
 
 class Categorizer:
 
-    def __init__(self, df, classification_stage, chosen_topics, none_ratio = 1.1):
+    def __init__(self, df, chosen_topics, none_ratio = 1.1):
 
         self.df = df
         self.none_ratio = none_ratio
-        self.chosen_topics = chosen_topics
-        self.classification_stage = classification_stage
+        self.chosen_topics = sorted(chosen_topics)
         
 
-    def get_topic_named_from_counts(self, ranked_topic_counts):
+    def get_topic_names(self, ranked_topic_counts):
 
         return  [topic_tuple[0] for topic_tuple in ranked_topic_counts]
 
@@ -403,14 +402,13 @@ class Categorizer:
 
             topic_counts_without_none = self.get_topic_counts_without_none()
 
-            topic_names_without_none = self.get_topic_named_from_counts(topic_counts_without_none)
+            topic_names_without_none = self.get_topic_names(topic_counts_without_none)
 
             self.topic_names_without_none = topic_names_without_none
         
         return self.topic_names_without_none
-    
 
-    
+
     def get_topic_counts_without_none(self):
 
         if getattr(self, "topic_counts_without_none", None):
@@ -438,16 +436,14 @@ class Categorizer:
             
                 # increment if seen already
                 if topic in topic_counts_without_none_dict:
+
                     topic_counts_without_none_dict[topic] += 1
             
                 # init if not seen yet
                 else:
+
                     topic_counts_without_none_dict[topic] = 1
             
-            # topic_counts_without_none_dict = {}
-            # for topic in self.chosen_topics:
-            #     topic_counts_without_none_dict[topic]: topic_counts_without_none_dict[topic] 
-
             # rank the entries by most frequently occurring first
             topic_counts_without_none_dict = {
                                     k: v for k, v in sorted(topic_counts_without_none_dict.items(), 
@@ -471,8 +467,11 @@ class Categorizer:
 
         else:
 
-            # self.df[f'True {self.classification_stage}'] = self.df.pop(self.classification_stage).apply(self.topic_selector)
-            self.df[f'True {self.classification_stage}'] = self.df[self.classification_stage].apply(self.topic_selector)
+            for col in self.df.columns:
+
+                if "Children of" in col:
+
+                    self.df[col] = self.df[col].apply(self.topic_selector)
 
         return self.df
 
@@ -547,14 +546,6 @@ class Categorizer:
             # one hot encode each topic
             df = pd.concat([df, df[f'True {self.classification_stage}'].str.get_dummies(sep=' ')], axis=1)
 
-            # rank topic cols in order of frequenly occurring
-            # all_cols = list(df.columns)
-            # cols_to_keep = all_cols[:all_cols.index(f'True {self.classification_stage}') + 1]
-
-            # cols = cols_to_keep + self.ranked_topic_names_without_none
-
-            # df = df[cols]
-            
             # make topic string into list
             df[f'True {self.classification_stage}'] = df[f'True {self.classification_stage}'].str.split()
 
@@ -568,15 +559,11 @@ class Categorizer:
         # this cell contains more topics than we might want
         old_passage_topics_string = row
 
-        if self.classification_stage:
-        
-            # keep only the topics which are popular
-            permitted_topics = list(self.chosen_topics)
+        # keep only the topics which are popular
+        permitted_topics = list(self.chosen_topics)
 
-        else:
-
-            # keep only the topics which are popular
-            permitted_topics = [topic_tuple[0] for topic_tuple in self.ranked_topic_counts_without_none]
+        # keep only the topics which are popular
+        permitted_topics = [topic_tuple[0] for topic_tuple in self.get_topic_counts()]
         
         # compile list of this passage's topics, only including those which were top ranked
         new_passage_topics_list = [topic for topic in old_passage_topics_string.split() if topic in permitted_topics]
@@ -690,18 +677,18 @@ class DataSplitter:
 
 
 class Predictor:
-    def __init__(self, classifier, implement_rules, classification_stage, top_topic_names):
+    def __init__(self, classifier, implement_rules, classification_stage, topic_names):
         
         self.classifier = classifier
+        self.topic_names = sorted(topic_names)
         self.implement_rules = implement_rules
-        self.top_topic_names = top_topic_names
         self.classification_stage = classification_stage
 
     def get_preds_list(self, x_input, text_df):
 
         # text_df = self.text_df
         classifier = self.classifier
-        top_topic_names = self.top_topic_names 
+        topic_names = self.topic_names 
 
         # list of csr matrices, e.g. preds_list = [[0,1,0,1,0],[0,0,0,1,0],...,[1,0,0,0,0]]
         pred_arrays_list = list(classifier.predict(x_input))
@@ -724,7 +711,7 @@ class Predictor:
             # if 1 occurs in ith element in the array, record ith topic
             for topic_index, pred_value in enumerate(passage_pred_list):
                 
-                topic_name = top_topic_names[topic_index]
+                topic_name = topic_names[topic_index]
                 
                 if pred_value != 0:
 
@@ -759,9 +746,9 @@ class Predictor:
 
 class ConfusionMatrix:
 
-    def __init__(self, top_topics, should_print = False):
+    def __init__(self, topics, should_print = False):
 
-        self.top_topics = top_topics
+        self.topics = topics
         self.should_print = should_print
 
     def get_cm_values(self, pred_vs_true):
@@ -842,8 +829,8 @@ class ConfusionMatrix:
                     y_true.append("None")
                     y_pred.append(pred_label)
         
-        y_actu = pd.Categorical(y_true, categories=self.top_topics)
-        y_pred = pd.Categorical(y_pred, categories=self.top_topics)
+        y_actu = pd.Categorical(y_true, categories=self.topics)
+        y_pred = pd.Categorical(y_pred, categories=self.topics)
 
         cm = pd.crosstab(y_actu, y_pred, rownames=['True'], colnames = ['Prediction'], dropna=False) 
 
@@ -862,7 +849,7 @@ class ConfusionMatrix:
             print(cm_norm.round(2))
 
         TP_rates = {}
-        for topic in self.top_topics:
+        for topic in self.topics:
             TP_rate = cm_norm.loc[topic,topic]
             TP_rates[topic] = TP_rate
 
@@ -894,7 +881,7 @@ class ConfusionMatrix:
 class Scorer:
 
     def __init__(self, topic_names, topic_counts, row_lim, expt_num, 
-                none_ratio, use_expanded_topics, should_print = False,
+                none_ratio, use_expanded_topics = False, should_print = False,
                 chosen_topics = None):
     
         self.row_lim = row_lim
@@ -980,9 +967,8 @@ class Scorer:
         # my_topics = ["Overall",'laws-of-judges-and-courts', 'prayer', 'procedures-for-judges-and-conduct-towards-them']
         my_topics = self.chosen_topics + ['Overall']
         
-        
-        
         selected_topics_df = topic_stats_df.loc[topic_stats_df['Topic'].isin(my_topics)]
+
         selected_topics_list = selected_topics_df['Topic'].to_list()
 
         selected_scores_list = selected_topics_df['F1score'].to_list()
@@ -1052,7 +1038,6 @@ class MultiStageClassifier:
 
         self.super_topic = super_topic
 
-
         children_list_name = f"children_of_{super_topic}"
 
         path = f'data/{children_list_name}.pickle'
@@ -1121,7 +1106,11 @@ class MultiStageClassifier:
 
         one_hot_encoded_df = categorizer.get_one_hot_encoded_df()
 
-        return one_hot_encoded_df
+        numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
+
+        OHE_topics = one_hot_encoded_df.select_dtypes(include=numerics)
+
+        return OHE_topics
 
 
     def sort_children(self, df):

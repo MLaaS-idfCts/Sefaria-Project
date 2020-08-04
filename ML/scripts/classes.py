@@ -36,6 +36,7 @@ from operator import itemgetter
 from datetime import datetime
 from unidecode import unidecode
 from nltk.stem import SnowballStemmer
+from collections import Counter
 from nltk.corpus import stopwords
 from sklearn.svm import LinearSVC
 from IPython.display import HTML
@@ -54,17 +55,18 @@ np.seterr(divide='ignore', invalid='ignore')
 
 class DataManager:
 
-    def __init__(self, raw_df, topic_limit, 
-    # none_ratio = 1.1, 
-    should_limit_nones = False,
+    def __init__(self, data_path, row_lim, topic_limit, 
+                super_topics,
+                should_limit_nones = False, 
                 should_stem = False, should_clean = True, keep_all_nones = False, 
                 should_remove_stopwords = False, use_expanded_topics = False,
                 ):
         
-        self.raw_df = raw_df
-        # self.none_ratio = none_ratio
+        self.data_path = data_path
+        self.row_lim = row_lim
         self.should_stem = should_stem
         self.topic_limit = topic_limit
+        self.super_topics = super_topics
         self.should_clean = should_clean
         self.keep_all_nones = keep_all_nones
         self.should_limit_nones = should_limit_nones
@@ -110,6 +112,22 @@ class DataManager:
 
 
 
+    def establish_dataframe(self):
+        
+        if isinstance(getattr(self, "dataframe", None), pd.DataFrame):
+            
+            return self.dataframe
+
+        else:
+            
+            raw_df = pd.read_csv(self.data_path)            
+            shuffled_df = raw_df.sample(frac=1,random_state=42)
+            df = shuffled_df[:self.row_lim]
+            num_rows, _ = df.shape
+            print(f"# actual num rows taken = {num_rows}",)
+        return df
+    
+    
     def remove_junk_rows(self):
         
         if isinstance(getattr(self, "without_junk_rows", None), pd.DataFrame):
@@ -117,8 +135,8 @@ class DataManager:
             return self.without_junk_rows
 
         else:
-
-            df = self.raw_df
+            
+            df = self.establish_dataframe()
             
             # remove repeats
             df = df.drop_duplicates()
@@ -130,6 +148,8 @@ class DataManager:
             self.without_junk_rows = df
 
         return df
+
+
 
 
     def tidy_up(self, lang_to_vec):
@@ -150,15 +170,12 @@ class DataManager:
 
             df['passage_text_english'] = df['passage_text_english'].apply(self.keepAlpha)
     
-        # remove stopwords, if you so chose  
         if self.should_remove_stopwords:
             df['passage_text_english'] = df['passage_text_english'].apply(self.stopword_cleaner)
     
-        # stem words, if you so chose  
         if self.should_stem:
             df['passage_text_english'] = df['passage_text_english'].apply(self.stemmer)
             
-        # combine english and hebrew
         if lang_to_vec == 'eng':
             df['passage_words'] = df['passage_text_english']
 
@@ -172,11 +189,16 @@ class DataManager:
 
         df = df[wanted_cols]
 
-        df.rename(columns={'Expanded Topics': 'Super Topics'}, inplace=True)
+        df.rename(columns={'Topics': 'True Topics'}, inplace=True)
 
+        topic_counter = TopicCounter()
+
+        df['True Super Topics'] = df.pop('Expanded Topics').apply(
+                                                            topic_counter.topic_limiter,
+                                                            args=(self.super_topics,)
+                                                            )
 
         return df
-
 
 
     def remove_prefix(self, row):
@@ -380,12 +402,106 @@ class DataManager:
 
 class Categorizer:
 
-    def __init__(self, df, chosen_topics, none_ratio = 1.1):
+    def __init__(self, df, super_topics):
 
         self.df = df
-        self.none_ratio = none_ratio
-        self.chosen_topics = sorted(chosen_topics)
+        self.super_topics = super_topics
+        self.topic_lists = {}
+        self.topic_lists['Super Topics'] = self.super_topics
         
+
+    def get_children_list(self, super_topic):
+
+        self.super_topic = super_topic
+
+        children_list_name = f"children_of_{super_topic}"
+
+        path = f'data/{children_list_name}.pickle'
+
+        if os.path.exists(path):
+
+            with open(path, 'rb') as handle:
+
+                children_names_list = pickle.load(handle)
+
+        else:
+                
+            super_topic_obj = Topic.init(super_topic)
+
+            children_obj_lst = super_topic_obj.topics_by_link_type_recursively()
+
+            children_names_list = []
+
+            for child_obj in children_obj_lst:
+
+                child_name = child_obj.slug
+
+                children_names_list.append(child_name)
+
+            with open(path, 'wb') as handle:
+                
+                pickle.dump(children_names_list, handle, protocol=3)
+
+        children_names_list.remove(super_topic)
+        
+        return children_names_list 
+
+
+
+
+
+    def get_numeric_df(self, df, super_topic):
+
+        children_topics = self.get_children_list(super_topic)
+
+        topic_col = [col for col in df.columns if super_topic in col][0]
+        
+        cols = ['passage_words',topic_col]
+
+        df = df[cols]
+
+        df.rename(columns={topic_col: 'Topics'}, inplace=True)
+
+        categorizer = Categorizer(df=df, classification_stage='Topics', chosen_topics=children_topics)
+
+        one_hot_encoded_df = categorizer.get_one_hot_encoded_df()
+
+        numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
+
+        OHE_topics = one_hot_encoded_df.select_dtypes(include=numerics)
+
+        return OHE_topics
+
+
+    def sort_children(self, max_children):
+
+        # categorizer = Categorizer()
+
+        topic_counter = TopicCounter()
+
+        for super_topic in self.super_topics:
+
+            children_names_lst = self.get_children_list(super_topic)
+
+            self.df[f'True Children of {super_topic}'] = self.df['True Topics'].apply(
+                                                                                topic_counter.topic_limiter,
+                                                                                args=[children_names_lst]
+                                                                                )
+
+            topic_counts = topic_counter.get_counts(self.df[f'True Children of {super_topic}'], max_children)
+
+            topic_names = [topic_count[0] for topic_count in topic_counts]
+
+            self.topic_lists[f'Children of {super_topic}'] = topic_names
+
+            self.df[f'True Children of {super_topic}'] = self.df[f'True Children of {super_topic}'].apply(
+                                                                                topic_counter.topic_limiter,
+                                                                                args=[topic_names]
+                                                                                )
+
+
+        return self.df
+
 
     def get_topic_names(self, ranked_topic_counts):
 
@@ -554,26 +670,6 @@ class Categorizer:
         return self.one_hot_encoded_df
 
 
-    def topic_selector(self, row):
-
-        # this cell contains more topics than we might want
-        old_passage_topics_string = row
-
-        # keep only the topics which are popular
-        permitted_topics = list(self.chosen_topics)
-
-        # keep only the topics which are popular
-        permitted_topics = [topic_tuple[0] for topic_tuple in self.get_topic_counts()]
-        
-        # compile list of this passage's topics, only including those which were top ranked
-        new_passage_topics_list = [topic for topic in old_passage_topics_string.split() if topic in permitted_topics]
-        
-        # reconnect the topics in the list to form a string separated by spaces
-        new_passage_topics_string = ' '.join(new_passage_topics_list)
-        
-        return new_passage_topics_string
-
-
 class DataSplitter:
 
     def __init__(self, data_df, should_separate, DATA_PATH):
@@ -677,60 +773,113 @@ class DataSplitter:
 
 
 class Predictor:
-    def __init__(self, classifier, implement_rules, classification_stage, topic_names):
+    
+    
+    def __init__(self, classifier, vectorizer, df, super_topics, topic_lists):
         
         self.classifier = classifier
-        self.topic_names = sorted(topic_names)
-        self.implement_rules = implement_rules
-        self.classification_stage = classification_stage
+        self.vectorizer = vectorizer
+        self.df = df
+        self.super_topics = super_topics
+        self.topic_lists = topic_lists
 
-    def get_preds_list(self, x_input, text_df):
 
-        # text_df = self.text_df
-        classifier = self.classifier
-        topic_names = self.topic_names 
+    def split_data(self):
 
-        # list of csr matrices, e.g. preds_list = [[0,1,0,1,0],[0,0,0,1,0],...,[1,0,0,0,0]]
-        pred_arrays_list = list(classifier.predict(x_input))
+        self.one_hot_encode()
+        
+        self.train_set, self.test_set = train_test_split(self.df, shuffle = False, test_size=0.30)
 
-        # init list of sublists, one sublist per passage, 
-        # e.g. pred_labels_list = [['prayer'], ['prayer','judges'], [], ['moses']]
+        self.train_text = self.train_set['passage_words']
+        self.test_text = self.test_set['passage_words']
+
+
+    def select_topics(self, topic_group):
+        
+        self.relevant_topics = self.topic_lists[topic_group]
+
+
+    def train_classifier(self):
+
+        # pass
+
+        self.x_train = self.vectorizer.fit_transform(self.train_text)
+        self.x_test = self.vectorizer.transform(self.test_text)
+
+        self.y_train = self.train_set[self.relevant_topics]
+        self.y_test = self.test_set[self.relevant_topics]
+
+        self.classifier.fit(self.x_train, self.y_train)
+
+
+    def get_pred_labels_list(self, data_set, pred_arrays_list, topic_group):
+
         pred_labels_list = []
-        
-        # loop thru each matrix in list, again one matrix per passage, 
-        for passage_index, passage_pred_array in enumerate(pred_arrays_list):
-        # for passage_index, passage_pred_array in enumerate(pred_arrays_list):
-        
-            if isinstance(passage_pred_array, scipy.sparse.csr.csr_matrix) or isinstance(passage_pred_array, np.int64) or isinstance(passage_pred_array, scipy.sparse.lil.lil_matrix):
-                # array = array.tolil().data.tolist()
-                passage_pred_list = [passage_pred_array[0,i] for i in range(passage_pred_array.shape[1])]
-        
-            # init topics list for this row, e.g. passage_labels = ['prayer', 'moses']
+
+        for passage_index, pred_array in enumerate(pred_arrays_list):
+    
+            passage_pred_list = [pred_array[0,i] for i in range(pred_array.shape[1])]
+
             passage_labels = []
         
-            # if 1 occurs in ith element in the array, record ith topic
             for topic_index, pred_value in enumerate(passage_pred_list):
                 
-                topic_name = topic_names[topic_index]
+                topic_name = self.relevant_topics[topic_index]
                 
                 if pred_value != 0:
 
-                    passage_labels.append(topic_name)
-       
-                # try to catch based on rules
-                elif self.implement_rules:
+                    if self.topic_group == 'Super Topics':
 
-                    passage_text = text_df['passage_words'].iloc[passage_index]
-       
-                    if topic_name in passage_text:
+                        passage_labels.append(topic_name)
 
-                        if topic_name not in passage_labels:
-                            
+                    else:
+
+                        pred_super_topics = data_set['Pred Super Topics'][passage_index]
+
+                        topic_group_name = self.topic_group.split()[-1]
+
+                        # filter out topics whose families were not predicted
+                        if topic_group_name in pred_super_topics:
+
                             passage_labels.append(topic_name)
 
             pred_labels_list.append(passage_labels)
 
         return pred_labels_list
+
+
+    def predict(self, data_set, x_input):
+
+        pred_arrays = list(self.classifier.predict(x_input))
+
+        pred_lists = self.get_pred_labels_list(data_set, pred_arrays, self.topic_group) 
+
+        data_set[f'Pred {self.topic_group}'] = pred_lists
+
+        data_set[f'True {self.topic_group}'] = data_set[f'True {self.topic_group}'].str.split()
+
+
+    def fit_and_pred(self):
+
+        self.relevant_topics = self.topic_lists[self.topic_group]
+
+        self.train_classifier()
+
+        self.predict(data_set = self.train_set, x_input = self.x_train)
+        self.predict(data_set = self.test_set, x_input = self.x_test)
+
+
+    def one_hot_encode(self):
+
+        for col in self.df.columns:
+
+            if 'Super' in col or 'Children' in col:
+
+                # add categorical columns
+                self.df = pd.concat([self.df, self.df[col].str.get_dummies(sep=' ')], axis=1)
+
+        # remove duplicated columns, for children with multiple parents 
+        self.df = self.df.loc[:,~self.df.columns.duplicated()]
 
 
     def get_pred_vs_true(self, true_labels_df, pred_list):
@@ -1013,7 +1162,6 @@ class MultiStageClassifier:
 
     def __init__(self, expt_num, super_topics):
 
-        # self.raw_df = raw_df
         self.expt_num = expt_num
         self.super_topics = super_topics
 
@@ -1034,93 +1182,6 @@ class MultiStageClassifier:
         return None
 
 
-    def get_children_list(self, super_topic):
-
-        self.super_topic = super_topic
-
-        children_list_name = f"children_of_{super_topic}"
-
-        path = f'data/{children_list_name}.pickle'
-
-        if os.path.exists(path):
-
-            with open(path, 'rb') as handle:
-
-                children_names_list = pickle.load(handle)
-
-        else:
-                
-            super_topic_obj = Topic.init(super_topic)
-
-            children_obj_lst = super_topic_obj.topics_by_link_type_recursively()
-
-            children_names_list = []
-
-            for child_obj in children_obj_lst:
-
-                child_name = child_obj.slug
-
-                children_names_list.append(child_name)
-
-            with open(path, 'wb') as handle:
-                
-                pickle.dump(children_names_list, handle, protocol=3)
-
-        return children_names_list
-
-
-    def child_selector(self, row, super_topic):
-
-        old_passage_topics_string = row
-
-        children_names_lst = self.get_children_list(super_topic)
-
-        abridged_topics_list = []
-
-        passage_topics_list = [topic for topic in old_passage_topics_string.split()]
-        
-        for topic in passage_topics_list:
-        
-            if topic in children_names_lst:
-        
-                abridged_topics_list.append(topic)
-
-        new_passage_topics_string = ' '.join(abridged_topics_list)
-        
-        return new_passage_topics_string
-
-
-    def get_numeric_df(self, df, super_topic):
-
-        children_topics = self.get_children_list(super_topic)
-
-        topic_col = [col for col in df.columns if super_topic in col][0]
-        
-        cols = ['passage_words',topic_col]
-
-        df = df[cols]
-
-        df.rename(columns={topic_col: 'Topics'}, inplace=True)
-
-        categorizer = Categorizer(df=df, classification_stage='Topics', chosen_topics=children_topics)
-
-        one_hot_encoded_df = categorizer.get_one_hot_encoded_df()
-
-        numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
-
-        OHE_topics = one_hot_encoded_df.select_dtypes(include=numerics)
-
-        return OHE_topics
-
-
-    def sort_children(self, df):
-
-        for super_topic in self.super_topics:
-            
-            df[f'True Children of {super_topic}'] = df['Topics'].apply(self.child_selector,args=[super_topic])
-
-        return df
-
 
     def sub_classify():
         for super_topic in super_topics:
@@ -1129,3 +1190,48 @@ class MultiStageClassifier:
         result = None
 
         return result
+
+
+class Evaluator:
+
+    def __init__(self, results):
+
+        self.results = results
+
+
+
+class TopicCounter:
+
+
+    def __init__(self):
+    
+        pass
+
+
+    def get_counts(self, series, max_topics):
+
+        topic_set_lst = series.to_list()
+
+        all_topics_str = ' '.join(topic_set_lst)
+
+        all_topics_lst = all_topics_str.split()
+
+        counter = Counter(all_topics_lst)
+
+        topic_counts = counter.most_common(max_topics) # must change from 4 **********************************
+
+        return topic_counts
+
+
+    def topic_limiter(self, row, permitted_topics):
+
+        # this cell contains more topics than we might want
+        old_passage_topics_string = row
+
+        # compile list of this passage's topics, only including those which were top ranked
+        new_passage_topics_list = [topic for topic in old_passage_topics_string.split() if topic in permitted_topics]
+        
+        # reconnect the topics in the list to form a string separated by spaces
+        new_passage_topics_string = ' '.join(new_passage_topics_list)
+        
+        return new_passage_topics_string    

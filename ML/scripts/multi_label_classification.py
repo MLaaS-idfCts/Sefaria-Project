@@ -45,18 +45,6 @@ def time_and_reset(start_time):
     return datetime.now()
 
 
-def topic_limiter(row, permitted_topics):
-
-    # this cell contains more topics than we might want
-    old_passage_topics_string = row
-
-    # compile list of this passage's topics, only including those which were top ranked
-    new_passage_topics_list = [topic for topic in old_passage_topics_string.split() if topic in permitted_topics]
-    
-    # reconnect the topics in the list to form a string separated by spaces
-    new_passage_topics_string = ' '.join(new_passage_topics_list)
-    
-    return new_passage_topics_string    
 # **********************************************************************************************************
 # settings
 
@@ -76,8 +64,9 @@ pd.options.display.max_colwidth = 50
 # actual code begins
 DATA_PATH = 'data/concat_english_prefix_hebrew.csv'
 
-# classifiers = [BinaryRelevance(classifier=LinearSVC()),]
 classifier = BinaryRelevance(classifier=LinearSVC())
+
+vectorizer = TfidfVectorizer()
 
 # list of topics that you want to train and analyze
 super_topics_list = [
@@ -101,174 +90,50 @@ lang_to_vec = 'eng'
 # compute number of children for each node
 get_ontology_counts = False
 
-row_lim = 80000
+row_lim = 500
 
-# use number of nones that slightly greater than the most prevalent topic
-none_ratio = 1.1
-
-stages = [1,2]
-
-# for expt_num, row_lim in enumerate(row_lims):
-# for expt_num, stage in enumerate(stages):
 for expt_num, super_topics in enumerate(super_topics_list):
 
-    print(f'\n\n# expt #{expt_num} = {row_lim}')
+    data = DataManager(data_path = DATA_PATH, row_lim = row_lim, 
+                        topic_limit = topic_limit, 
+                        super_topics = super_topics,
+                        should_stem = False, should_clean = True, 
+                        should_remove_stopwords = False)
 
-    # super_topics = super_topics_list[expt_num]
+    cleaned_df = data.tidy_up(lang_to_vec)    
 
-    if use_cached_df:
+    
+    categorizer = Categorizer(cleaned_df, super_topics)
 
-        tidied_up_df = pd.read_csv(DATA_PATH[:-4] + '_tidied_up_df.csv')
+    categorized_df = categorizer.sort_children(max_children = 5)
 
-    elif not use_cached_df:
+    topic_lists = categorizer.topic_lists
 
-        # shuffle
-        raw_df = pd.read_csv(DATA_PATH).sample(frac=1)
 
-        # take subportion
-        raw_df = raw_df[:row_lim]
-
-        num_rows, _ = raw_df.shape
-        
-        print(f"# actual num rows taken = {num_rows}",)
-
-        # preprocessed data
-        data = DataManager(raw_df = raw_df, topic_limit = topic_limit, 
-                            should_stem = False, should_clean = True, should_remove_stopwords = False, 
-                            # use_expanded_topics = use_expanded_topics,
+    predictor = Predictor(classifier = classifier, 
+                            vectorizer = vectorizer, 
+                            df = categorized_df,
+                            super_topics = super_topics,
+                            topic_lists = topic_lists,
                             )
 
-    tidy_df = data.tidy_up(lang_to_vec)
+    predictor.one_hot_encode()
 
+    predictor.split_data()
 
-    # produce additional columns with children of super topics: 
-    multistage_classifier = MultiStageClassifier(expt_num, super_topics = super_topics)
-    
-    df = multistage_classifier.sort_children(tidy_df)
+    predictor.topic_group = 'Super Topics'
 
-    # limit to only top ten topics in each super topic
+    predictor.fit_and_pred()
 
-
-
-    # categorizer = Categorizer(df=df, none_ratio=none_ratio, chosen_topics = super_topics)
-
-    df['Super Topics'] = df['Super Topics'].apply(topic_limiter,args=(super_topics,))
-
-    df = pd.concat([df, df['Super Topics'].str.get_dummies(sep=' ')], axis=1)
-
-
-    family_topic_counts = {}
-        
-    OHE_dict = {}
 
     for super_topic in super_topics:
 
-        child_col = f'True Children of {super_topic}'
+        predictor.topic_group = f'Children of {super_topic}'
 
-        child_topics_lst = df[f'True Children of {super_topic}'].to_list()
+        predictor.fit_and_pred()
 
-        child_topics_str = ' '.join(child_topics_lst)
-
-        all_topics_lst = child_topics_str.split()
-
-        topic_counts = {}
-        
-        # loop thru all topic occurrences
-        for topic in all_topics_lst:
-        
-            # increment if seen already
-            if topic in topic_counts:
-
-                topic_counts[topic] += 1
-        
-            # init if not seen yet
-            else:
-
-                topic_counts[topic] = 1
-
-        counter = Counter(topic_counts)
-
-        topic_counts = counter.most_common(1)
-
-        top_topics = [topic_tuple[0] for topic_tuple in topic_counts]
-
-        # family_topic_counts[super_topic] = permitted_topics
-
-        df[child_col] = df[child_col].apply(topic_limiter,args=(top_topics,))
-
-        df = pd.concat([df, df[child_col].str.get_dummies(sep=' ')], axis=1)
-
-        # OHE_dict[super_topic] = true_topics
-
-    topic_string_cols = [col for col in df.columns if "Topic" in col]
-
-    for topic_string_col in topic_string_cols:
-        
-        df[topic_string_col] = df[topic_string_col].str.split()
-
-
-
-    train, test = train_test_split(df, shuffle = True,test_size=0.30, random_state=42, )
-
-
-    # select just the words of each passage
-    train_text = train['passage_words']
-    test_text = test['passage_words']
-
-    vectorizer = TfidfVectorizer()
-
-    # create document-term matrix, i.e. numerical version of passage text
-    # Note: We only fit with training data, but NOT with testing data, because testing data should be "UNSEEN"
-    x_train = vectorizer.fit_transform(train_text)
-    x_test = vectorizer.transform(test_text)
-
-    relevant_topics_dict = {}
-
-    relevant_topics_dict['Super Topics'] = super_topics
-
-    multistage_classifier = MultiStageClassifier(expt_num, super_topics = super_topics)
     
-    for super_topic in super_topics:
 
-        relevant_topics_dict[super_topic] = multistage_classifier.get_children_list(super_topic)
-
-    # *******************************************************************
-    # must change this for stage 2 of sub topics
-    relevant_topics = relevant_topics_dict['Super Topics'] + ['None']
-    # *******************************************************************
-
-    relevant_cols = sorted([col for col in df.columns if col in relevant_topics])
-
-    y_train = train[relevant_cols]
-    y_test = test[relevant_cols]
-
-    classifier.fit(x_train, y_train)
-
-    pred_arrays_list = list(classifier.predict(x_test))
-
-    true = y_test
-
-    pred_labels_list = []
-    
-    for passage_index, passage_pred_array in enumerate(pred_arrays_list):
-    
-        if isinstance(passage_pred_array, scipy.sparse.csr.csr_matrix) or isinstance(passage_pred_array, np.int64) or isinstance(passage_pred_array, scipy.sparse.lil.lil_matrix):
-
-            passage_pred_list = [passage_pred_array[0,i] for i in range(passage_pred_array.shape[1])]
-    
-        passage_labels = []
-    
-        for topic_index, pred_value in enumerate(passage_pred_list):
-            
-            topic_name = relevant_topics[topic_index]
-            
-            if pred_value != 0:
-
-                passage_labels.append(topic_name)
-    
-        pred_labels_list.append(passage_labels)
-
-    test['Pred Super Topics'] = pred_labels_list
 
 
     true_label_set_list = test['Super Topics'].tolist()
@@ -280,20 +145,11 @@ for expt_num, super_topics in enumerate(super_topics_list):
     # how many passages in this set
     num_passages = len(true_label_set_list)
 
-    # init 
-    # e.g. 
     y_true = []
     y_pred = []
 
     for i in range(num_passages):
 
-        # init, this parallel pair of lists is going to record what topics were (mis)matched
-        # e.g. if there is one passage with 
-        # true labels 'moses' and 'prayer', and 
-        # pred labels 'moses' and 'abraham', then we would obtain
-        # true_label_set = ['moses','prayer','None']
-        # pred_label_set = ['moses','None','abraham']
-        
         true_label_set = []
         pred_label_set = []
         
@@ -359,7 +215,7 @@ for expt_num, super_topics in enumerate(super_topics_list):
 
     sns.heatmap(cm, annot=True)
     
-    plt.savefig(f'super_topic_set_{expt_num}_row_lim_{row_lim}.png', bbox_inches='tight')
+    plt.savefig(f'images/num_supertopics_{len(super_topics)}_row_lim_{row_lim}.png', bbox_inches='tight')
 
 
 

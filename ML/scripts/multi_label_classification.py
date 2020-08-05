@@ -13,8 +13,8 @@ import warnings
 
 from tqdm import tqdm
 from numpy import arange
-from classes import DataManager, ConfusionMatrix, Predictor, DataSplitter, Scorer, \
-                    Trainer, Categorizer, MultiStageClassifier, Evaluator
+from classes import DataManager, ConfusionMatrix, Predictor, DataSplitter, \
+    Scorer, Trainer, Categorizer, MultiStageClassifier, Evaluator
 from matplotlib import pyplot as plt
 from sklearn.svm import SVC, LinearSVC
 from collections import Counter
@@ -62,7 +62,7 @@ pd.set_option('display.max_rows', None)
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # width of column to dispaly in dataframe
-pd.options.display.max_colwidth = 50
+pd.options.display.max_colwidth = 150
 
 
 # **********************************************************************************************************
@@ -89,9 +89,7 @@ row_lim = 500
 
 for expt_num, super_topics in enumerate(super_topics_list):
 
-    print('# expt_num',expt_num)
-    print('# super_topics',super_topics)
-
+    print(f'# expt_num #{expt_num}\n# {len(super_topics)} super_topics: {super_topics}')
 
     data = DataManager(data_path = DATA_PATH, row_lim = row_lim, super_topics = super_topics, 
                         lang_to_vec = lang_to_vec, should_stem = False, should_clean = True, 
@@ -125,12 +123,11 @@ for expt_num, super_topics in enumerate(super_topics_list):
         topic_counts = categorizer.topic_counts,
     ) 
 
-    evaluator.confusion_matrices()
+    evaluator.calc_cm()
 
-    x = evaluator.confusion_matrices
-
-    evaluator.scores()
+    evaluator.calc_scores()
     
+    evaluator.show_results()
 
 print()
 

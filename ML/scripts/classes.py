@@ -1186,47 +1186,62 @@ class Scorer:
             
             precision_dict[topic], recall_dict[topic], f1score_dict[topic] = precision, recall, f1score
 
-        scores = {"recall":recall_dict, 'f1score':f1score_dict, 'precision':precision_dict} 
-
-        return scores
+        self.scores = {"Recall":recall_dict, 'F1score':f1score_dict, 'Precision':precision_dict} 
 
 
-    def get_stats_df(self, cm, dataset = "None"):
+    def store_topic_occurrences(self):
 
-        scores = self.get_scores(cm)
+        self.topic_stats_df = pd.DataFrame(self.topic_counts,columns=['Topic','Occurrences'])
 
-        expt_num = self.expt_num
 
-        recall_dict = scores['recall']
-        f1score_dict = scores['f1score']
-        precision_dict = scores['precision']
+    def store_total_occurrences(self):
 
-        topic_stats_df = pd.DataFrame(self.topic_counts,columns=['Topic','Occurrences'])
-        
-        total_occurrences = sum(occurrences for topic, occurrences in self.topic_counts)
+        self.total_occurrences = sum(occurrences for topic, occurrences in self.topic_counts)
 
-        assert total_occurrences == topic_stats_df.Occurrences.sum()
+        assert self.total_occurrences == self.topic_stats_df.Occurrences.sum()
 
-        topic_stats_df['Proportion'] = topic_stats_df.Occurrences/total_occurrences
 
-        topic_stats_df['Precision'] = topic_stats_df['Topic'].map(precision_dict)
-        topic_stats_df['Recall'] = topic_stats_df['Topic'].map(recall_dict)
-        topic_stats_df['F1score'] = topic_stats_df['Topic'].map(f1score_dict)
+    def store_topic_proportions(self):
+
+        self.topic_stats_df['Proportion'] = self.topic_stats_df.Occurrences/self.total_occurrences
+
+
+    def store_scores(self):
+
+        for score_type, scores_dict in self.scores.items():
+
+            self.topic_stats_df[score_type] = self.topic_stats_df['Topic'].map(scores_dict)
+
+
+    def calc_overall_stats(self):
 
         over_all_stats = {}
 
-        over_all_stats['Recall'] = (topic_stats_df.Recall * topic_stats_df.Proportion).sum()
-        over_all_stats['F1score'] = (topic_stats_df.F1score * topic_stats_df.Proportion).sum()
-        over_all_stats['Precision']= (topic_stats_df.Precision * topic_stats_df.Proportion).sum()
-        
-        over_all_stats['Topic']= 'Overall'
-        over_all_stats['Proportion'] = topic_stats_df.Proportion.sum() # ibid
-        over_all_stats['Occurrences'] = topic_stats_df.Occurrences.sum() # exlcuding none occurrences
+        for score_type in ['Recall','F1score','Precision']:
 
-        topic_stats_df = topic_stats_df.append(over_all_stats, ignore_index=True)
-        
-        return topic_stats_df
+            over_all_stats[score_type] = (self.topic_stats_df[score_type] * self.topic_stats_df.Proportion).sum()
 
+        over_all_stats['Topic'] = 'Overall'
+        over_all_stats['Proportion'] = self.topic_stats_df.Proportion.sum() # ibid
+        over_all_stats['Occurrences'] = self.topic_stats_df.Occurrences.sum() # exlcuding none occurrences
+
+        self.topic_stats_df = self.topic_stats_df.append(over_all_stats, ignore_index=True)
+
+
+    def get_stats_df(self, cm, data_set, super_topic):
+
+        self.store_topic_occurrences()
+        
+        self.store_total_occurrences()
+
+        self.store_topic_proportions()
+
+        self.get_scores(cm)
+
+        self.store_scores()
+
+        self.calc_overall_stats()
+        
 
 class Trainer:
     
@@ -1345,7 +1360,7 @@ class Evaluator():
         self.topic_counts = topic_counts
 
 
-    def confusion_matrices(self):
+    def calc_cm(self):
 
         self.confusion_matrices = {}
 
@@ -1378,11 +1393,13 @@ class Evaluator():
 #     worst_test = cm_maker.check_worst(test_cm, test_pred_vs_true)
 
         
-    def scores(self):
+    def calc_scores(self):
 
         self.scores = {}
 
         for super_topic in self.super_topics:
+
+            self.scores[super_topic] = {}
 
             scorer = Scorer(
                 expt_num=self.expt_num, 
@@ -1391,10 +1408,32 @@ class Evaluator():
                 )
 
             for data_set in ['train','test']:
+                
+                scorer.get_stats_df(
+                    data_set = data_set,
+                    super_topic = super_topic,
+                    cm = self.confusion_matrices[super_topic][data_set]
+                    )
+                
+                self.scores[super_topic][data_set] = scorer.topic_stats_df
 
-                self.scores[super_topic][data_set] = scorer.get_stats_df(self.confusion_matrices[super_topic][data_set], dataset = data_set)
+                plt.figure()
 
-                print()
+                sns.heatmap(cm, annot=True)
+            
+                plt.savefig(f'images/cm_expt_num_{self.expt_num}_super_topic_{self.super_topic}_{data_set}.png', bbox_inches='tight')
+
+
+
+    def show_results(self):
+        
+        print()
+
+
+
+
+
+
 
 #         super_topic_scores = {
 #             'train':train_score_df.iloc[-1],
@@ -1434,5 +1473,3 @@ class Evaluator():
 #     print('train', overall_fscore['train'])
 
 # print()
-
-

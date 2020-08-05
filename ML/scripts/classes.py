@@ -55,17 +55,20 @@ np.seterr(divide='ignore', invalid='ignore')
 
 class DataManager:
 
-    def __init__(self, data_path, row_lim, topic_limit, 
+    def __init__(self, data_path, row_lim, 
+                #  topic_limit, 
                 super_topics,
-                should_limit_nones = False, 
+                lang_to_vec = 'eng',
+                should_limit_nones = True, 
                 should_stem = False, should_clean = True, keep_all_nones = False, 
                 should_remove_stopwords = False, use_expanded_topics = False,
                 ):
         
         self.data_path = data_path
+        self.lang_to_vec = lang_to_vec
         self.row_lim = row_lim
         self.should_stem = should_stem
-        self.topic_limit = topic_limit
+        # self.topic_limit = topic_limit
         self.super_topics = super_topics
         self.should_clean = should_clean
         self.keep_all_nones = keep_all_nones
@@ -114,91 +117,116 @@ class DataManager:
 
     def establish_dataframe(self):
         
-        if isinstance(getattr(self, "dataframe", None), pd.DataFrame):
-            
-            return self.dataframe
-
-        else:
-            
-            raw_df = pd.read_csv(self.data_path)            
-            shuffled_df = raw_df.sample(frac=1,random_state=42)
-            df = shuffled_df[:self.row_lim]
-            num_rows, _ = df.shape
-            print(f"# actual num rows taken = {num_rows}",)
-        return df
-    
+        raw_df = pd.read_csv(self.data_path)            
+        
+        shuffled_df = raw_df.sample(frac=1,random_state=42)
+        
+        self.df = shuffled_df[:self.row_lim]
+        
     
     def remove_junk_rows(self):
         
-        if isinstance(getattr(self, "without_junk_rows", None), pd.DataFrame):
+        self.establish_dataframe()
             
-            return self.without_junk_rows
-
-        else:
-            
-            df = self.establish_dataframe()
-            
-            # remove repeats
-            df = df.drop_duplicates()
-            
-            # remove empty cells
-            df = df.dropna()
-            
-            # store as attribute
-            self.without_junk_rows = df
-
-        return df
+        # remove repeats
+        self.df.drop_duplicates(inplace=True)
+        
+        # remove empty cells
+        self.df.dropna(inplace=True)
 
 
-
-
-    def tidy_up(self, lang_to_vec):
-
+    def clean(self):
+        
         if self.should_clean:
 
-            df = self.preprocess_dataframe()
+            self.df['passage_text_english'] = self.df['passage_text_english'].str.lower()
 
-            df['passage_text_english'] = df['passage_text_english'].str.lower()
-            df['passage_text_english'] = df['passage_text_english'].apply(self.cleanHtml)
-            df['passage_text_english'] = df['passage_text_english'].apply(self.cleanPunc)
+            self.df['passage_text_english'] = self.df['passage_text_english'].apply(self.cleanHtml)
+
+            self.df['passage_text_english'] = self.df['passage_text_english'].apply(self.cleanPunc)
 
             try:
-                df['passage_text_hebrew_parsed'] = df['passage_text_hebrew_parsed'].apply(self.cleanHtml)
-                df['passage_text_hebrew_parsed'] = df['passage_text_hebrew_parsed'].apply(self.cleanPunc)
+
+                self.df['passage_text_hebrew_parsed'] = self.df['passage_text_hebrew_parsed'].apply(self.cleanHtml)
+
+                self.df['passage_text_hebrew_parsed'] = self.df['passage_text_hebrew_parsed'].apply(self.cleanPunc)
+
             except:
+
                 pass
 
-            df['passage_text_english'] = df['passage_text_english'].apply(self.keepAlpha)
+            self.df['passage_text_english'] = self.df['passage_text_english'].apply(self.keepAlpha)
+   
     
-        if self.should_remove_stopwords:
-            df['passage_text_english'] = df['passage_text_english'].apply(self.stopword_cleaner)
-    
-        if self.should_stem:
-            df['passage_text_english'] = df['passage_text_english'].apply(self.stemmer)
-            
+    def select_lang(self, lang_to_vec):
+        
+        
         if lang_to_vec == 'eng':
-            df['passage_words'] = df['passage_text_english']
+            
+            self.df['passage_words'] = self.df['passage_text_english']
 
         if lang_to_vec == 'heb':
-            df['passage_words'] = df['passage_text_hebrew_parsed']
+
+            self.df['passage_words'] = self.df['passage_text_hebrew_parsed']
 
         if lang_to_vec == 'both':
-            df['passage_words'] = df['passage_text_english'] + ' ' + df['passage_text_hebrew_parsed'] 
 
+            self.df['passage_words'] = self.df['passage_text_english'] + ' ' + self.df['passage_text_hebrew_parsed'] 
+
+    
+    def remove_stopwords(self):
+            
+        if self.should_remove_stopwords:
+            
+            self.df['passage_text_english'] = self.df['passage_text_english'].apply(self.stopword_cleaner)
+    
+    
+    def stem_words(self):
+    
+        if self.should_stem:
+            
+            self.df['passage_text_english'] = self.df['passage_text_english'].apply(self.stemmer)
+
+
+    def select_columns(self):
+    
         wanted_cols = ['passage_words','Topics','Expanded Topics']
 
-        df = df[wanted_cols]
+        self.df = self.df[wanted_cols]
 
-        df.rename(columns={'Topics': 'True Topics'}, inplace=True)
+        self.df.rename(columns={'Topics': 'True Topics'}, inplace=True)
+
+    
+    def tidy_up(self):
+
+        self.preprocess_dataframe()
+            
+        self.clean()
+        
+        self.remove_stopwords()
+        
+        self.stem_words()        
+
+
+    def prepare_dataframe(self):
+        
+        self.tidy_up()
+
+        self.select_lang(self.lang_to_vec)
+                    
+        self.select_columns()
+
+        self.select_super_topics()
+
+
+    def select_super_topics(self):
 
         topic_counter = TopicCounter()
 
-        df['True Super Topics'] = df.pop('Expanded Topics').apply(
-                                                            topic_counter.topic_limiter,
-                                                            args=(self.super_topics,)
-                                                            )
-
-        return df
+        self.df['True Super Topics'] = self.df.pop('Expanded Topics').apply(
+                                                                            topic_counter.topic_limiter,
+                                                                            args=(self.super_topics,)
+                                                                            )
 
 
     def remove_prefix(self, row):
@@ -288,39 +316,28 @@ class DataManager:
 
     def preprocess_dataframe(self):
 
-        if isinstance(getattr(self, "preprocessed_dataframe", None),pd.DataFrame):
+        self.remove_junk_rows()
 
-            return self.preprocessed_dataframe
-        
-        else:
-            df = self.remove_junk_rows()
-        
-            # use Ref as index instead of number
-            df = df.set_index('Ref',drop=True)
-        
-            # df = df.drop(columns=['Topics'])
+        # use Ref as index instead of number
+        self.df.set_index('Ref',drop=True, inplace=True)
+    
+        # make more descriptive name
+        self.df.rename(columns={
+            'En': 'passage_text_english',
+            'He': 'passage_text_hebrew_unparsed',
+            }, inplace=True)
+
+        try:
+            
+            # remove prefixes from hebrew
+            self.df['He_no_prefix'] = self.df.pop('He_prefixed').apply(self.remove_prefix)
 
             # make more descriptive name
-            df = df.rename(columns={
-                'En': 'passage_text_english',
-                'He': 'passage_text_hebrew_unparsed',
-                })
+            self.df.rename(columns={'He_no_prefix': 'passage_text_hebrew_parsed'}, inplace=True)
 
-            try:
-                # remove prefixes from hebrew
-                df['He_no_prefix'] = df.pop('He_prefixed').apply(self.remove_prefix)
-
-                # make more descriptive name
-                df = df.rename(columns={
-                    'He_no_prefix': 'passage_text_hebrew_parsed',
-                    })
-
-            except:
-                pass
-    
-            self.preprocessed_dataframe = df
-
-        return df
+        except:
+            
+            pass
 
 
     def show_topic_counts(self):
@@ -410,6 +427,20 @@ class Categorizer:
         self.topic_lists['Super Topics'] = self.super_topics
         
 
+    def construct_children_list(super_topic):
+
+        children_obj_lst = Topic.init(super_topic).topics_by_link_type_recursively()
+
+        children_names_list = [child_obj.slug for child_obj in children_obj_lst]
+
+        with open(path, 'wb') as handle:
+            
+            pickle.dump(children_names_list, handle, protocol=3)
+
+        return children_names_list
+
+
+
     def get_children_list(self, super_topic):
 
         self.super_topic = super_topic
@@ -425,22 +456,8 @@ class Categorizer:
                 children_names_list = pickle.load(handle)
 
         else:
-                
-            super_topic_obj = Topic.init(super_topic)
 
-            children_obj_lst = super_topic_obj.topics_by_link_type_recursively()
-
-            children_names_list = []
-
-            for child_obj in children_obj_lst:
-
-                child_name = child_obj.slug
-
-                children_names_list.append(child_name)
-
-            with open(path, 'wb') as handle:
-                
-                pickle.dump(children_names_list, handle, protocol=3)
+            children_names_list = self.construct_children_list(super_topic)                
 
         children_names_list.remove(super_topic)
         
@@ -477,6 +494,8 @@ class Categorizer:
 
         # categorizer = Categorizer()
 
+        self.topic_counts = {}
+
         topic_counter = TopicCounter()
 
         for super_topic in self.super_topics:
@@ -488,9 +507,9 @@ class Categorizer:
                                                                                 args=[children_names_lst]
                                                                                 )
 
-            topic_counts = topic_counter.get_counts(self.df[f'True Children of {super_topic}'], max_children)
+            self.topic_counts[super_topic] = topic_counter.get_counts(self.df[f'True Children of {super_topic}'], max_children)
 
-            topic_names = [topic_count[0] for topic_count in topic_counts]
+            topic_names = [topic_count[0] for topic_count in self.topic_counts[super_topic]]
 
             self.topic_lists[f'Children of {super_topic}'] = topic_names
 
@@ -895,15 +914,22 @@ class Predictor:
 
 class ConfusionMatrix:
 
-    def __init__(self, topics, should_print = False):
+    def __init__(self, super_topic, topics, expt_num):
 
+        self.super_topic = super_topic
         self.topics = topics
-        self.should_print = should_print
+        self.expt_num = expt_num
 
-    def get_cm_values(self, pred_vs_true):
 
-        true_label_set_list = pred_vs_true.true_topics.tolist()
-        pred_label_set_list = pred_vs_true.pred_topics.tolist()
+    def get_cm_values(self, pred_vs_true, data_set):
+
+        cols = pred_vs_true.columns
+
+        true_col = [col for col in cols if "True" in col][0]
+        pred_col = [col for col in cols if "Pred" in col][0]
+
+        true_label_set_list = pred_vs_true[true_col].tolist()
+        pred_label_set_list = pred_vs_true[pred_col].tolist()
 
         # check that we predicted label sets for the same number of passages as truly exist
         assert len(true_label_set_list) == len(pred_label_set_list)
@@ -983,6 +1009,12 @@ class ConfusionMatrix:
 
         cm = pd.crosstab(y_actu, y_pred, rownames=['True'], colnames = ['Prediction'], dropna=False) 
 
+        plt.figure()
+
+        sns.heatmap(cm, annot=True)
+    
+        plt.savefig(f'images/cm_expt_num_{self.expt_num}_super_topic_{self.super_topic}_{data_set}.png', bbox_inches='tight')
+
         return cm
 
 
@@ -1029,19 +1061,40 @@ class ConfusionMatrix:
 
 class Scorer:
 
-    def __init__(self, topic_names, topic_counts, row_lim, expt_num, 
-                none_ratio, use_expanded_topics = False, should_print = False,
-                chosen_topics = None):
-    
-        self.row_lim = row_lim
+    def __init__(self, 
+                # topic_names, 
+                topic_counts, 
+                super_topic, 
+                expt_num, 
+                # none_ratio, use_expanded_topics = False, 
+                # should_print = False, chosen_topics = None
+                ):
+        self.super_topic = super_topic
         self.expt_num = expt_num
-        self.topic_names = topic_names
-        self.none_ratio = none_ratio
-        self.should_print = should_print
+        # self.topic_names = topic_names
+        # self.none_ratio = none_ratio
+        # self.should_print = should_print
         self.topic_counts = topic_counts
-        self.chosen_topics = chosen_topics
-        self.use_expanded_topics = use_expanded_topics
+        # self.chosen_topics = chosen_topics
+        # self.use_expanded_topics = use_expanded_topics
 
+    def get_precision(self, cm, topic, TP):
+
+        FP = cm[topic].sum() - TP - cm.loc["None",topic]
+
+        precision = TP/(TP + FP)
+
+        return precision
+
+
+    def get_recall(self, cm, topic, TP):
+
+        FN = cm.loc[topic].sum() - TP
+
+        recall = TP/(TP + FN)
+
+        return recall
+        
 
     def get_scores(self, cm):
 
@@ -1054,24 +1107,16 @@ class Scorer:
         for topic in meaningful_topics:
 
             TP = cm.loc[topic,topic]
-            
-            FN = cm.loc[topic].sum() - TP
 
-            recall = TP/(TP + FN)
+            recall = self.get_recall(cm, topic, TP)
 
-            FP = cm[topic].sum() - TP - cm.loc["None",topic]
-
-            precision = TP/(TP + FP)
+            precision = self.get_precision(cm, topic, TP)
             
             f1score = 2 * (precision * recall)/(precision + recall)
             
             precision_dict[topic], recall_dict[topic], f1score_dict[topic] = precision, recall, f1score
 
-        scores = {
-            "recall":recall_dict, 
-            'f1score':f1score_dict,
-            'precision':precision_dict, 
-        } 
+        scores = {"recall":recall_dict, 'f1score':f1score_dict, 'precision':precision_dict} 
 
         return scores
 
@@ -1080,9 +1125,7 @@ class Scorer:
 
         scores = self.get_scores(cm)
 
-        row_lim = self.row_lim
         expt_num = self.expt_num
-        none_ratio = self.none_ratio
 
         recall_dict = scores['recall']
         f1score_dict = scores['f1score']
@@ -1097,7 +1140,6 @@ class Scorer:
         topic_stats_df['Proportion'] = topic_stats_df.Occurrences/total_occurrences
 
         topic_stats_df['Precision'] = topic_stats_df['Topic'].map(precision_dict)
-        # topic_stats_df['Precision_using_series'] = pd.Series(precision_dict) # this way the dict keys need to be index of df
         topic_stats_df['Recall'] = topic_stats_df['Topic'].map(recall_dict)
         topic_stats_df['F1score'] = topic_stats_df['Topic'].map(f1score_dict)
 
@@ -1113,21 +1155,6 @@ class Scorer:
 
         topic_stats_df = topic_stats_df.append(over_all_stats, ignore_index=True)
         
-        # my_topics = ["Overall",'laws-of-judges-and-courts', 'prayer', 'procedures-for-judges-and-conduct-towards-them']
-        my_topics = self.chosen_topics + ['Overall']
-        
-        selected_topics_df = topic_stats_df.loc[topic_stats_df['Topic'].isin(my_topics)]
-
-        selected_topics_list = selected_topics_df['Topic'].to_list()
-
-        selected_scores_list = selected_topics_df['F1score'].to_list()
-
-        if self.should_print:
-            # print(f'\n\n{dataset}\n')
-            print(topic_stats_df.round(2))
-            # print(f'\ntopics = ', selected_topics_list)
-            # print(f'{dataset}_expt_{expt_num} =', selected_scores_list)
-
         return topic_stats_df
 
 

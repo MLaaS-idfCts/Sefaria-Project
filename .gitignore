@@ -133,3 +133,5 @@ static/sheetrank.json
 *.pkl
 *.dat
 *.json
+*.png
+*.out

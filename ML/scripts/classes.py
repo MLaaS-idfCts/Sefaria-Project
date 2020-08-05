@@ -114,7 +114,6 @@ class DataManager:
         return ontology_counts_dict
 
 
-
     def establish_dataframe(self):
         
         raw_df = pd.read_csv(self.data_path)            
@@ -423,6 +422,7 @@ class Categorizer:
 
         self.df = df
         self.super_topics = super_topics
+        
         self.topic_lists = {}
         self.topic_lists['Super Topics'] = self.super_topics
         
@@ -441,7 +441,7 @@ class Categorizer:
 
 
 
-    def get_children_list(self, super_topic):
+    def get_children(self, super_topic):
 
         self.super_topic = super_topic
 
@@ -469,7 +469,7 @@ class Categorizer:
 
     def get_numeric_df(self, df, super_topic):
 
-        children_topics = self.get_children_list(super_topic)
+        children_topics = self.get_children(super_topic)
 
         topic_col = [col for col in df.columns if super_topic in col][0]
         
@@ -490,36 +490,54 @@ class Categorizer:
         return OHE_topics
 
 
-    def sort_children(self, max_children):
+    def make_child_column(self, super_topic):
 
-        # categorizer = Categorizer()
+            children = self.get_children(super_topic)
+            
+            self.df[f'True Children of {super_topic}'] = self.df['True Topics'].apply(
+                                                                                TopicCounter().topic_limiter,
+                                                                                args=[children]
+                                                                                )
+
+    def store_topic_counts(self, super_topic, max_children):
+
+        topic_counts = TopicCounter().get_counts(self.df[f'True Children of {super_topic}'], max_children)
+            
+        self.topic_counts[super_topic] = topic_counts
+
+
+    def store_topic_names(self, super_topic):
+
+        topic_counts = self.topic_counts[super_topic]
+
+        topic_names = [topic_count[0] for topic_count in topic_counts]
+
+        self.topic_lists[f'Children of {super_topic}'] = topic_names
+
+        return topic_names
+
+
+    def limit_child_column(self, super_topic, topic_names):
+        
+        self.df[f'True Children of {super_topic}'] = self.df[f'True Children of {super_topic}'].apply(
+            TopicCounter().topic_limiter, args=[topic_names])
+
+
+    def sort_children(self, max_children):
 
         self.topic_counts = {}
 
-        topic_counter = TopicCounter()
+        # topic_counter = TopicCounter()
 
         for super_topic in self.super_topics:
 
-            children_names_lst = self.get_children_list(super_topic)
+            self.make_child_column(super_topic)
 
-            self.df[f'True Children of {super_topic}'] = self.df['True Topics'].apply(
-                                                                                topic_counter.topic_limiter,
-                                                                                args=[children_names_lst]
-                                                                                )
+            self.store_topic_counts(super_topic, max_children)
+            
+            topic_names = self.store_topic_names(super_topic)
 
-            self.topic_counts[super_topic] = topic_counter.get_counts(self.df[f'True Children of {super_topic}'], max_children)
-
-            topic_names = [topic_count[0] for topic_count in self.topic_counts[super_topic]]
-
-            self.topic_lists[f'Children of {super_topic}'] = topic_names
-
-            self.df[f'True Children of {super_topic}'] = self.df[f'True Children of {super_topic}'].apply(
-                                                                                topic_counter.topic_limiter,
-                                                                                args=[topic_names]
-                                                                                )
-
-
-        return self.df
+            self.limit_child_column(super_topic, topic_names)
 
 
     def get_topic_names(self, ranked_topic_counts):
@@ -807,10 +825,28 @@ class Predictor:
 
         self.one_hot_encode()
         
-        self.train_set, self.test_set = train_test_split(self.df, shuffle = False, test_size=0.30)
+        self.data_sets = {}
 
-        self.train_text = self.train_set['passage_words']
-        self.test_text = self.test_set['passage_words']
+        self.data_sets['train'], self.data_sets['test'] = train_test_split(self.df, shuffle = False, test_size=0.30)
+
+        self.train_text = self.data_sets['train']['passage_words']
+        self.test_text = self.data_sets['test']['passage_words']
+
+
+    def pred_super_topics(self):
+            
+        self.topic_group = 'Super Topics'
+
+        self.fit_and_pred()
+
+            
+    def pred_sub_topics(self):
+
+        for super_topic in self.super_topics:
+
+            self.topic_group = f'Children of {super_topic}'
+
+            self.fit_and_pred()
 
 
     def select_topics(self, topic_group):
@@ -820,13 +856,13 @@ class Predictor:
 
     def train_classifier(self):
 
-        # pass
-
         self.x_train = self.vectorizer.fit_transform(self.train_text)
+
         self.x_test = self.vectorizer.transform(self.test_text)
 
-        self.y_train = self.train_set[self.relevant_topics]
-        self.y_test = self.test_set[self.relevant_topics]
+        self.y_train = self.data_sets['train'][self.relevant_topics]
+
+        self.y_test = self.data_sets['test'][self.relevant_topics]
 
         self.classifier.fit(self.x_train, self.y_train)
 
@@ -867,16 +903,49 @@ class Predictor:
         return pred_labels_list
 
 
-    def predict(self, data_set, x_input):
+    def make_predictions(self, x_input):
 
-        pred_arrays = list(self.classifier.predict(x_input))
+        self.pred_arrays = list(self.classifier.predict(x_input))
+  
 
-        pred_lists = self.get_pred_labels_list(data_set, pred_arrays, self.topic_group) 
+    def append_predictions(self, data_set):
+
+        pred_lists = self.get_pred_labels_list(data_set, self.pred_arrays, self.topic_group) 
 
         data_set[f'Pred {self.topic_group}'] = pred_lists
 
-        data_set[f'True {self.topic_group}'] = data_set[f'True {self.topic_group}'].str.split()
 
+    def list_true_labels(self, data_set):
+
+        true_cols = [col for col in self.data_sets[data_set].columns if 'True' in col]
+
+        for true_col in true_cols:
+
+            self.data_sets[data_set][true_col] = self.data_sets[data_set][true_col].str.split()
+
+
+    def remove_irrelevant_columns(self, data_set):
+
+        wanted_cols = [col for col in self.data_sets[data_set].columns if 'passage' in col or 'True' in col or 'Pred' in col]
+
+        self.data_sets[data_set] = self.data_sets[data_set][wanted_cols]
+
+
+    def tidy_data_sets(self):
+
+        for data_set in ['train','test']:
+
+            self.list_true_labels(data_set)
+
+            self.remove_irrelevant_columns(data_set)
+            
+    
+    def predict(self, data_set, x_input):
+
+        self.make_predictions(x_input)
+        
+        self.append_predictions(data_set)
+        
 
     def fit_and_pred(self):
 
@@ -884,20 +953,21 @@ class Predictor:
 
         self.train_classifier()
 
-        self.predict(data_set = self.train_set, x_input = self.x_train)
-        self.predict(data_set = self.test_set, x_input = self.x_test)
+        self.predict(data_set = self.data_sets['train'], x_input = self.x_train)
+
+        self.predict(data_set = self.data_sets['test'], x_input = self.x_test)
 
 
     def one_hot_encode(self):
 
         for col in self.df.columns:
 
-            if 'Super' in col or 'Children' in col:
+            if ('Super' in col or 'Children' in col) and col != 'True Topics':
 
                 # add categorical columns
                 self.df = pd.concat([self.df, self.df[col].str.get_dummies(sep=' ')], axis=1)
 
-        # remove duplicated columns, for children with multiple parents 
+        # children can have multiple parents; so must erase extra copies of columns
         self.df = self.df.loc[:,~self.df.columns.duplicated()]
 
 
@@ -1219,13 +1289,6 @@ class MultiStageClassifier:
         return result
 
 
-class Evaluator:
-
-    def __init__(self, results):
-
-        self.results = results
-
-
 
 class TopicCounter:
 
@@ -1262,3 +1325,114 @@ class TopicCounter:
         new_passage_topics_string = ' '.join(new_passage_topics_list)
         
         return new_passage_topics_string    
+
+
+class Evaluator():
+
+    def __init__(
+        self, 
+        expt_num, 
+        data_sets,
+        topic_lists, 
+        topic_counts, 
+        super_topics, 
+        ):
+
+        self.expt_num = expt_num
+        self.data_sets = data_sets
+        self.topic_lists = topic_lists
+        self.super_topics = super_topics
+        self.topic_counts = topic_counts
+
+
+    def confusion_matrices(self):
+
+        self.confusion_matrices = {}
+
+        for super_topic in self.super_topics:
+
+            cm_topics = self.topic_lists[f'Children of {super_topic}'] + ['None']
+
+            cm_maker = ConfusionMatrix(super_topic, cm_topics, self.expt_num)
+
+            true_col = f'True Children of {super_topic}'
+            pred_col = f'Pred Children of {super_topic}'
+
+            pred_vs_true = {}
+            cm = {}
+            pred_vs_true = {}
+            self.confusion_matrices[super_topic] = {}
+
+            for data_set in ['train','test']:
+
+                pred_vs_true[data_set] = self.data_sets[data_set][[true_col,pred_col]]
+
+                cm[data_set] = cm_maker.get_cm_values(pred_vs_true[data_set], data_set = data_set)
+
+                self.confusion_matrices[super_topic][data_set] = cm[data_set]
+
+        # return self.confusion_matrices
+
+#     # check the worst performing examples to see what's going wrong
+#     worst_train = cm_maker.check_worst(train_cm, train_pred_vs_true)
+#     worst_test = cm_maker.check_worst(test_cm, test_pred_vs_true)
+
+        
+    def scores(self):
+
+        self.scores = {}
+
+        for super_topic in self.super_topics:
+
+            scorer = Scorer(
+                expt_num=self.expt_num, 
+                super_topic=super_topic, 
+                topic_counts=self.topic_counts[super_topic],
+                )
+
+            for data_set in ['train','test']:
+
+                self.scores[super_topic][data_set] = scorer.get_stats_df(self.confusion_matrices[super_topic][data_set], dataset = data_set)
+
+                print()
+
+#         super_topic_scores = {
+#             'train':train_score_df.iloc[-1],
+#             'test':test_score_df.iloc[-1],
+#         }
+
+#         super_topic_scores_dict[super_topic] = super_topic_scores
+    
+#     overall_fscore = {
+#         'train':0,
+#         'test':0
+#     }
+
+#     total_occurrences = 0
+
+#     for super_topic in super_topics:
+    
+#         total_occurrences += super_topic_scores_dict[super_topic]['train']['Occurrences']
+
+
+#     for super_topic in super_topics:
+
+#         print('# super_topic',super_topic)
+
+#         proportion = super_topic_scores_dict[super_topic]['train']['Occurrences']/total_occurrences
+
+#         fscore_contribution_test = proportion*super_topic_scores_dict[super_topic]['test']['F1score']
+#         overall_fscore['test'] += fscore_contribution_test 
+
+#         fscore_contribution_train = proportion*super_topic_scores_dict[super_topic]['train']['F1score']
+#         overall_fscore['train'] += fscore_contribution_train 
+
+#         print('# test',round(fscore_contribution_test,2))
+#         print('# train',round(fscore_contribution_train,2))
+
+#     print('test', overall_fscore['test'])
+#     print('train', overall_fscore['train'])
+
+# print()
+
+

@@ -90,7 +90,7 @@ row_lim = 10000
 
 for expt_num, super_topics in enumerate(super_topics_list):
 
-    for only_pred_super in [True, False]:
+    for discriminate_families in [True, False]:
 
         print(f'# expt_num #{expt_num}\n# {len(super_topics)} super_topics: {super_topics}')
 

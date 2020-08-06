@@ -707,108 +707,6 @@ class Categorizer:
         return self.one_hot_encoded_df
 
 
-class DataSplitter:
-
-    def __init__(self, data_df, should_separate, DATA_PATH):
-    
-        self.data_df = data_df
-        self.DATA_PATH = DATA_PATH
-        self.should_separate = should_separate
-        
-
-    def get_datasets(self, vectorizer):
-
-        # arrange in order of index for passage
-        df = self.data_df.sort_values(by='Ref')
-
-        print('\n# should_separate =',self.should_separate)
-
-        if self.should_separate:
-            
-            if 'concat' in self.DATA_PATH:
-
-                all_refs_list = list(df.index)
-
-            if 'multi_version' in self.DATA_PATH:
-
-                all_refs_list = [ref_vsn[:ref_vsn.find(' -')] for ref_vsn in list(df.index)]
-
-            refs_set = set(all_refs_list)
-            refs_list = list(refs_set)
-
-            random.seed(4)
-            random.shuffle(refs_list)
-
-            test_portion = 0.3
-            
-            num_refs = len(refs_list)
-            
-            num_test_rows = int(test_portion * num_refs)
-
-            num_train_rows = num_refs - num_test_rows
-
-            actual_test_portion = num_test_rows/num_refs
-
-            train_refs = refs_list[:num_train_rows + 1]
-            test_refs = refs_list[num_train_rows + 1:]
-
-            if 'multi_version' in self.DATA_PATH:
-
-                df['Ref_with_version'] = df.index
-                # df['Ref_only'] = df.Ref_with_version.str[:df.Ref_with_version.str.find(' -- ')]
-                with_version = df.Ref_with_version.str
-                parsed_list = with_version.split(' -- ')
-                df['Ref_only'] = parsed_list.str[0]
-                # print()
-
-            if 'concat' in self.DATA_PATH:
-
-                df['Ref_only'] = df.index
-
-
-            train = df[df['Ref_only'].isin(train_refs)]
-            test = df[df['Ref_only'].isin(test_refs)]
-
-
-            print(f'# actual test portion = {actual_test_portion}')
-
-
-        if not self.should_separate:
-            
-            train, test = train_test_split(
-                        df, 
-                        shuffle = True,
-                        # shuffle = False,
-                        test_size=0.30, 
-                        random_state=42, 
-                    )
-
-        # select just the words of each passage
-        train_text = train['passage_words']
-        test_text = test['passage_words']
-
-        # create document-term matrix, i.e. numerical version of passage text
-        # Note: We only fit with training data, but NOT with testing data, because testing data should be "UNSEEN"
-        x_train = vectorizer.fit_transform(train_text)
-        x_test = vectorizer.transform(test_text)
-        start_time = datetime.now()
-
-        # topics columns, with 0/1 indicating if the topic of this column relates to that row's passage
-        
-        # all_cols = list(self.data_df.columns)
-        
-        # cols_to_keep = all_cols[all_cols.index('true_topics') + 1:-1]
-        y_train = train._get_numeric_data()
-        y_test = test._get_numeric_data()
-        # y_train = train[cols_to_keep]
-        # y_test = test[cols_to_keep]
-
-        return train, test, x_train, x_test, y_train, y_test
-
-
-
-
-
 class Predictor:
     
     
@@ -1337,68 +1235,6 @@ class Scorer:
         self.calc_overall_stats()
         
 
-class Trainer:
-    
-    def __init__(self, classifier):
-    
-        self.classifier = classifier
-
-
-    def train(self, x_train, y_train):
-        
-        classifier = self.classifier
-        
-        try:
-            classifier.fit(x_train, y_train)
-
-        except:        
-            pass
-            y_train = y_train.values.toarray()
-            
-            classifier.fit(x_train, y_train)
-
-        if isinstance(classifier, sklearn.model_selection._search.GridSearchCV):
-            print ("Best params:",classifier.best_params_)
-            print("Best score:",classifier.best_score_)
-        
-        return classifier
-
-
-class MultiStageClassifier:
-
-    def __init__(self, expt_num, super_topics):
-
-        self.expt_num = expt_num
-        self.super_topics = super_topics
-
-    def super_classify():
-            
-            # df = all data with topics and exp topics
-
-            # super_topics = [top 4 or 5]
-
-        # limited_df = without extraneous super topics
-
-        # stage 1 result
-        # pred_super_df  = df with pred super_topics
-
-        # limiter = Limiter()
-
-        # now stage 2
-        return None
-
-
-
-    def sub_classify():
-        for super_topic in super_topics:
-            pass
-
-        result = None
-
-        return result
-
-
-
 class TopicCounter:
 
 
@@ -1436,7 +1272,7 @@ class TopicCounter:
         return new_passage_topics_string    
 
 
-class Evaluator():
+class Evaluator:
 
     def __init__(
         self, 

@@ -1,6 +1,5 @@
 import os
 import sys
-import csv
 import pickle
 import django
 import os.path
@@ -13,41 +12,24 @@ django.setup()
 
 from tqdm import tqdm
 from sefaria.model import *
-# from sefaria.model.topic import topics_by_link_type_recursively
 from sefaria.system.database import db
 
 
 import re
 import nltk
-import scipy
 import numpy as np
 import pandas as pd
-import random
-import sklearn
 import seaborn as sns
 import matplotlib.pyplot as plt
-import sklearn.model_selection
 
 from bs4 import BeautifulSoup
 from tqdm import tqdm
-from random import shuffle
-from string import printable
 from operator import itemgetter 
-from datetime import datetime
 from unidecode import unidecode
 from nltk.stem import SnowballStemmer
 from collections import Counter
 from nltk.corpus import stopwords
-from sklearn.svm import LinearSVC
-from IPython.display import HTML
-from sklearn.metrics import accuracy_score
-from sklearn.pipeline import Pipeline
-from sklearn.multiclass import OneVsRestClassifier
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
-from gensim.parsing.preprocessing import STOPWORDS
-from sklearn.feature_extraction.text import TfidfVectorizer
 
 nltk.download('stopwords')
 stemmer = SnowballStemmer('english')
@@ -804,11 +786,17 @@ class Predictor:
 
     def child_of_pred(self, passage_index):
 
-        pred_super_topics = self.data_sets[self.data_set]['Pred Super Topics'][passage_index]
+        if self.discriminate_families == False:
 
-        topic_group_name = self.topic_group.split()[-1]
+            return True
 
-        return topic_group_name in pred_super_topics
+        if self.discriminate_families == True:
+
+            pred_super_topics = self.data_sets[self.data_set]['Pred Super Topics'][passage_index]
+
+            topic_group_name = self.topic_group.split()[-1]
+
+            return topic_group_name in pred_super_topics
     
     
     def is_super_topic(self):
@@ -1359,7 +1347,7 @@ class Evaluator:
 
                 plt.xticks(rotation=65, horizontalalignment='right')
 
-                plt.savefig(f'images/scores/expt_num_{self.expt_num}_super_topic_{super_topic}_{data_set}.png', bbox_inches='tight')
+                plt.savefig(f'images/scores/discr_fami_{self.discriminate_families}_expt_num_{self.expt_num}_super_topic_{super_topic}_{data_set}.png', bbox_inches='tight')
 
             print()
 

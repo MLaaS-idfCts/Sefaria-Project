@@ -14,7 +14,8 @@ import warnings
 from tqdm import tqdm
 from numpy import arange
 from classes import DataManager, ConfusionMatrix, Predictor, DataSplitter, \
-    Scorer, Trainer, Categorizer, MultiStageClassifier, Evaluator
+                    Scorer, Trainer, Categorizer, MultiStageClassifier, \
+                    Evaluator
 from matplotlib import pyplot as plt
 from sklearn.svm import SVC, LinearSVC
 from collections import Counter
@@ -85,50 +86,44 @@ super_topics_list = [
 # langs_to_vec = ['eng','heb','both']
 lang_to_vec = 'eng'
 
-row_lim = 500
+row_lim = 10000
 
 for expt_num, super_topics in enumerate(super_topics_list):
 
-    print(f'# expt_num #{expt_num}\n# {len(super_topics)} super_topics: {super_topics}')
+    for only_pred_super in [True, False]:
 
-    data = DataManager(data_path = DATA_PATH, row_lim = row_lim, super_topics = super_topics, 
-                        lang_to_vec = lang_to_vec, should_stem = False, should_clean = True, 
-                        should_remove_stopwords = False)
+        print(f'# expt_num #{expt_num}\n# {len(super_topics)} super_topics: {super_topics}')
 
-    data.prepare_dataframe()    
+        data = DataManager(data_path = DATA_PATH, row_lim = row_lim, 
+                            super_topics = super_topics, lang_to_vec = lang_to_vec, 
+                            should_stem = False, should_clean = True, 
+                            should_remove_stopwords = False)
 
+        data.prepare_dataframe()    
 
-    categorizer = Categorizer(df = data.df, super_topics=super_topics)
+        categorizer = Categorizer(df = data.df, super_topics=super_topics)
 
-    categorizer.sort_children(max_children = 2)
+        categorizer.sort_children(max_children = 3)
 
+        predictor = Predictor(classifier = classifier, vectorizer = vectorizer, df = categorizer.df,
+                                super_topics = super_topics, topic_lists = categorizer.topic_lists)
 
-    predictor = Predictor(classifier = classifier, vectorizer = vectorizer, df = categorizer.df,
-                            super_topics = super_topics, topic_lists = categorizer.topic_lists)
+        predictor.calc_results()
 
-    predictor.split_data()
-    
-    predictor.pred_super_topics()
+        evaluator = Evaluator(
+            expt_num = expt_num, 
+            data_sets = predictor.data_sets, 
+            topic_lists = categorizer.topic_lists,
+            super_topics = super_topics, 
+            topic_counts = categorizer.topic_counts,
+        ) 
 
-    predictor.pred_sub_topics()
+        evaluator.calc_cm()
 
-    predictor.tidy_data_sets()
+        evaluator.calc_scores()
+        
+        evaluator.plot_results()
 
-
-    evaluator = Evaluator(
-        expt_num = expt_num, 
-        super_topics = super_topics, 
-        data_sets = predictor.data_sets, 
-        topic_lists = categorizer.topic_lists,
-        topic_counts = categorizer.topic_counts,
-    ) 
-
-    evaluator.calc_cm()
-
-    evaluator.calc_scores()
-    
-    evaluator.show_results()
-
-print()
+    print()
 
 

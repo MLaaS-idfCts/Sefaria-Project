@@ -821,6 +821,17 @@ class Predictor:
         self.topic_lists = topic_lists
 
 
+    def calc_results(self):
+
+        self.split_data()
+        
+        self.pred_super_topics()
+
+        self.pred_sub_topics()
+
+        self.tidy_data_sets()
+
+
     def split_data(self):
 
         self.one_hot_encode()
@@ -829,8 +840,14 @@ class Predictor:
 
         self.data_sets['train'], self.data_sets['test'] = train_test_split(self.df, shuffle = False, test_size=0.30)
 
-        self.train_text = self.data_sets['train']['passage_words']
-        self.test_text = self.data_sets['test']['passage_words']
+        self.text = {}
+
+        for data_set in ['train','test']:
+
+            self.text[data_set] = self.data_sets[data_set]['passage_words']
+
+        # self.train_text = self.data_sets['train']['passage_words']
+        # self.test_text = self.data_sets['test']['passage_words']
 
 
     def pred_super_topics(self):
@@ -854,97 +871,144 @@ class Predictor:
         self.relevant_topics = self.topic_lists[topic_group]
 
 
+    def get_wanted_cols(self):
+
+        wanted_cols = [col for col in self.data_sets[self.data_set].columns if col in self.relevant_topics]
+
+        return wanted_cols 
+        
+
     def train_classifier(self):
 
-        self.x_train = self.vectorizer.fit_transform(self.train_text)
+        self.x = {}
+        self.y = {}
 
-        self.x_test = self.vectorizer.transform(self.test_text)
+        self.x['train'] = self.vectorizer.fit_transform(self.text['train'])
+        self.x['test'] = self.vectorizer.transform(self.text['test'])
 
-        self.y_train = self.data_sets['train'][self.relevant_topics]
+        for data_set in ['train','test']:
 
-        self.y_test = self.data_sets['test'][self.relevant_topics]
+            self.data_set = data_set
+            
+            wanted_cols = self.get_wanted_cols()
 
-        self.classifier.fit(self.x_train, self.y_train)
+            self.y[self.data_set] = self.data_sets[self.data_set][wanted_cols]
+
+        self.classifier.fit(self.x['train'], self.y['train'])
+
+        print()
 
 
-    def get_pred_labels_list(self, data_set, pred_arrays_list, topic_group):
+    def positive_result(self,pred_value):
+
+        return pred_value != 0
+
+
+    def child_of_pred(self, passage_index):
+
+        pred_super_topics = self.data_sets[self.data_set]['Pred Super Topics'][passage_index]
+
+        topic_group_name = self.topic_group.split()[-1]
+
+        return topic_group_name in pred_super_topics
+    
+    
+    def is_super_topic(self):
+    
+        return self.topic_group == 'Super Topics'
+
+    
+    def topic_acceptable(self, passage_index):
+
+        return self.is_super_topic() or self.child_of_pred(passage_index)
+ 
+    
+    def should_append(self, passage_index, pred_value):
+
+        should_append = self.positive_result(pred_value) and self.topic_acceptable(passage_index) 
+        
+        return should_append
+
+
+    def append_if_appropriate(self, topic_index, pred_value, passage_index):
+
+        topic_name = self.relevant_topics[topic_index]
+
+        if self.should_append(passage_index, pred_value):
+
+            self.passage_labels.append(topic_name)
+        
+
+    def build_passage_labels(self, passage_index, pred_array):
+        
+        self.passage_labels = []
+
+        passage_pred_list = [pred_array[0,i] for i in range(pred_array.shape[1])]
+    
+        for topic_index, pred_value in enumerate(passage_pred_list):
+            
+            self.append_if_appropriate(topic_index, pred_value, passage_index)
+
+
+    def get_pred_labels_list(self):
 
         pred_labels_list = []
 
-        for passage_index, pred_array in enumerate(pred_arrays_list):
+        for passage_index, pred_array in enumerate(self.pred_arrays):
     
-            passage_pred_list = [pred_array[0,i] for i in range(pred_array.shape[1])]
+            self.build_passage_labels(passage_index, pred_array)
 
-            passage_labels = []
-        
-            for topic_index, pred_value in enumerate(passage_pred_list):
-                
-                topic_name = self.relevant_topics[topic_index]
-                
-                if pred_value != 0:
-
-                    if self.topic_group == 'Super Topics':
-
-                        passage_labels.append(topic_name)
-
-                    else:
-
-                        pred_super_topics = data_set['Pred Super Topics'][passage_index]
-
-                        topic_group_name = self.topic_group.split()[-1]
-
-                        # filter out topics whose families were not predicted
-                        if topic_group_name in pred_super_topics:
-
-                            passage_labels.append(topic_name)
-
-            pred_labels_list.append(passage_labels)
+            pred_labels_list.append(self.passage_labels)
 
         return pred_labels_list
 
 
-    def make_predictions(self, x_input):
+    def make_predictions(self):
 
-        self.pred_arrays = list(self.classifier.predict(x_input))
+        self.pred_arrays = list(
+            self.classifier.predict(
+                self.x[self.data_set]))
   
 
-    def append_predictions(self, data_set):
+    def append_predictions(self):
 
-        pred_lists = self.get_pred_labels_list(data_set, self.pred_arrays, self.topic_group) 
+        pred_lists = self.get_pred_labels_list() 
 
-        data_set[f'Pred {self.topic_group}'] = pred_lists
+        self.data_sets[self.data_set][f'Pred {self.topic_group}'] = pred_lists
 
 
-    def list_true_labels(self, data_set):
+    def list_true_labels(self):
 
-        true_cols = [col for col in self.data_sets[data_set].columns if 'True' in col]
+        true_cols = [col for col in self.data_sets[self.data_set].columns if 'True' in col]
 
         for true_col in true_cols:
 
-            self.data_sets[data_set][true_col] = self.data_sets[data_set][true_col].str.split()
+            self.data_sets[self.data_set][true_col] = self.data_sets[self.data_set][true_col].str.split()
 
 
-    def remove_irrelevant_columns(self, data_set):
+    def remove_irrelevant_columns(self):
 
-        wanted_cols = [col for col in self.data_sets[data_set].columns if 'passage' in col or 'True' in col or 'Pred' in col]
+        wanted_cols = [col for col in self.data_sets[self.data_set].columns if 'passage' in col or 'True' in col or 'Pred' in col]
 
-        self.data_sets[data_set] = self.data_sets[data_set][wanted_cols]
+        self.data_sets[self.data_set] = self.data_sets[self.data_set][wanted_cols]
 
 
     def tidy_data_sets(self):
 
         for data_set in ['train','test']:
 
-            self.list_true_labels(data_set)
+            self.data_set = data_set
 
-            self.remove_irrelevant_columns(data_set)
+            self.list_true_labels()
+
+            self.remove_irrelevant_columns()
             
     
-    def predict(self, data_set, x_input):
+    def predict(self):
 
-        self.make_predictions(x_input)
+        self.make_predictions()
         
-        self.append_predictions(data_set)
+        self.append_predictions()
         
 
     def fit_and_pred(self):
@@ -953,22 +1017,51 @@ class Predictor:
 
         self.train_classifier()
 
-        self.predict(data_set = self.data_sets['train'], x_input = self.x_train)
+        for data_set in ['train','test']:
 
-        self.predict(data_set = self.data_sets['test'], x_input = self.x_test)
+            self.data_set = data_set
+
+            self.predict()
+        
+        # self.predict(data_set = self.data_sets['train'], x_input = self.x_train)
+
+        # self.predict(data_set = self.data_sets['test'], x_input = self.x_test)
+
+
+    def remove_duplicated_columns(self):
+
+        self.df = self.df.loc[:,~self.df.columns.duplicated()]
+
+
+    def add_categorical_columns(self, col):
+
+        self.df = pd.concat([self.df, self.df[col].str.get_dummies(sep=' ')], axis=1)
+
+
+    def should_encode(self, col):
+
+        if col == 'True Topics':
+            
+            return False
+
+        if 'Super' in col:
+
+            return True
+
+        if 'Children' in col:
+
+            return True
 
 
     def one_hot_encode(self):
 
         for col in self.df.columns:
 
-            if ('Super' in col or 'Children' in col) and col != 'True Topics':
+            if self.should_encode(col):
 
-                # add categorical columns
-                self.df = pd.concat([self.df, self.df[col].str.get_dummies(sep=' ')], axis=1)
+                self.add_categorical_columns(col)
 
-        # children can have multiple parents; so must erase extra copies of columns
-        self.df = self.df.loc[:,~self.df.columns.duplicated()]
+        self.remove_duplicated_columns()
 
 
     def get_pred_vs_true(self, true_labels_df, pred_list):
@@ -984,35 +1077,41 @@ class Predictor:
 
 class ConfusionMatrix:
 
-    def __init__(self, super_topic, topics, expt_num):
+    def __init__(self, super_topic, cm_topics, expt_num, 
+    # pred_vs_true,
+    ):
 
-        self.super_topic = super_topic
-        self.topics = topics
         self.expt_num = expt_num
+        self.cm_topics = cm_topics
+        self.super_topic = super_topic
+        # self.pred_vs_true = pred_vs_true
 
 
-    def get_cm_values(self, pred_vs_true, data_set):
+    def build_label_set_lists(self):
 
-        cols = pred_vs_true.columns
+        cols = self.pred_vs_true[self.data_set].columns
 
         true_col = [col for col in cols if "True" in col][0]
         pred_col = [col for col in cols if "Pred" in col][0]
 
-        true_label_set_list = pred_vs_true[true_col].tolist()
-        pred_label_set_list = pred_vs_true[pred_col].tolist()
+        self.true_label_set_list = self.pred_vs_true[self.data_set][true_col].tolist()
+        self.pred_label_set_list = self.pred_vs_true[self.data_set][pred_col].tolist()
 
         # check that we predicted label sets for the same number of passages as truly exist
-        assert len(true_label_set_list) == len(pred_label_set_list)
+        assert len(self.true_label_set_list) == len(self.pred_label_set_list)
 
         # how many passages in this set
-        num_passages = len(true_label_set_list)
+        self.num_passages = len(self.true_label_set_list)
 
-        # init 
-        # e.g. 
+
+    def get_cm_values(self):
+
+        self.build_label_set_lists()
+
         y_true = []
         y_pred = []
 
-        for i in range(num_passages):
+        for i in range(self.num_passages):
 
             # init, this parallel pair of lists is going to record what topics were (mis)matched
             # e.g. if there is one passage with 
@@ -1025,12 +1124,12 @@ class ConfusionMatrix:
             pred_label_set = []
             
             try:
-                true_label_set = true_label_set_list[i]
+                true_label_set = self.true_label_set_list[i]
             except:
                 pass
             
             try:
-                pred_label_set = pred_label_set_list[i]
+                pred_label_set = self.pred_label_set_list[i]
             except:
                 pass
 
@@ -1074,8 +1173,8 @@ class ConfusionMatrix:
                     y_true.append("None")
                     y_pred.append(pred_label)
         
-        y_actu = pd.Categorical(y_true, categories=self.topics)
-        y_pred = pd.Categorical(y_pred, categories=self.topics)
+        y_actu = pd.Categorical(y_true, categories=self.cm_topics)
+        y_pred = pd.Categorical(y_pred, categories=self.cm_topics)
 
         cm = pd.crosstab(y_actu, y_pred, rownames=['True'], colnames = ['Prediction'], dropna=False) 
 
@@ -1083,7 +1182,7 @@ class ConfusionMatrix:
 
         sns.heatmap(cm, annot=True)
     
-        plt.savefig(f'images/cm_expt_num_{self.expt_num}_super_topic_{self.super_topic}_{data_set}.png', bbox_inches='tight')
+        plt.savefig(f'images/cm_expt_num_{self.expt_num}_super_topic_{self.super_topic}_{self.data_set}.png', bbox_inches='tight')
 
         return cm
 
@@ -1100,8 +1199,11 @@ class ConfusionMatrix:
             print(cm_norm.round(2))
 
         TP_rates = {}
-        for topic in self.topics:
+
+        for topic in self.cm_topics:
+        
             TP_rate = cm_norm.loc[topic,topic]
+        
             TP_rates[topic] = TP_rate
 
         # TP rate for each topic, ordered worst to best, as a list of tuples
@@ -1132,21 +1234,13 @@ class ConfusionMatrix:
 class Scorer:
 
     def __init__(self, 
-                # topic_names, 
-                topic_counts, 
-                super_topic, 
-                expt_num, 
-                # none_ratio, use_expanded_topics = False, 
-                # should_print = False, chosen_topics = None
-                ):
-        self.super_topic = super_topic
+    # data_set, 
+    expt_num, super_topic, topic_counts):
+
+        # self.data_set = data_set
         self.expt_num = expt_num
-        # self.topic_names = topic_names
-        # self.none_ratio = none_ratio
-        # self.should_print = should_print
+        self.super_topic = super_topic
         self.topic_counts = topic_counts
-        # self.chosen_topics = chosen_topics
-        # self.use_expanded_topics = use_expanded_topics
 
     def get_precision(self, cm, topic, TP):
 
@@ -1228,7 +1322,7 @@ class Scorer:
         self.topic_stats_df = self.topic_stats_df.append(over_all_stats, ignore_index=True)
 
 
-    def get_stats_df(self, cm, data_set, super_topic):
+    def get_stats_df(self, data_set, cm, super_topic):
 
         self.store_topic_occurrences()
         
@@ -1368,23 +1462,29 @@ class Evaluator():
 
             cm_topics = self.topic_lists[f'Children of {super_topic}'] + ['None']
 
-            cm_maker = ConfusionMatrix(super_topic, cm_topics, self.expt_num)
+            cm_maker = ConfusionMatrix(
+                cm_topics = cm_topics, 
+                expt_num = self.expt_num,
+                super_topic = super_topic, 
+                # pred_vs_true = self.pred_vs_true,
+                )
 
             true_col = f'True Children of {super_topic}'
             pred_col = f'Pred Children of {super_topic}'
 
-            pred_vs_true = {}
+            cm_maker.pred_vs_true = {}
             cm = {}
-            pred_vs_true = {}
             self.confusion_matrices[super_topic] = {}
 
             for data_set in ['train','test']:
 
-                pred_vs_true[data_set] = self.data_sets[data_set][[true_col,pred_col]]
+                cm_maker.data_set = data_set
 
-                cm[data_set] = cm_maker.get_cm_values(pred_vs_true[data_set], data_set = data_set)
+                cm_maker.pred_vs_true[cm_maker.data_set] = self.data_sets[cm_maker.data_set][[true_col,pred_col]]
 
-                self.confusion_matrices[super_topic][data_set] = cm[data_set]
+                cm[cm_maker.data_set] = cm_maker.get_cm_values()
+
+                self.confusion_matrices[super_topic][cm_maker.data_set] = cm[cm_maker.data_set]
 
         # return self.confusion_matrices
 
@@ -1407,7 +1507,7 @@ class Evaluator():
                 topic_counts=self.topic_counts[super_topic],
                 )
 
-            for data_set in ['train','test']:
+            for data_set in ['test','train']:
                 
                 scorer.get_stats_df(
                     data_set = data_set,
@@ -1419,14 +1519,19 @@ class Evaluator():
 
                 plt.figure()
 
-                sns.heatmap(cm, annot=True)
-            
-                plt.savefig(f'images/cm_expt_num_{self.expt_num}_super_topic_{self.super_topic}_{data_set}.png', bbox_inches='tight')
+                sns.barplot(x="Topic", y="F1score", data=scorer.topic_stats_df)
 
+                plt.xticks(rotation=65, horizontalalignment='right')
+
+                plt.savefig(f'images/scores/expt_num_{self.expt_num}_super_topic_{super_topic}_{data_set}.png', bbox_inches='tight')
+
+            print()
 
 
     def show_results(self):
         
+
+
         print()
 
 

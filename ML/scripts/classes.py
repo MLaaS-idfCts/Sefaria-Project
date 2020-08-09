@@ -38,7 +38,6 @@ np.seterr(divide='ignore', invalid='ignore')
 class DataManager:
 
     def __init__(self, data_path, row_lim, 
-                #  topic_limit, 
                 super_topics,
                 lang_to_vec = 'eng',
                 should_limit_nones = True, 
@@ -50,8 +49,7 @@ class DataManager:
         self.lang_to_vec = lang_to_vec
         self.row_lim = row_lim
         self.should_stem = should_stem
-        # self.topic_limit = topic_limit
-        self.super_topics = super_topics
+        self.super_topics = sorted(super_topics)
         self.should_clean = should_clean
         self.keep_all_nones = keep_all_nones
         self.should_limit_nones = should_limit_nones
@@ -321,54 +319,6 @@ class DataManager:
             pass
 
 
-    def show_topic_counts(self):
-        df = self.preprocess_dataframe()
-        categories = list(df.columns.values)
-        categories = categories[1:]
-        sns.set(font_scale = 2)
-        figure = plt.figure(figsize=(15,8))
-
-        ax= sns.barplot(categories, df.iloc[:,1:].sum().values)
-
-        plt.title("Passages in each topic", fontsize=24)
-        plt.ylabel('Number of Passages', fontsize=18)
-        plt.xlabel('Passage Type ', fontsize=18)
-
-        #adding the text labels
-        rects = ax.patches
-        labels = df.iloc[:,1:].sum().values
-        for rect, label in zip(rects, labels):
-            height = rect.get_height()
-            ax.text(rect.get_x() + rect.get_width()/2, height + 0, label, ha='center', va='bottom', fontsize=18)
-
-        plt.xticks(rotation=90)
-        # plt.imshow()
-        # plt.show()
-        return ax
-
-
-    def show_multiple_labels(self):
-        rowSums = df.iloc[:,2:].sum(axis=1)
-        multiLabel_counts = rowSums.value_counts()
-        multiLabel_counts.sort_index(inplace=True)
-        multiLabel_counts = multiLabel_counts.iloc[:]
-
-        sns.set(font_scale = 2)
-        plt.figure(figsize=(15,8))
-
-        ax = sns.barplot(multiLabel_counts.index, multiLabel_counts.values)
-
-        plt.title("passages having multiple labels ")
-        plt.ylabel('Number of passages', fontsize=18)
-        plt.xlabel('Number of labels', fontsize=18)
-        #adding the text labels
-        rects = ax.patches
-        labels = multiLabel_counts.values
-        for rect, label in zip(rects, labels):
-            height = rect.get_height()
-            ax.text(rect.get_x() + rect.get_width()/2, height + 0, label, ha='center', va='bottom')
-        plt.show()
-
 
     def _get_ref_features(self,input_string):
         """
@@ -403,7 +353,7 @@ class Categorizer:
     def __init__(self, df, super_topics):
 
         self.df = df
-        self.super_topics = super_topics
+        self.super_topics = sorted(super_topics)
         
         self.topic_lists = {}
         self.topic_lists['Super Topics'] = self.super_topics
@@ -694,11 +644,11 @@ class Predictor:
     
     def __init__(self, classifier, vectorizer, df, super_topics, topic_lists):
         
-        self.classifier = classifier
-        self.vectorizer = vectorizer
         self.df = df
-        self.super_topics = super_topics
+        self.vectorizer = vectorizer
+        self.classifier = classifier
         self.topic_lists = topic_lists
+        self.super_topics = sorted(super_topics)
 
 
     def calc_results(self):
@@ -712,13 +662,14 @@ class Predictor:
         self.tidy_data_sets()
 
 
-    def split_data(self):
+    def train_test_split(self):
 
-        self.one_hot_encode()
-        
         self.data_sets = {}
 
         self.data_sets['train'], self.data_sets['test'] = train_test_split(self.df, shuffle = False, test_size=0.30)
+
+
+    def store_text(self):
 
         self.text = {}
 
@@ -726,8 +677,14 @@ class Predictor:
 
             self.text[data_set] = self.data_sets[data_set]['passage_words']
 
-        # self.train_text = self.data_sets['train']['passage_words']
-        # self.test_text = self.data_sets['test']['passage_words']
+
+    def split_data(self):
+
+        self.one_hot_encode()
+        
+        self.train_test_split()
+        
+        self.store_text()
 
 
     def pred_super_topics(self):
@@ -758,25 +715,34 @@ class Predictor:
         return wanted_cols 
         
 
-    def train_classifier(self):
+    def set_x(self):
 
         self.x = {}
-        self.y = {}
 
         self.x['train'] = self.vectorizer.fit_transform(self.text['train'])
         self.x['test'] = self.vectorizer.transform(self.text['test'])
 
+
+    def set_y(self):
+
+        self.y = {}
+
         for data_set in ['train','test']:
 
             self.data_set = data_set
-            
+
             wanted_cols = self.get_wanted_cols()
 
-            self.y[self.data_set] = self.data_sets[self.data_set][wanted_cols]
+            self.y[data_set] = self.data_sets[data_set][wanted_cols]
+
+
+    def train_classifier(self):
+
+        self.set_x()
+        
+        self.set_y()
 
         self.classifier.fit(self.x['train'], self.y['train'])
-
-        print()
 
 
     def positive_result(self,pred_value):
@@ -835,18 +801,20 @@ class Predictor:
             
             self.append_if_appropriate(topic_index, pred_value, passage_index)
 
+        print()
+
 
     def get_pred_labels_list(self):
 
-        pred_labels_list = []
+        self.pred_labels_list = []
 
         for passage_index, pred_array in enumerate(self.pred_arrays):
     
             self.build_passage_labels(passage_index, pred_array)
 
-            pred_labels_list.append(self.passage_labels)
+            self.pred_labels_list.append(self.passage_labels)
 
-        return pred_labels_list
+        print()
 
 
     def make_predictions(self):
@@ -854,13 +822,15 @@ class Predictor:
         self.pred_arrays = list(
             self.classifier.predict(
                 self.x[self.data_set]))
+
+        print()
   
 
     def append_predictions(self):
 
-        pred_lists = self.get_pred_labels_list() 
+        self.get_pred_labels_list() 
 
-        self.data_sets[self.data_set][f'Pred {self.topic_group}'] = pred_lists
+        self.data_sets[self.data_set][f'Pred {self.topic_group}'] = self.pred_labels_list
 
 
     def list_true_labels(self):
@@ -899,7 +869,7 @@ class Predictor:
 
     def fit_and_pred(self):
 
-        self.relevant_topics = self.topic_lists[self.topic_group]
+        self.relevant_topics = sorted(self.topic_lists[self.topic_group])
 
         self.train_classifier()
 
@@ -909,10 +879,6 @@ class Predictor:
 
             self.predict()
         
-        # self.predict(data_set = self.data_sets['train'], x_input = self.x_train)
-
-        # self.predict(data_set = self.data_sets['test'], x_input = self.x_test)
-
 
     def remove_duplicated_columns(self):
 
@@ -963,14 +929,11 @@ class Predictor:
 
 class ConfusionMatrix:
 
-    def __init__(self, super_topic, cm_topics, expt_num, 
-    # pred_vs_true,
-    ):
+    def __init__(self, super_topic, cm_topics, expt_num):
 
         self.expt_num = expt_num
         self.cm_topics = cm_topics
         self.super_topic = super_topic
-        # self.pred_vs_true = pred_vs_true
 
 
     def build_label_set_lists(self):
@@ -983,10 +946,8 @@ class ConfusionMatrix:
         self.true_label_set_list = self.pred_vs_true[self.data_set][true_col].tolist()
         self.pred_label_set_list = self.pred_vs_true[self.data_set][pred_col].tolist()
 
-        # check that we predicted label sets for the same number of passages as truly exist
         assert len(self.true_label_set_list) == len(self.pred_label_set_list)
 
-        # how many passages in this set
         self.num_passages = len(self.true_label_set_list)
 
 
@@ -1064,11 +1025,13 @@ class ConfusionMatrix:
 
         cm = pd.crosstab(y_actu, y_pred, rownames=['True'], colnames = ['Prediction'], dropna=False) 
 
-        plt.figure()
+        fig = plt.figure()
 
         sns.heatmap(cm, annot=True)
     
-        plt.savefig(f'images/cm_expt_num_{self.expt_num}_super_topic_{self.super_topic}_{self.data_set}.png', bbox_inches='tight')
+        fig.savefig(f'images/cm_expt_num_{self.expt_num}_super_topic_{self.super_topic}_{self.data_set}.png', bbox_inches='tight')
+
+        plt.close(fig)
 
         return cm
 
@@ -1274,7 +1237,7 @@ class Evaluator:
         self.expt_num = expt_num
         self.data_sets = data_sets
         self.topic_lists = topic_lists
-        self.super_topics = super_topics
+        self.super_topics = sorted(super_topics)
         self.topic_counts = topic_counts
 
 
@@ -1347,7 +1310,9 @@ class Evaluator:
 
                 plt.xticks(rotation=65, horizontalalignment='right')
 
-                plt.savefig(f'images/scores/discr_fami_{self.discriminate_families}_expt_num_{self.expt_num}_super_topic_{super_topic}_{data_set}.png', bbox_inches='tight')
+                plt.savefig(
+                    f'images/scores/expt_discriminate/discriminate_{self.discriminate_families}_super_topic_{super_topic}_{data_set}.png', 
+                    bbox_inches='tight')
 
             print()
 
@@ -1358,47 +1323,3 @@ class Evaluator:
 
         print()
 
-
-
-
-
-
-
-#         super_topic_scores = {
-#             'train':train_score_df.iloc[-1],
-#             'test':test_score_df.iloc[-1],
-#         }
-
-#         super_topic_scores_dict[super_topic] = super_topic_scores
-    
-#     overall_fscore = {
-#         'train':0,
-#         'test':0
-#     }
-
-#     total_occurrences = 0
-
-#     for super_topic in super_topics:
-    
-#         total_occurrences += super_topic_scores_dict[super_topic]['train']['Occurrences']
-
-
-#     for super_topic in super_topics:
-
-#         print('# super_topic',super_topic)
-
-#         proportion = super_topic_scores_dict[super_topic]['train']['Occurrences']/total_occurrences
-
-#         fscore_contribution_test = proportion*super_topic_scores_dict[super_topic]['test']['F1score']
-#         overall_fscore['test'] += fscore_contribution_test 
-
-#         fscore_contribution_train = proportion*super_topic_scores_dict[super_topic]['train']['F1score']
-#         overall_fscore['train'] += fscore_contribution_train 
-
-#         print('# test',round(fscore_contribution_test,2))
-#         print('# train',round(fscore_contribution_train,2))
-
-#     print('test', overall_fscore['test'])
-#     print('train', overall_fscore['train'])
-
-# print()

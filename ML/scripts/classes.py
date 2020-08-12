@@ -187,14 +187,12 @@ class DataManager:
 
     def select_super_topics(self):
 
-        topic_counter = TopicCounter()
-
         new_col = 'True Super Topics'
 
         old_col = 'Expanded Topics'
 
         self.df[new_col] = self.df.pop(old_col).apply(
-            topic_counter.topic_limiter,
+            TopicCounter().topic_limiter,
             args=(set(self.super_topics),))
 
 
@@ -343,11 +341,15 @@ class Categorizer:
         self.topic_lists['Super Topics'] = self.super_topics
         
 
-    def construct_children_list(super_topic):
+    def construct_children_list(self, super_topic):
 
         children_obj_lst = Topic.init(super_topic).topics_by_link_type_recursively()
 
         children_names_list = [child_obj.slug for child_obj in children_obj_lst]
+
+        children_list_name = f"children_of_{super_topic}"
+
+        path = f'data/{children_list_name}.pickle'
 
         with open(path, 'wb') as handle:
             
@@ -416,8 +418,6 @@ class Categorizer:
     def sort_children(self, max_children):
 
         self.topic_counts = {}
-
-        # topic_counter = TopicCounter()
 
         for super_topic in self.super_topics:
 
@@ -567,30 +567,8 @@ class Categorizer:
 
         return self.limited_nones_df
 
-    
-    def get_one_hot_encoded_df(self):
 
-        if getattr(self,'one_hot_encoded_df',None):
-
-            pass
-
-        else:
-
-            df = self.limit_nones()
-
-            # one hot encode each topic
-            df = pd.concat([df, df[f'True {self.classification_stage}'].str.get_dummies(sep=' ')], axis=1)
-
-            # make topic string into list
-            df[f'True {self.classification_stage}'] = df[f'True {self.classification_stage}'].str.split()
-
-            self.one_hot_encoded_df = df
-
-        return self.one_hot_encoded_df
-
-
-class Predictor:
-    
+class Predictor:    
     
     def __init__(self, classifier, vectorizer, df, super_topics, topic_lists):
         
@@ -725,8 +703,10 @@ class Predictor:
         pred_super_topics = self.data_sets[self.data_set]['Pred Super Topics'][passage_index]
 
         topic_group_name = self.topic_group.split()[-1]
-
-        return topic_group_name in pred_super_topics
+        
+        result = topic_group_name in pred_super_topics
+        
+        return result
     
     
     def is_super_topic(self):
@@ -748,6 +728,8 @@ class Predictor:
 
     def append_if_appropriate(self, topic_index, pred_value, passage_index):
 
+        passage_words = self.data_sets[self.data_set]['passage_words'][passage_index] # for experimentation purposes
+
         topic_name = self.relevant_topics[topic_index]
 
         if self.should_append(passage_index, pred_value):
@@ -765,8 +747,6 @@ class Predictor:
             
             self.append_if_appropriate(topic_index, pred_value, passage_index)
 
-        print()
-
 
     def get_pred_labels_list(self):
 
@@ -777,8 +757,6 @@ class Predictor:
             self.build_passage_labels(passage_index, pred_array)
 
             self.pred_labels_list.append(self.passage_labels)
-
-        print()
 
 
     def make_predictions(self):
@@ -878,15 +856,6 @@ class Predictor:
         self.remove_duplicated_columns()
 
 
-    def get_pred_vs_true(self, true_labels_df, pred_list):
-        
-        wanted_cols = [col for col in true_labels_df.columns if 'topic' in col.lower()]
-
-        true_vs_pred_labels_df = true_labels_df[['passage_words'] + wanted_cols]
-        
-        true_vs_pred_labels_df[f'Pred {self.classification_stage}'] = pred_list
-
-        return true_vs_pred_labels_df
 
 
 class ConfusionMatrix:
@@ -1156,13 +1125,8 @@ class Scorer:
 
 class TopicCounter:
 
-
-    def __init__(self):
-    
-        pass
-
-
-    def get_counts(self, series, max_topics):
+    @staticmethod
+    def get_counts(series, max_topics):
 
         topic_set_lst = series.to_list()
 
@@ -1176,8 +1140,8 @@ class TopicCounter:
 
         return topic_counts
 
-
-    def topic_limiter(self, row, permitted_topics):
+    @staticmethod
+    def topic_limiter(row, permitted_topics):
 
         # this cell contains more topics than we might want
         old_passage_topics_string = row
@@ -1221,33 +1185,54 @@ class Evaluator:
                 cm_topics = cm_topics, 
                 expt_num = self.expt_num,
                 super_topic = super_topic, 
-                # pred_vs_true = self.pred_vs_true,
                 )
 
             true_col = f'True Children of {super_topic}'
             pred_col = f'Pred Children of {super_topic}'
 
             cm_maker.pred_vs_true = {}
-            cm = {}
+
             self.confusion_matrices[super_topic] = {}
 
             for data_set in ['train','test']:
 
                 cm_maker.data_set = data_set
 
+                # record only columns of true vs pred
                 cm_maker.pred_vs_true[cm_maker.data_set] = self.data_sets[cm_maker.data_set][[true_col,pred_col]]
 
-                cm[cm_maker.data_set] = cm_maker.get_cm_values()
+                self.confusion_matrices[super_topic][cm_maker.data_set] = cm_maker.get_cm_values()
 
-                self.confusion_matrices[super_topic][cm_maker.data_set] = cm[cm_maker.data_set]
 
-        # return self.confusion_matrices
+    def save_image(self, data, super_topic, data_set):
 
-#     # check the worst performing examples to see what's going wrong
-#     worst_train = cm_maker.check_worst(train_cm, train_pred_vs_true)
-#     worst_test = cm_maker.check_worst(test_cm, test_pred_vs_true)
+        fig = plt.figure()
 
-        
+        score_chart = sns.barplot(x="Topic", y="F1score", data=data)
+
+        score_chart.set_title(f'{super_topic}\n{data_set}')
+
+        plt.xticks(rotation=65, horizontalalignment='right')
+
+        for p in score_chart.patches:
+
+            score_chart.annotate(
+                f"{round(p.get_height(),2)}", (p.get_x() + p.get_width() / 2., p.get_height()),
+                ha='center', va='center', fontsize=10, color='black', xytext=(0, 5), textcoords='offset points'
+                )
+
+        folder = 'images/scores'
+
+        file_name = f'{self.expt_num}_{super_topic}_{data_set}.png'
+
+        path = os.path.join(folder,file_name)
+
+        plt.savefig(path, bbox_inches='tight')
+
+        plt.close(fig)
+
+
+
     def calc_scores(self):
 
         self.scores = {}
@@ -1272,22 +1257,8 @@ class Evaluator:
                 
                 self.scores[super_topic][data_set] = scorer.topic_stats_df
 
-                fig = plt.figure()
-
-                g = sns.barplot(x="Topic", y="F1score", data=scorer.topic_stats_df)
-
-                plt.xticks(rotation=65, horizontalalignment='right')
-
-                # for index, row in scorer.topic_stats_df.iterrows():
-
-                #     g.text(row.Topic, row.F1score, round(row.F1score,2), color='black', ha="center")
-
-                folder = 'images/scores'
-
-                file_name = f'{self.expt_num}_{super_topic}_{data_set}.png'
-
-                path = os.path.join(folder,file_name)
-
-                plt.savefig(path, bbox_inches='tight')
-
-                plt.close(fig)
+                self.save_image(
+                    data = scorer.topic_stats_df,
+                    data_set = data_set,
+                    super_topic = super_topic, 
+                    )

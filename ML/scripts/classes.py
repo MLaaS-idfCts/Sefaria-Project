@@ -27,7 +27,7 @@ from tqdm import tqdm
 from operator import itemgetter 
 from unidecode import unidecode
 from nltk.stem import SnowballStemmer
-from collections import Counter
+from collections import Counter, defaultdict
 from nltk.corpus import stopwords
 from sklearn.model_selection import train_test_split
 
@@ -64,25 +64,15 @@ class DataManager:
         # each item in list is a list of strings for one passage
         all_passage_node_lst = df['Expanded Topics'].tolist()
         
-        # huge string of all topic for all psasages
         all_nodes_str = ' '.join(all_passage_node_lst)
         
-        # list of all topic instances
         all_nodes_lst = all_nodes_str.split()
         
-        # init dict
-        ontology_counts_dict = {}
-        
-        # loop thru all topic occurrences
+        ontology_counts_dict = defaultdict(int)
+
         for node in all_nodes_lst:
-        
-            # increment if seen already
-            if node in ontology_counts_dict:
-                ontology_counts_dict[node] += 1
-        
-            # init if not seen yet
-            else:
-                ontology_counts_dict[node] = 1
+
+            ontology_counts_dict[node] += 1
         
         # rank the entries by most frequently occurring first
         ontology_counts_dict = {

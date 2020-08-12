@@ -61,7 +61,7 @@ class DataManager:
 
         df = self.preprocess_dataframe()
 
-        # each item in list is a string of lists for one passage
+        # each item in list is a list of strings for one passage
         all_passage_node_lst = df['Expanded Topics'].tolist()
         
         # huge string of all topic for all psasages
@@ -1040,8 +1040,14 @@ class ConfusionMatrix:
         fig = plt.figure()
 
         sns.heatmap(cm, annot=True)
-    
-        fig.savefig(f'images/cm_expt_num_{self.expt_num}_super_topic_{self.super_topic}_{self.data_set}.png', bbox_inches='tight')
+
+        folder = 'images/cm'
+
+        file_name = f'{self.expt_num}_{self.super_topic}_{self.data_set}.png'
+
+        path = os.path.join(folder,file_name)
+
+        plt.savefig(path, bbox_inches='tight')
 
         plt.close(fig)
 
@@ -1316,12 +1322,18 @@ class Evaluator:
                 
                 self.scores[super_topic][data_set] = scorer.topic_stats_df
 
-                plt.figure()
+                fig = plt.figure()
 
                 sns.barplot(x="Topic", y="F1score", data=scorer.topic_stats_df)
 
                 plt.xticks(rotation=65, horizontalalignment='right')
 
-                plt.savefig(
-                    f'images/scores/expt_discriminate/{self.expt_num}_{super_topic}_{data_set}.png', 
-                    bbox_inches='tight')
+                folder = 'images/scores'
+
+                file_name = f'{self.expt_num}_{super_topic}_{data_set}.png'
+
+                path = os.path.join(folder,file_name)
+
+                plt.savefig(path, bbox_inches='tight')
+
+                plt.close(fig)

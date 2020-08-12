@@ -36,7 +36,7 @@ super_topics_list = [
 
 lang_to_vec = 'both'
 
-row_lim = 500
+row_lim = 1000
 
 for expt_num, super_topics in enumerate(super_topics_list):
 

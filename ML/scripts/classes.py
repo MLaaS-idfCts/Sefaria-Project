@@ -651,11 +651,31 @@ class Predictor:
         self.super_topics = sorted(super_topics)
 
 
+    def copy_all_topics(self):
+
+        for data_set in ['train','test']:
+
+            self.data_sets[data_set]['Pred Super Topics'] = self.data_sets[data_set]['True Super Topics']
+
+            self.data_sets[data_set]['Pred Children of entity'] = self.data_sets[data_set]['True Children of entity']
+
+
+    def address_super_topics(self):
+                
+        if self.super_topics == ['entity']:
+
+            self.copy_all_topics()
+
+        else:
+
+            self.pred_super_topics()
+
+
     def calc_results(self):
 
         self.split_data()
-        
-        self.pred_super_topics()
+
+        self.address_super_topics()
 
         self.pred_sub_topics()
 
@@ -752,17 +772,11 @@ class Predictor:
 
     def child_of_pred(self, passage_index):
 
-        if self.discriminate_families == False:
+        pred_super_topics = self.data_sets[self.data_set]['Pred Super Topics'][passage_index]
 
-            return True
+        topic_group_name = self.topic_group.split()[-1]
 
-        if self.discriminate_families == True:
-
-            pred_super_topics = self.data_sets[self.data_set]['Pred Super Topics'][passage_index]
-
-            topic_group_name = self.topic_group.split()[-1]
-
-            return topic_group_name in pred_super_topics
+        return topic_group_name in pred_super_topics
     
     
     def is_super_topic(self):
@@ -823,8 +837,6 @@ class Predictor:
             self.classifier.predict(
                 self.x[self.data_set]))
 
-        print()
-  
 
     def append_predictions(self):
 
@@ -1311,15 +1323,5 @@ class Evaluator:
                 plt.xticks(rotation=65, horizontalalignment='right')
 
                 plt.savefig(
-                    f'images/scores/expt_discriminate/discriminate_{self.discriminate_families}_super_topic_{super_topic}_{data_set}.png', 
+                    f'images/scores/expt_discriminate/{self.expt_num}_{super_topic}_{data_set}.png', 
                     bbox_inches='tight')
-
-            print()
-
-
-    def show_results(self):
-        
-
-
-        print()
-

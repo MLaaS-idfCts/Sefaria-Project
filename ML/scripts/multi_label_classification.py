@@ -8,19 +8,6 @@ from sklearn.svm import SVC, LinearSVC
 from skmultilearn.problem_transform import LabelPowerset, BinaryRelevance, ClassifierChain
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-start_time = datetime.now()
-
-# **********************************************************************************************************
-# functions
-# **********************************************************************************************************
-
-def time_and_reset(start_time):
-    """
-    Usage: 
-    start_time = time_and_reset(start_time)
-    """
-    print('#',datetime.now() - start_time)
-    return datetime.now()
 
 # ignore warnings regarding column assignment, e.g. df['col1'] = list1 -- not 100% sure about this
 pd.options.mode.chained_assignment = None  # default='warn'
@@ -42,54 +29,45 @@ classifier = BinaryRelevance(classifier=LinearSVC())
 vectorizer = TfidfVectorizer()
 
 super_topics_list = [
+    ['entity'],
     ['occurent', 'specifically-dependent-continuant','independent-continuant','generically-dependent-continuant'],
     ['generically-dependent-continuant', 'independent-continuant', 'occurent', 'quality', 'realizable-entity']
 ]
 
-# which language(s) do you want to vectorize; langs_to_vec = ['eng','heb','both']
-lang_to_vec = 'eng'
+lang_to_vec = 'both'
 
-row_lim = None
+row_lim = 500
 
 for expt_num, super_topics in enumerate(super_topics_list):
 
-    for discriminate_families in [True, False]:
+    data = DataManager(data_path = DATA_PATH, row_lim = row_lim, 
+                        super_topics = super_topics, lang_to_vec = lang_to_vec, 
+                        should_stem = False, should_clean = True, 
+                        should_remove_stopwords = False)
 
-        print(f'# expt_num #{expt_num}\n# {len(super_topics)} super_topics: {super_topics}')
+    data.prepare_dataframe()    
 
-        data = DataManager(data_path = DATA_PATH, row_lim = row_lim, 
-                            super_topics = super_topics, lang_to_vec = lang_to_vec, 
-                            should_stem = False, should_clean = True, 
-                            should_remove_stopwords = False)
+    categorizer = Categorizer(df = data.df, super_topics=super_topics)
 
-        data.prepare_dataframe()    
+    categorizer.sort_children(max_children = 10)
 
-        categorizer = Categorizer(df = data.df, super_topics=super_topics)
+    predictor = Predictor(classifier = classifier, vectorizer = vectorizer, df = categorizer.df,
+                            super_topics = super_topics, topic_lists = categorizer.topic_lists)
 
-        categorizer.sort_children(max_children = 10)
+    predictor.calc_results()
 
-        predictor = Predictor(classifier = classifier, vectorizer = vectorizer, df = categorizer.df,
-                                super_topics = super_topics, topic_lists = categorizer.topic_lists)
+    evaluator = Evaluator(
+        expt_num = expt_num, 
+        data_sets = predictor.data_sets, 
+        topic_lists = categorizer.topic_lists,
+        super_topics = super_topics, 
+        topic_counts = categorizer.topic_counts,
+    ) 
 
-        predictor.discriminate_families = discriminate_families
+    evaluator.calc_cm()
 
-        predictor.calc_results()
-
-        evaluator = Evaluator(
-            expt_num = expt_num, 
-            data_sets = predictor.data_sets, 
-            topic_lists = categorizer.topic_lists,
-            super_topics = super_topics, 
-            topic_counts = categorizer.topic_counts,
-        ) 
-
-        evaluator.discriminate_families = discriminate_families
-
-        evaluator.calc_cm()
-
-        evaluator.calc_scores()
-        
-        # evaluator.plot_results()
-    print()
+    evaluator.calc_scores()
+    
+print()
 
 

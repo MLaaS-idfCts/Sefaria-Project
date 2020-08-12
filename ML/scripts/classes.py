@@ -10,10 +10,7 @@ sys.path.insert(1, '/persistent/Sefaria-Project/')
 os.environ['DJANGO_SETTINGS_MODULE'] = 'sefaria.settings'
 django.setup()
 
-from tqdm import tqdm
 from sefaria.model import *
-from sefaria.system.database import db
-
 
 import re
 import nltk
@@ -22,8 +19,6 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-from bs4 import BeautifulSoup
-from tqdm import tqdm
 from operator import itemgetter 
 from unidecode import unidecode
 from nltk.stem import SnowballStemmer
@@ -75,13 +70,13 @@ class DataManager:
             ontology_counts_dict[node] += 1
         
         # rank the entries by most frequently occurring first
-        ontology_counts_dict = {
-                                k: v for k, v in sorted(ontology_counts_dict.items(), 
-                                key=lambda item: item[1],
-                                reverse=True)
-                            }
+        ontology_counts_ranked = [
+            k: v for k, v in sorted(ontology_counts_dict.items(), 
+            key=lambda item: item[1],
+            reverse=True)
+            ]
 
-        return ontology_counts_dict
+        return ontology_counts_ranked
 
 
     def establish_dataframe(self):
@@ -192,40 +187,37 @@ class DataManager:
 
         topic_counter = TopicCounter()
 
-        self.df['True Super Topics'] = self.df.pop('Expanded Topics').apply(
-                                                                            topic_counter.topic_limiter,
-                                                                            args=(self.super_topics,)
-                                                                            )
+        new_col = 'True Super Topics'
+
+        old_col = 'Expanded Topics'
+
+        self.df[new_col] = self.df.pop(old_col).apply(
+            topic_counter.topic_limiter,
+            args=(set(self.super_topics),)
 
 
-    def remove_prefix(self, row):
+    def remove_prefix(self, with_prefix):
 
-        with_prefix_str = row
-
-        with_prefix_lst = with_prefix_str.split()
-
-        without_prefix_lst = []
-
-        for word in with_prefix_lst:
-
-            word_no_prefix = word[word.find('|') + 1:]
-
-            without_prefix_lst.append(word_no_prefix)
-
-        without_prefix_str = ' '.join(without_prefix_lst)
+        without_prefix = ' '.join([
+            word[word.find('|') + 1:] 
+            for word in with_prefix.split()
+            ])
         
-        return without_prefix_str
+        return without_prefix
 
 
     def cleanHtml(self,sentence):
 
-        try:
-            soup = BeautifulSoup(sentence,features="lxml")
-            cleantext = soup.get_text()
+        cleanr = re.compile(r'<.*?>')
+        cleantext = cleanr.sub(' ', sentence)
+        
+        # try:
+        #     soup = BeautifulSoup(sentence,features="lxml")
+        #     cleantext = soup.get_text()
 
-        except:
-            cleanr = re.compile(r'<.*?>')
-            cleantext = cleanr.sub('', sentence)
+        # except:
+        #     cleanr = re.compile(r'<.*?>')
+        #     cleantext = cleanr.sub('', sentence)
 
         return cleantext
 
@@ -233,7 +225,7 @@ class DataManager:
     def cleanPunc(self,sentence): #function to clean the word of any punctuation or special characters
         
         # remove portions in parenthsesis or brackets
-        cleaned = re.sub("([\(\[]).*?([\)\]])", "", sentence)
+        cleaned = re.sub("([\(\[]).*?([\)\]])", " ", sentence)
         
         # remove punctuation characters
         cleaned = re.sub(r'[?|!|\'|"|#|.|,|)|(|\|/|:|-|—]',r' ',cleaned)
@@ -244,7 +236,7 @@ class DataManager:
         cleaned = cleaned.replace("\n"," ")
         
         # remove extra spaces
-        cleaned = re.sub(' +', ' ',cleaned)
+        cleaned = re.sub('\s+', ' ',cleaned)
         
         return cleaned
 
@@ -386,32 +378,6 @@ class Categorizer:
         return children_names_list 
 
 
-
-
-
-    def get_numeric_df(self, df, super_topic):
-
-        children_topics = self.get_children(super_topic)
-
-        topic_col = [col for col in df.columns if super_topic in col][0]
-        
-        cols = ['passage_words',topic_col]
-
-        df = df[cols]
-
-        df.rename(columns={topic_col: 'Topics'}, inplace=True)
-
-        categorizer = Categorizer(df=df, classification_stage='Topics', chosen_topics=children_topics)
-
-        one_hot_encoded_df = categorizer.get_one_hot_encoded_df()
-
-        numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
-
-        OHE_topics = one_hot_encoded_df.select_dtypes(include=numerics)
-
-        return OHE_topics
-
-
     def make_child_column(self, super_topic):
 
             children = self.get_children(super_topic)
@@ -504,20 +470,12 @@ class Categorizer:
             all_topics_lst = all_topics_str.split()
             
             # init dict
-            topic_counts_without_none_dict = {}
+            topic_counts_without_none_dict = defaultdict(int)
             
             # loop thru all topic occurrences
             for topic in all_topics_lst:
             
-                # increment if seen already
-                if topic in topic_counts_without_none_dict:
-
-                    topic_counts_without_none_dict[topic] += 1
-            
-                # init if not seen yet
-                else:
-
-                    topic_counts_without_none_dict[topic] = 1
+                topic_counts_without_none_dict[topic] += 1
             
             # rank the entries by most frequently occurring first
             topic_counts_without_none_dict = {

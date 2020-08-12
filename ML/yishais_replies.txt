@@ -1,0 +1,12 @@
+line 412 
+    def construct_children_list(super_topic):
+# you forgot the `self` parameter. I'm not sure how this function is running right now
+line 418
+        with open(path, 'wb') as handle:
+# not clear to me where this file is being saved. Are you saving it to the Python path location? I don't think this is your intention because you're looking for a different file name on line 434
+line 464
+        categorizer = Categorizer(df=df, classification_stage='Topics', chosen_topics=children_topics)
+# i don't understand the parameters you're passing here. For example, classification_stage is not a parameter of the Categorizer class. This line will likely cause an error. I actually `get_numeric_df()` isn't called anywhere.
+line 1226
+    class TopicCounter:
+# this class never uses self. its functions should be static methods (@staticmethod)

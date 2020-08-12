@@ -1,0 +1,71 @@
+multi_label_classification.py
+line 56
+for discriminate_families in [True, False]:
+# Why run run disiminate_families = False for both super_topic possibilities? Shouldn't it give the same results?
+line 74
+predictor.discriminate_families = discriminate_families
+# why is discriminate_families not a parameter? in fact, why pass super_topics to DataManager if sometimes it will ignore it? maybe better to just not pass super_topics when discriminate_families is False
+line 86
+        evaluator.discriminate_families = discriminate_families
+# (see comment on line 74)
+classes.py
+line 66
+        # each item in list is a string of lists for one passage
+# i think you meant list of strings?
+line 81
+            # increment if seen already
+            if node in ontology_counts_dict:
+                ontology_counts_dict[node] += 1        
+            # init if not seen yet
+            else:
+                ontology_counts_dict[node] = 1
+# this is an excellent time to use collections.defaultdict. allows you to convert these 4 lines to 1 line
+line 89
+        # rank the entries by most frequently occurring first
+        ontology_counts_dict = {
+                                k: v for k, v in sorted(ontology_counts_dict.items(), 
+                                key=lambda item: item[1],
+                                reverse=True)
+                            }
+# this doesn't do what you think it does. sorted() does sort the dictionary, but then you put it back in a dict. dicts are inherently NOT sorted so you lose the order only you put it back in a dict. you need to have it as a list if you want these to be sorted
+line 205
+        topic_counter = TopicCounter()
+# see feedback on TopicCounter class
+line 209
+        args=(self.super_topics,)
+# better to pass `set(self.super_topics)`. you're calculating `in` a lot on a list which is inefficient
+line 215
+        with_prefix_str = row
+# pretty sure this line doesn't do anything. I think you're trying to copy the string to avoid editting the original string. strings are immutable in python, so you can "edit" them and it won't change the original string.
+line 219
+        without_prefix_lst = []
+        for word in with_prefix_lst:
+            word_no_prefix = word[word.find('|') + 1:]
+            without_prefix_lst.append(word_no_prefix)
+        without_prefix_str = ' '.join(without_prefix_lst)
+# this can be written more concisely as `without_prefix_str = ' '.join(word[word.find('|') + 1:] for word in with_prefix_str.split())`
+line 235
+            soup = BeautifulSoup(sentence,features="lxml")
+            cleantext = soup.get_text()
+# these lines are actually quite slow. Your alternative lines on 239-240 do basically the same work (slightly less accurate, but acceptable) and much faster
+line 240
+            cleantext = cleanr.sub('', sentence)
+# this is a bit tricky. better to sub with ' ' and not ''. The reason is because HTML can act as spaces sometimes. If you replace with '', you will join words together. By replacing with ' ', you create many double spaces, but this is easily solved by doing string.split() which deals with double spaces.
+line 248
+        cleaned = re.sub("([\(\[]).*?([\)\]])", "", sentence)
+# again, I would replace with ' ' just in case
+line 259
+        cleaned = re.sub(' +', ' ',cleaned)
+# this can be generalized to `re.sub('\s+', ' ', cleaned)`. \s is a more general white space matcher
+line 412 
+    def construct_children_list(super_topic):
+# you forgot the `self` parameter. I'm not sure how this function is running right now
+line 418
+        with open(path, 'wb') as handle:
+# not clear to me where this file is being saved. Are you saving it to the Python path location? I don't think this is your intention because you're looking for a different file name on line 434
+line 464
+        categorizer = Categorizer(df=df, classification_stage='Topics', chosen_topics=children_topics)
+# i don't understand the parameters you're passing here. For example, classification_stage is not a parameter of the Categorizer class. This line will likely cause an error. I actually `get_numeric_df()` isn't called anywhere.
+line 1226
+    class TopicCounter:
+# this class never uses self. its functions should be static methods (@staticmethod)

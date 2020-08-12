@@ -70,11 +70,13 @@ class DataManager:
             ontology_counts_dict[node] += 1
         
         # rank the entries by most frequently occurring first
-        ontology_counts_ranked = [
-            k: v for k, v in sorted(ontology_counts_dict.items(), 
-            key=lambda item: item[1],
-            reverse=True)
-            ]
+        ontology_counts_ranked = {
+            k:v for k, v in sorted(
+                ontology_counts_dict.items(), 
+                key=lambda item: item[1],
+                reverse=True
+                )
+                }
 
         return ontology_counts_ranked
 
@@ -193,7 +195,7 @@ class DataManager:
 
         self.df[new_col] = self.df.pop(old_col).apply(
             topic_counter.topic_limiter,
-            args=(set(self.super_topics),)
+            args=(set(self.super_topics),))
 
 
     def remove_prefix(self, with_prefix):
@@ -1272,9 +1274,13 @@ class Evaluator:
 
                 fig = plt.figure()
 
-                sns.barplot(x="Topic", y="F1score", data=scorer.topic_stats_df)
+                g = sns.barplot(x="Topic", y="F1score", data=scorer.topic_stats_df)
 
                 plt.xticks(rotation=65, horizontalalignment='right')
+
+                # for index, row in scorer.topic_stats_df.iterrows():
+
+                #     g.text(row.Topic, row.F1score, round(row.F1score,2), color='black', ha="center")
 
                 folder = 'images/scores'
 

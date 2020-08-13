@@ -700,7 +700,8 @@ class Predictor:
 
     def child_of_pred(self, passage_index):
 
-        pred_super_topics = self.data_sets[self.data_set]['Pred Super Topics'][passage_index]
+        pred_super_topics = self.data_sets[self.data_set]['True Super Topics'][passage_index]
+        # pred_super_topics = self.data_sets[self.data_set]['Pred Super Topics'][passage_index]
 
         topic_group_name = self.topic_group.split()[-1]
         
@@ -726,9 +727,17 @@ class Predictor:
         return should_append
 
 
-    def append_if_appropriate(self, topic_index, pred_value, passage_index):
+    def get_passage(self, passage_index):
 
-        passage_words = self.data_sets[self.data_set]['passage_words'][passage_index] # for experimentation purposes
+        return self.data_sets[self.data_set]['passage_words'][passage_index] # for experimentation purposes
+
+
+    def get_true_topics(self, passage_index):
+
+        return self.data_sets[self.data_set].iloc[passage_index][f'True {self.topic_group}']
+
+
+    def append_if_appropriate(self, topic_index, pred_value, passage_index):
 
         topic_name = self.relevant_topics[topic_index]
 
@@ -1136,7 +1145,7 @@ class TopicCounter:
 
         counter = Counter(all_topics_lst)
 
-        topic_counts = counter.most_common(max_topics) # must change from 4 **********************************
+        topic_counts = counter.most_common(max_topics) 
 
         return topic_counts
 
@@ -1212,7 +1221,7 @@ class Evaluator:
 
         score_chart.set_title(f'{super_topic}\n{data_set}')
 
-        plt.xticks(rotation=65, horizontalalignment='right')
+        plt.xticks(rotation=35, horizontalalignment='right')
 
         for p in score_chart.patches:
 

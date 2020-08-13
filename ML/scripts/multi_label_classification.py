@@ -1,4 +1,5 @@
 
+from inspect import classify_class_attrs
 from math import exp
 import pandas as pd
 import warnings
@@ -25,61 +26,81 @@ pd.options.display.max_colwidth = 150
 
 DATA_PATH = 'data/concat_english_prefix_hebrew.csv'
 
-classifier = BinaryRelevance(classifier=LinearSVC())
+classifiers = [
+    BinaryRelevance(classifier=LinearSVC()),
+    # BinaryRelevance(classifier=SVC()),
+
+    ClassifierChain(classifier=LinearSVC()),
+    # ClassifierChain(classifier=SVC()),
+
+    LabelPowerset(classifier=LinearSVC()),
+    # LabelPowerset(classifier=SVC()),
+]
 
 vectorizer = TfidfVectorizer()
 
 super_topics_list = [
-    # ['entity'],
-    ['occurent', 'specifically-dependent-continuant','independent-continuant','generically-dependent-continuant'],
-    ['generically-dependent-continuant', 'independent-continuant', 'occurent', 'quality', 'realizable-entity']
+    ['entity'],
+    ['generically-dependent-continuant'],
+    # ['occurent', 'specifically-dependent-continuant','independent-continuant','generically-dependent-continuant'],
+    # ['generically-dependent-continuant', 'independent-continuant', 'occurent', 'quality', 'realizable-entity']
 ]
 
 langs = ['eng','heb','both']
 lang_to_vec = 'eng'
 
-row_lim = 10000
+row_lim = 2000
 
-for expt_num, super_topics in enumerate(super_topics_list):
+expt_num = 0
 
-    data = DataManager(
-        data_path = DATA_PATH, row_lim = row_lim, 
-        super_topics = super_topics, lang_to_vec = lang_to_vec, 
-        should_stem = False, should_clean = True, should_remove_stopwords = False
-        )
+for classifier in classifiers:
+        
+    for super_topics in super_topics_list:
 
-    data.prepare_dataframe()    
+        expt_num += 1
 
-    categorizer = Categorizer(df = data.df, super_topics = super_topics)
+        data = DataManager(
+            data_path = DATA_PATH, row_lim = row_lim, 
+            super_topics = super_topics, lang_to_vec = lang_to_vec, 
+            should_stem = False, should_clean = True, should_remove_stopwords = False
+            )
 
-    categorizer.sort_children(max_children = 10)
+        data.prepare_dataframe()    
 
-    predictor = Predictor(
-        classifier = classifier, vectorizer = vectorizer, 
-        df = categorizer.df, super_topics = super_topics, 
-        topic_lists = categorizer.topic_lists
-        )
+        categorizer = Categorizer(df = data.df, super_topics = super_topics)
 
-    predictor.calc_results()
+        max_children = 10
+        # max_children = int(5/len(super_topics))
 
-    evaluator = Evaluator(
-        expt_num = expt_num, 
-        data_sets = predictor.data_sets, 
-        topic_lists = categorizer.topic_lists,
-        super_topics = super_topics, 
-        topic_counts = categorizer.topic_counts,
-    ) 
+        categorizer.sort_children(max_children = max_children)
 
-    evaluator.calc_cm()
+        predictor = Predictor(
+            classifier = classifier, vectorizer = vectorizer, 
+            df = categorizer.df, super_topics = super_topics, 
+            topic_lists = categorizer.topic_lists
+            )
 
-    evaluator.calc_scores()
+        predictor.calc_results()
 
-    end_time = datetime.now()
+        evaluator = Evaluator(
+            expt_num = expt_num, 
+            data_sets = predictor.data_sets, 
+            topic_lists = categorizer.topic_lists,
+            super_topics = super_topics, 
+            topic_counts = categorizer.topic_counts,
+        ) 
 
-    total_duration = end_time - start_time
+        evaluator.calc_cm()
 
-    print('expt_num:',expt_num)
-    print('super_topics:',super_topics)
-    print(total_duration)
+        evaluator.calc_scores()
+
+        end_time = datetime.now()
+
+        time_taken = end_time - start_time
+
+        print('expt_num:',expt_num)
+        print('classifier:',classifier)
+        print('super_topics:',super_topics)
+        print('time_taken',time_taken)
 
 print()

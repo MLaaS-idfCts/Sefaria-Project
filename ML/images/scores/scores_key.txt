@@ -1,0 +1,80 @@
+scores_key
+
+expt_num: 1
+vectorizer: CountVectorizer()
+classifier: LabelPowerset(classifier=LinearSVC(), require_dense=[True, True])
+super_topics: ['entity']
+transferring_domains: 0.7792207792207793
+transferring_domains: 0.9965397923875432
+time_taken: 0:01:04.633075
+
+expt_num: 2
+vectorizer: CountVectorizer()
+classifier: LabelPowerset(classifier=LinearSVC(), require_dense=[True, True])
+super_topics: ['generically-dependent-continuant']
+transferring_domains: 0.7792207792207793
+transferring_domains: 0.9965397923875432
+time_taken: 0:01:54.893529
+
+expt_num: 3
+vectorizer: CountVectorizer()
+classifier: LabelPowerset(classifier=DecisionTreeClassifier(), require_dense=[True, True])
+super_topics: ['entity']
+transferring_domains: 0.48387096774193555
+transferring_domains: 0.9965397923875432
+time_taken: 0:11:18.120545
+
+expt_num: 4
+vectorizer: CountVectorizer()
+classifier: LabelPowerset(classifier=DecisionTreeClassifier(), require_dense=[True, True])
+super_topics: ['generically-dependent-continuant']
+transferring_domains: 0.6176470588235294
+transferring_domains: 0.9965397923875432
+time_taken: 0:24:37.790064
+
+expt_num: 5
+vectorizer: CountVectorizer()
+classifier: LabelPowerset(classifier=RandomForestClassifier(n_estimators=10),
+              require_dense=[True, True])
+super_topics: ['entity']
+transferring_domains: 0.22641509433962262
+transferring_domains: 0.9454545454545454
+time_taken: 0:26:07.751512
+
+expt_num: 6
+vectorizer: CountVectorizer()
+classifier: LabelPowerset(classifier=RandomForestClassifier(n_estimators=10),
+              require_dense=[True, True])
+super_topics: ['generically-dependent-continuant']
+transferring_domains: 0.25925925925925924
+transferring_domains: 0.9416058394160584
+time_taken: 0:27:28.658186
+
+expt_num: 7
+vectorizer: TfidfVectorizer()
+classifier: LabelPowerset(classifier=LinearSVC(), require_dense=[True, True])
+super_topics: ['entity']
+transferring_domains: 0.7297297297297298
+transferring_domains: 0.9679715302491103
+time_taken: 0:28:28.725556
+
+expt_num: 8
+vectorizer: TfidfVectorizer()
+classifier: LabelPowerset(classifier=LinearSVC(), require_dense=[True, True])
+super_topics: ['generically-dependent-continuant']
+transferring_domains: 0.7123287671232876
+transferring_domains: 0.9788732394366197
+time_taken: 0:29:16.110058
+
+expt_num: 9
+vectorizer: TfidfVectorizer()
+classifier: LabelPowerset(classifier=DecisionTreeClassifier(), require_dense=[True, True])
+super_topics: ['entity']
+transferring_domains: 0.45901639344262296
+transferring_domains: 0.9965397923875432
+time_taken: 0:50:34.015649
+
+expt_num: 10
+vectorizer: TfidfVectorizer()
+classifier: LabelPowerset(classifier=DecisionTreeClassifier(), require_dense=[True, True])
+super_topics: ['generically-dependent-continuant']

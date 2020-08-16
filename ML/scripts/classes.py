@@ -1230,6 +1230,13 @@ class Evaluator:
                 ha='center', va='center', fontsize=10, color='black', xytext=(0, 5), textcoords='offset points'
                 )
 
+        trans_domain_score = data.loc[data['Topic'].isin(['laws-of-transferring-between-domains'])]['F1score'].iloc[0]
+
+        # record to text file
+        with open("images/scores/scores_key.txt", "a") as file_object:
+            file_object.write(f'\ntransferring_domains: {trans_domain_score}')
+
+        # save image
         folder = 'images/scores'
 
         file_name = f'{self.expt_num}_{super_topic}_{data_set}.png'

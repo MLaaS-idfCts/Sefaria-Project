@@ -1,14 +1,16 @@
-
-from inspect import classify_class_attrs
-from math import exp
+import os
+import glob
 import pandas as pd
 import warnings
 
 from classes import DataManager, Predictor, Categorizer, Evaluator
 from datetime import datetime
 from sklearn.svm import SVC, LinearSVC
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.naive_bayes import MultinomialNB
 from skmultilearn.problem_transform import LabelPowerset, BinaryRelevance, ClassifierChain
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer, HashingVectorizer
 
 start_time = datetime.now()
 
@@ -27,17 +29,17 @@ pd.options.display.max_colwidth = 150
 DATA_PATH = 'data/concat_english_prefix_hebrew.csv'
 
 classifiers = [
-    BinaryRelevance(classifier=LinearSVC()),
-    # BinaryRelevance(classifier=SVC()),
-
-    ClassifierChain(classifier=LinearSVC()),
-    # ClassifierChain(classifier=SVC()),
-
     LabelPowerset(classifier=LinearSVC()),
-    # LabelPowerset(classifier=SVC()),
+    LabelPowerset(classifier=DecisionTreeClassifier()),
+    LabelPowerset(classifier=RandomForestClassifier(n_estimators = 10)),
+    # LabelPowerset(classifier=GradientBoostingClassifier(n_estimators = 10)),
 ]
 
-vectorizer = TfidfVectorizer()
+vectorizers = [
+    CountVectorizer(),
+    TfidfVectorizer(),
+    HashingVectorizer(),
+]
 
 super_topics_list = [
     ['entity'],
@@ -49,58 +51,82 @@ super_topics_list = [
 langs = ['eng','heb','both']
 lang_to_vec = 'eng'
 
-row_lim = 2000
+row_lim = 18000
 
 expt_num = 0
 
-for classifier in classifiers:
-        
-    for super_topics in super_topics_list:
 
-        expt_num += 1
+folder = 'images/scores/*'
+files = glob.glob(folder)
+for f in files:
+    os.remove(f)
 
-        data = DataManager(
-            data_path = DATA_PATH, row_lim = row_lim, 
-            super_topics = super_topics, lang_to_vec = lang_to_vec, 
-            should_stem = False, should_clean = True, should_remove_stopwords = False
-            )
 
-        data.prepare_dataframe()    
+with open("images/scores/scores_key.txt", "w") as file_object:
+    file_object.write("scores_key")
 
-        categorizer = Categorizer(df = data.df, super_topics = super_topics)
+for vectorizer in vectorizers:
 
-        max_children = 10
-        # max_children = int(5/len(super_topics))
+    for classifier in classifiers:
+            
+        for super_topics in super_topics_list:
 
-        categorizer.sort_children(max_children = max_children)
+            expt_num += 1
 
-        predictor = Predictor(
-            classifier = classifier, vectorizer = vectorizer, 
-            df = categorizer.df, super_topics = super_topics, 
-            topic_lists = categorizer.topic_lists
-            )
+            with open("images/scores/scores_key.txt", "a") as file_object:
+                file_object.write(f'\n')
+                file_object.write(f'\nexpt_num: {expt_num}')
+                file_object.write(f'\nvectorizer: {vectorizer}')
+                file_object.write(f'\nclassifier: {classifier}')
+                file_object.write(f'\nsuper_topics: {super_topics}')
 
-        predictor.calc_results()
+            data = DataManager(
+                data_path = DATA_PATH, row_lim = row_lim, 
+                super_topics = super_topics, lang_to_vec = lang_to_vec, 
+                should_stem = False, should_clean = True, should_remove_stopwords = False
+                )
 
-        evaluator = Evaluator(
-            expt_num = expt_num, 
-            data_sets = predictor.data_sets, 
-            topic_lists = categorizer.topic_lists,
-            super_topics = super_topics, 
-            topic_counts = categorizer.topic_counts,
-        ) 
+            data.prepare_dataframe()    
 
-        evaluator.calc_cm()
+            categorizer = Categorizer(df = data.df, super_topics = super_topics)
 
-        evaluator.calc_scores()
+            max_children = None
 
-        end_time = datetime.now()
+            if super_topics == ['entity']:
 
-        time_taken = end_time - start_time
+                max_children = 30
 
-        print('expt_num:',expt_num)
-        print('classifier:',classifier)
-        print('super_topics:',super_topics)
-        print('time_taken',time_taken)
+            else:
+
+                max_children = 10
+
+            categorizer.sort_children(max_children = max_children)
+
+            predictor = Predictor(
+                classifier = classifier, vectorizer = vectorizer, 
+                df = categorizer.df, super_topics = super_topics, 
+                topic_lists = categorizer.topic_lists
+                )
+
+            predictor.calc_results()
+
+            evaluator = Evaluator(
+                expt_num = expt_num, 
+                data_sets = predictor.data_sets, 
+                topic_lists = categorizer.topic_lists,
+                super_topics = super_topics, 
+                topic_counts = categorizer.topic_counts,
+            ) 
+
+            evaluator.calc_cm()
+
+            evaluator.calc_scores()
+
+            end_time = datetime.now()
+
+            time_taken = end_time - start_time
+
+            with open("images/scores/scores_key.txt", "a") as file_object:
+                file_object.write(f'\ntime_taken: {time_taken}')
 
 print()

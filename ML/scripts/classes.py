@@ -335,8 +335,7 @@ class Categorizer:
     def __init__(self, df, super_topics):
 
         self.df = df
-        self.super_topics = sorted(super_topics)
-        
+        self.super_topics = sorted(super_topics)        
         self.topic_lists = {}
         self.topic_lists['Super Topics'] = self.super_topics
         
@@ -419,6 +418,8 @@ class Categorizer:
 
         self.topic_counts = {}
 
+        self.all_topics = set()
+
         for super_topic in self.super_topics:
 
             self.make_child_column(super_topic)
@@ -427,12 +428,32 @@ class Categorizer:
             
             topic_names = self.store_topic_names(super_topic)
 
+            for topic_name in topic_names:
+                
+                self.all_topics.add(topic_name)
+
             self.limit_child_column(super_topic, topic_names)
+
+        self.make_child_column("entity")
+        
+        self.limit_child_column("entity", self.all_topics)
+        
+        self.topic_lists[f'Children of entity'] = sorted(list(self.all_topics))
+
+        all_topic_counts = []
+
+        for topic_counts in self.topic_counts.values():
+
+            all_topic_counts.extend(topic_counts)
+
+        all_topic_counts.sort(key=lambda x:x[1],reverse=True)
+
+        self.topic_counts['entity'] = all_topic_counts
 
 
     def get_topic_names(self, ranked_topic_counts):
-
-        return  [topic_tuple[0] for topic_tuple in ranked_topic_counts]
+        
+        return [topic_tuple[0] for topic_tuple in ranked_topic_counts]
 
     
     def get_topic_names_without_none(self):
@@ -590,17 +611,13 @@ class Predictor:
 
     def address_super_topics(self):
                 
-        if self.super_topics == ['entity']:
-
-            self.copy_all_topics()
-
-        else:
-
-            self.pred_super_topics()
+        self.pred_super_topics()
 
 
     def calc_results(self):
 
+        self.one_hot_encode()
+            
         self.split_data()
 
         self.address_super_topics()
@@ -628,8 +645,6 @@ class Predictor:
 
     def split_data(self):
 
-        self.one_hot_encode()
-        
         self.train_test_split()
         
         self.store_text()
@@ -645,6 +660,8 @@ class Predictor:
     def pred_sub_topics(self):
 
         for super_topic in self.super_topics:
+
+            self.super_topic = super_topic
 
             self.topic_group = f'Children of {super_topic}'
 
@@ -668,6 +685,7 @@ class Predictor:
         self.x = {}
 
         self.x['train'] = self.vectorizer.fit_transform(self.text['train'])
+
         self.x['test'] = self.vectorizer.transform(self.text['test'])
 
 
@@ -679,7 +697,7 @@ class Predictor:
 
             self.data_set = data_set
 
-            wanted_cols = self.get_wanted_cols()
+            wanted_cols = sorted(self.get_wanted_cols())
 
             self.y[data_set] = self.data_sets[data_set][wanted_cols]
 
@@ -700,10 +718,12 @@ class Predictor:
 
     def child_of_pred(self, passage_index):
 
+        # to test if the hierarchy algorithm will be viable at all, 
+        # we feed the true super topics, as if they were predicted totally correct
         pred_super_topics = self.data_sets[self.data_set]['True Super Topics'][passage_index]
         # pred_super_topics = self.data_sets[self.data_set]['Pred Super Topics'][passage_index]
 
-        topic_group_name = self.topic_group.split()[-1]
+        topic_group_name = self.super_topic
         
         result = topic_group_name in pred_super_topics
         
@@ -712,7 +732,7 @@ class Predictor:
     
     def is_super_topic(self):
     
-        return self.topic_group == 'Super Topics'
+        return self.topic_group in ['Super Topics', 'Children of entity']
 
     
     def topic_acceptable(self, passage_index):
@@ -770,9 +790,11 @@ class Predictor:
 
     def make_predictions(self):
 
-        self.pred_arrays = list(
-            self.classifier.predict(
-                self.x[self.data_set]))
+        input_data = self.x[self.data_set]
+
+        predictions = self.classifier.predict(input_data)
+
+        self.pred_arrays = list(predictions)
 
 
     def append_predictions(self):
@@ -839,32 +861,14 @@ class Predictor:
         self.df = pd.concat([self.df, self.df[col].str.get_dummies(sep=' ')], axis=1)
 
 
-    def should_encode(self, col):
-
-        if col == 'True Topics':
-            
-            return False
-
-        if 'Super' in col:
-
-            return True
-
-        if 'Children' in col:
-
-            return True
-
-
     def one_hot_encode(self):
 
-        for col in self.df.columns:
+        for stage in ['Super Topics', 'Children of entity']: 
 
-            if self.should_encode(col):
+            col = f'True {stage}'
 
-                self.add_categorical_columns(col)
-
-        self.remove_duplicated_columns()
-
-
+            self.df = pd.concat([self.df, self.df[col].str.get_dummies(sep=' ')], axis=1)
+            # self.add_categorical_columns()
 
 
 class ConfusionMatrix:
@@ -1028,6 +1032,7 @@ class ConfusionMatrix:
 
 class Scorer:
 
+
     def __init__(self, 
     # data_set, 
     expt_num, super_topic, topic_counts):
@@ -1036,6 +1041,7 @@ class Scorer:
         self.expt_num = expt_num
         self.super_topic = super_topic
         self.topic_counts = topic_counts
+
 
     def get_precision(self, cm, topic, TP):
 
@@ -1230,12 +1236,6 @@ class Evaluator:
                 ha='center', va='center', fontsize=10, color='black', xytext=(0, 5), textcoords='offset points'
                 )
 
-        trans_domain_score = data.loc[data['Topic'].isin(['laws-of-transferring-between-domains'])]['F1score'].iloc[0]
-
-        # record to text file
-        with open("images/scores/scores_key.txt", "a") as file_object:
-            file_object.write(f'\ntransferring_domains: {trans_domain_score}')
-
         # save image
         folder = 'images/scores'
 
@@ -1258,9 +1258,9 @@ class Evaluator:
             self.scores[super_topic] = {}
 
             scorer = Scorer(
-                expt_num=self.expt_num, 
-                super_topic=super_topic, 
-                topic_counts=self.topic_counts[super_topic],
+                expt_num = self.expt_num, 
+                super_topic = super_topic, 
+                topic_counts = self.topic_counts[super_topic],
                 )
 
             for data_set in ['test','train']:
@@ -1268,7 +1268,7 @@ class Evaluator:
                 scorer.get_stats_df(
                     data_set = data_set,
                     super_topic = super_topic,
-                    cm = self.confusion_matrices[super_topic][data_set]
+                    cm = self.confusion_matrices[super_topic][data_set],
                     )
                 
                 self.scores[super_topic][data_set] = scorer.topic_stats_df

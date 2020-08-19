@@ -1219,13 +1219,13 @@ class Evaluator:
                 self.confusion_matrices[super_topic][cm_maker.data_set] = cm_maker.get_cm_values()
 
 
-    def save_image(self, data, super_topic, data_set):
+    def save_image(self, data, scoring_group, data_set):
 
         fig = plt.figure()
 
         score_chart = sns.barplot(x="Topic", y="F1score", data=data)
 
-        score_chart.set_title(f'{super_topic}\n{data_set}')
+        score_chart.set_title(f'{scoring_group}\n{data_set}')
 
         plt.xticks(rotation=35, horizontalalignment='right')
 
@@ -1239,29 +1239,35 @@ class Evaluator:
         # save image
         folder = 'images/scores'
 
-        file_name = f'{self.expt_num}_{super_topic}_{data_set}.png'
+        file_name = f'{self.expt_num}_{scoring_group}_{data_set}.png'
 
         path = os.path.join(folder,file_name)
 
         plt.savefig(path, bbox_inches='tight')
 
         plt.close(fig)
-
-
+        
 
     def calc_scores(self):
 
-        self.scores = {}
+        self.scores = {} # init
+
+        self.overall_scores = {}
+
+        for data_set in ['test','train']:
+
+            self.overall_scores[data_set] = {}
+            
+            self.scores[data_set] = {}
 
         for super_topic in self.super_topics:
-
-            self.scores[super_topic] = {}
-
+            
             scorer = Scorer(
                 expt_num = self.expt_num, 
                 super_topic = super_topic, 
                 topic_counts = self.topic_counts[super_topic],
                 )
+
 
             for data_set in ['test','train']:
                 
@@ -1271,10 +1277,43 @@ class Evaluator:
                     cm = self.confusion_matrices[super_topic][data_set],
                     )
                 
-                self.scores[super_topic][data_set] = scorer.topic_stats_df
+                self.scores[data_set][super_topic] = scorer.topic_stats_df
+
+                self.overall_scores[data_set][super_topic] = [
+                    super_topic,
+                    float(scorer.topic_stats_df.loc[scorer.topic_stats_df['Topic'] == 'Overall']['Occurrences']),
+                    float(scorer.topic_stats_df.loc[scorer.topic_stats_df['Topic'] == 'Overall']['F1score'])
+                    ]
 
                 self.save_image(
                     data = scorer.topic_stats_df,
                     data_set = data_set,
-                    super_topic = super_topic, 
+                    scoring_group = super_topic, 
                     )
+
+        for data_set in ['test','train']:
+                        
+            df = pd.DataFrame.from_dict(self.overall_scores[data_set], orient='index',
+                       columns=['Topic', 'Occurrences', 'F1score'])
+
+            families_df = df[df.Topic != 'entity']
+
+            families_df['weighted_score'] = families_df.Occurrences * families_df.F1score
+
+            total_occurrences = families_df.Occurrences.sum()
+
+            avg_score = families_df.weighted_score.sum()/total_occurrences
+
+            df.loc['hierarchy'] = ['hierarchy', total_occurrences, avg_score]
+
+            # df.append({
+            #     'Topic': 'hierarchy', 
+            #     'Occurrences': total_occurrences,
+            #     'F1score': avg_score,
+            # }, ignore_index=True)
+
+            self.save_image(
+                data = df,  
+                data_set = data_set,
+                scoring_group = 'Overall', 
+                )

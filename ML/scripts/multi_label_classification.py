@@ -82,9 +82,9 @@ super_topics_list = [
 
 lang_to_vec = 'eng' # ['eng','heb','both']
 
-row_lim = 5000
+row_lim = None
 
-max_children = 3
+max_children = 10
 
 refresh_scores()
 

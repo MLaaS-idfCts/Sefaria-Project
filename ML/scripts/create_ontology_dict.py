@@ -12,7 +12,7 @@ from tqdm import tqdm
 from sefaria.model import *
 from sefaria.system.database import db
 
-from conquer_ontology import get_last_leaves
+# from conquer_ontology import get_last_leaves
 
 
 
@@ -61,7 +61,7 @@ my_node = 'role'
 
 
 # entire_ontology_dict = get_ontology_dict('art')
-entire_ontology_dict = get_ontology_dict('entity')
+# entire_ontology_dict = get_ontology_dict('entity')
 
 
 with open(f'data/entire_ontology_dict.pickle', 'wb') as handle:

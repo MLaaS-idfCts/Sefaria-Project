@@ -4,12 +4,12 @@ import pandas as pd
 import warnings
 
 from classes import DataManager, Predictor, Categorizer, Evaluator
+from datetime import datetime
 from sklearn.svm import SVC, LinearSVC
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer, HashingVectorizer
-from datetime import datetime
 from skmultilearn.problem_transform import LabelPowerset, BinaryRelevance, ClassifierChain
 
 start_time = datetime.now()
@@ -60,7 +60,6 @@ def record_expt_specs(expt_num, vectorizer, classifier):
 
         file_object.write(f'\nsuper_topics: {super_topics}')
 
-
 # ******************************************************************************************************
 
 DATA_PATH = 'data/concat_english_prefix_hebrew.csv'
@@ -71,18 +70,18 @@ vectorizer = CountVectorizer()
 
 super_topics_list = [
     [
-        'occurent', 
-        'specifically-dependent-continuant',
-        'independent-continuant',
-        'generically-dependent-continuant'
-    ],
-    # ['generically-dependent-continuant', 'independent-continuant',
-    #  'occurent', 'quality', 'realizable-entity']
+        'occurent', 'specifically-dependent-continuant',
+        'independent-continuant', 'generically-dependent-continuant'
+        ],
+    [
+        'generically-dependent-continuant', 'independent-continuant',
+        'occurent', 'quality', 'realizable-entity'
+        ]
 ]
 
-lang_to_vec = 'eng' # ['eng','heb','both']
+lang_to_vec = 'eng' # ['eng','heb', 'both']
 
-row_lim = None
+row_lim = 80000
 
 max_children = 10
 

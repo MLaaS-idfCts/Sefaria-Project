@@ -1,8 +1,13 @@
 
 import os
+
+
 directory = 'data/ontology_counts'
+
 for file_name in os.listdir(directory):
+
 	path = os.path.join(directory,file_name)
+
 	with open(path, 'rb') as handle:
 
 		counts = pickle.load(handle)

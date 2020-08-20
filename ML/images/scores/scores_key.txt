@@ -4,4 +4,10 @@ expt_num: 1
 vectorizer: CountVectorizer()
 classifier: LabelPowerset(classifier=LinearSVC(), require_dense=[True, True])
 super_topics: ['occurent', 'specifically-dependent-continuant', 'independent-continuant', 'generically-dependent-continuant']
-time_taken: 0:00:51.164701
+time_taken: 0:18:14.453415
+
+expt_num: 2
+vectorizer: CountVectorizer()
+classifier: LabelPowerset(classifier=LinearSVC(), require_dense=[True, True])
+super_topics: ['generically-dependent-continuant', 'independent-continuant', 'occurent', 'quality', 'realizable-entity']
+time_taken: 0:38:18.856897

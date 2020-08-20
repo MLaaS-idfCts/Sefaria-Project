@@ -720,6 +720,7 @@ class Predictor:
 
         # to test if the hierarchy algorithm will be viable at all, 
         # we feed the true super topics, as if they were predicted totally correct
+
         pred_super_topics = self.data_sets[self.data_set]['True Super Topics'][passage_index]
         # pred_super_topics = self.data_sets[self.data_set]['Pred Super Topics'][passage_index]
 
@@ -1305,12 +1306,6 @@ class Evaluator:
             avg_score = families_df.weighted_score.sum()/total_occurrences
 
             df.loc['hierarchy'] = ['hierarchy', total_occurrences, avg_score]
-
-            # df.append({
-            #     'Topic': 'hierarchy', 
-            #     'Occurrences': total_occurrences,
-            #     'F1score': avg_score,
-            # }, ignore_index=True)
 
             self.save_image(
                 data = df,  

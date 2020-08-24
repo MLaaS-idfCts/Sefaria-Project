@@ -1,4 +1,5 @@
 import os
+# from scripts.multi_label_classification import super_topics
 import sys
 import pickle
 import django
@@ -414,11 +415,16 @@ class Categorizer:
             TopicCounter().topic_limiter, args=[topic_names])
 
 
-    def sort_children(self, max_children):
+    def make_entity_column(self):
 
-        self.topic_counts = {}
+        self.make_child_column("entity")
+        
+        self.limit_child_column("entity", self.all_topics)
+        
+        self.topic_lists[f'Children of entity'] = sorted(list(self.all_topics))
 
-        self.all_topics = set()
+
+    def make_child_columns(self, max_children):
 
         for super_topic in self.super_topics:
 
@@ -434,12 +440,9 @@ class Categorizer:
 
             self.limit_child_column(super_topic, topic_names)
 
-        self.make_child_column("entity")
-        
-        self.limit_child_column("entity", self.all_topics)
-        
-        self.topic_lists[f'Children of entity'] = sorted(list(self.all_topics))
 
+    def count_all_topics(self):
+        
         all_topic_counts = []
 
         for topic_counts in self.topic_counts.values():
@@ -449,6 +452,42 @@ class Categorizer:
         all_topic_counts.sort(key=lambda x:x[1],reverse=True)
 
         self.topic_counts['entity'] = all_topic_counts
+
+    
+    def remove_childless_columns(self):
+
+        all_cols = list(self.df.columns)
+    
+        # remove childless columns
+        self.df = self.df.loc[:,self.df.any()]
+    
+        populated_cols = list(self.df.columns)
+        
+        desolate_topics = [
+            super_topic_group.split()[-1] 
+            for super_topic_group in list(set(all_cols) - set(populated_cols))
+            ]
+
+        self.super_topics = list(set(self.super_topics) - set(desolate_topics))
+
+        self.topic_lists['Super Topics'] = list(set(self.topic_lists['Super Topics']) - set(desolate_topics))
+
+        print()
+
+
+    def sort_children(self, max_children):
+
+        self.topic_counts = {}
+
+        self.all_topics = set()
+
+        self.make_child_columns(max_children)
+
+        self.remove_childless_columns()
+
+        self.make_entity_column()
+
+        self.count_all_topics()
 
 
     def get_topic_names(self, ranked_topic_counts):
@@ -620,7 +659,8 @@ class Predictor:
             
         self.split_data()
 
-        self.address_super_topics()
+        # self.address_super_topics()
+        self.pred_super_topics()
 
         self.pred_sub_topics()
 
@@ -760,7 +800,11 @@ class Predictor:
 
     def append_if_appropriate(self, topic_index, pred_value, passage_index):
 
+        # self.get_passage(passage_index) # for expt purposes
+
         topic_name = self.relevant_topics[topic_index]
+
+        # print(topic_index)
 
         if self.should_append(passage_index, pred_value):
 
@@ -774,6 +818,8 @@ class Predictor:
         passage_pred_list = [pred_array[0,i] for i in range(pred_array.shape[1])]
     
         for topic_index, pred_value in enumerate(passage_pred_list):
+
+            print(topic_index)
             
             self.append_if_appropriate(topic_index, pred_value, passage_index)
 
@@ -850,7 +896,9 @@ class Predictor:
             self.data_set = data_set
 
             self.predict()
-        
+
+        print()
+
 
     def remove_duplicated_columns(self):
 
@@ -869,7 +917,8 @@ class Predictor:
             col = f'True {stage}'
 
             self.df = pd.concat([self.df, self.df[col].str.get_dummies(sep=' ')], axis=1)
-            # self.add_categorical_columns()
+
+        print()
 
 
 class ConfusionMatrix:
@@ -972,7 +1021,7 @@ class ConfusionMatrix:
 
         fig = plt.figure()
 
-        sns.heatmap(cm, annot=True)
+        sns.heatmap(cm, annot=True,linewidths=.5)
 
         folder = 'images/cm'
 
@@ -1228,7 +1277,7 @@ class Evaluator:
 
         score_chart.set_title(f'{scoring_group}\n{data_set}')
 
-        plt.xticks(rotation=35, horizontalalignment='right')
+        plt.xticks(rotation=75, horizontalalignment='right')
 
         for p in score_chart.patches:
 

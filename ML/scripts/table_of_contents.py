@@ -82,6 +82,20 @@ for div_laws in div_laws_options:
 
         topic_grouping = pickle.load(handle)
 
+    path = f'data/topic_groups_{div_laws}.pickle'
+
+    topic_groups_list = list(topic_grouping.keys())
+
+    with open(path, 'wb') as handle:
+
+        pickle.dump(topic_groups_list, handle, protocol=3)
+
+    topic_groups_list = None
+
+    with open(path, 'rb') as handle:
+
+        topic_groups_list = pickle.load(handle)
+
     contents_counts = {}
 
     for key, value in topic_grouping.items():

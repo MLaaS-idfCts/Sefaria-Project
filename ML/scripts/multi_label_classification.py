@@ -27,10 +27,20 @@ pd.set_option('display.max_rows', None)
 warnings.simplefilter(action='ignore', category = FutureWarning)
 
 # width of column to dispaly in dataframe
-pd.options.display.max_colwidth = 75
-# pd.options.display.max_colwidth = 150
+pd.options.display.max_colwidth = 40
 
 # ******************************************************************************************************
+
+def time_keeper(start_time):
+
+    current_time = datetime.now()
+
+    time_taken = current_time - start_time
+
+    print(time_taken)
+
+    return current_time
+
 
 def refresh_scores():
 
@@ -80,7 +90,6 @@ for i, div_laws in enumerate(div_laws_options):
     with open(f'data/topic_groups_{div_laws_options[i]}.pickle', 'rb') as handle:
 
         topic_groups_list[i] = pickle.load(handle)
-        # topic_groups_list[i] = sorted(pickle.load(handle))
 
 super_topics_list = [
     topic_groups_list[0], # laws_united 
@@ -91,14 +100,23 @@ super_topics_list = [
 
 lang_to_vec = 'eng' # ['eng','heb', 'both']
 
-row_lim = 5000
+row_lim = 500
+# row_lim = 5000
 # row_lim = 10000
 # row_lim = 20000
+# row_lim = 40000
 # row_lim = 80000
 
-max_children = 2
-# max_children = 5
+# max_children = 2
+max_children = 5
 # max_children = 10
+# max_children = 100
+
+# min_occurrences = 1
+min_occurrences = 5
+# min_occurrences = 20
+# min_occurrences = 50
+# min_occurrences = 100
 
 refresh_scores()
 
@@ -110,6 +128,10 @@ for i, super_topics in enumerate(super_topics_list):
 
     record_expt_specs(expt_num, vectorizer, classifier)
 
+    start_time = time_keeper(start_time)
+
+    print('DataManager')
+    
     data = DataManager(
         row_lim = row_lim, 
         data_path = DATA_PATH, 
@@ -122,10 +144,24 @@ for i, super_topics in enumerate(super_topics_list):
 
     data.prepare_dataframe()    
 
-    categorizer = Categorizer(df = data.df, super_topics = data.super_topics)
+    start_time = time_keeper(start_time)
 
-    categorizer.sort_children(max_children = max_children)
+    print('Categorizer')
+    
+    categorizer = Categorizer(
+        df = data.df, 
+        super_topics = data.super_topics
+        )
 
+    categorizer.sort_children(
+        max_children = max_children, 
+        min_occurrences = min_occurrences
+        )
+
+    start_time = time_keeper(start_time)
+    
+    print('Predictor')
+    
     predictor = Predictor(
         df = categorizer.df,
         classifier = classifier,
@@ -136,6 +172,10 @@ for i, super_topics in enumerate(super_topics_list):
 
     predictor.calc_results()
 
+    start_time = time_keeper(start_time)
+    
+    print('Evaluator')
+    
     evaluator = Evaluator(
         expt_num = expt_num, 
         data_sets = predictor.data_sets, 
@@ -148,12 +188,10 @@ for i, super_topics in enumerate(super_topics_list):
 
     evaluator.calc_scores()
 
-    end_time = datetime.now()
+    start_time = time_keeper(start_time)
 
-    time_taken = end_time - start_time
+    # with open("images/scores/scores_key.txt", "a") as file_object:
 
-    with open("images/scores/scores_key.txt", "a") as file_object:
-
-        file_object.write(f'\ntime_taken: {time_taken}')
+    #     file_object.write(f'\ntime_taken: {time_taken}')
 
 print()

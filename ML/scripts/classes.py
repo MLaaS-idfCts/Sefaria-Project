@@ -210,15 +210,8 @@ class DataManager:
     def cleanHtml(self,sentence):
 
         cleanr = re.compile(r'<.*?>')
-        cleantext = cleanr.sub(' ', sentence)
-        
-        # try:
-        #     soup = BeautifulSoup(sentence,features="lxml")
-        #     cleantext = soup.get_text()
 
-        # except:
-        #     cleanr = re.compile(r'<.*?>')
-        #     cleantext = cleanr.sub('', sentence)
+        cleantext = cleanr.sub(' ', sentence)
 
         return cleantext
 
@@ -391,6 +384,7 @@ class Categorizer:
                                                                                 args=[children]
                                                                                 )
 
+
     def store_topic_counts(self, super_topic, max_children):
 
         topic_counts = TopicCounter().get_counts(self.df[f'True Children of {super_topic}'], max_children)
@@ -398,11 +392,15 @@ class Categorizer:
         self.topic_counts[super_topic] = topic_counts
 
 
-    def store_topic_names(self, super_topic):
+    def get_child_names(self, super_topic, min_occurrences):
 
         topic_counts = self.topic_counts[super_topic]
 
-        topic_names = [topic_count[0] for topic_count in topic_counts]
+        topic_names = [
+            topic_count[0] 
+            for topic_count in topic_counts 
+            # if topic_count[1] >= min_occurrences
+            ]
 
         self.topic_lists[f'Children of {super_topic}'] = topic_names
 
@@ -412,7 +410,11 @@ class Categorizer:
     def limit_child_column(self, super_topic, topic_names):
         
         self.df[f'True Children of {super_topic}'] = self.df[f'True Children of {super_topic}'].apply(
-            TopicCounter().topic_limiter, args=[topic_names])
+            TopicCounter().topic_limiter, 
+            args=[topic_names]
+            )
+
+        # print()
 
 
     def make_entity_column(self):
@@ -424,7 +426,7 @@ class Categorizer:
         self.topic_lists[f'Children of entity'] = sorted(list(self.all_topics))
 
 
-    def make_child_columns(self, max_children):
+    def make_child_columns(self, max_children, min_occurrences):
 
         for super_topic in self.super_topics:
 
@@ -432,7 +434,9 @@ class Categorizer:
 
             self.store_topic_counts(super_topic, max_children)
             
-            topic_names = self.store_topic_names(super_topic)
+            topic_names = self.get_child_names(super_topic, min_occurrences)
+
+            # topic_names = get_popular_topics(topic_names, threshold)
 
             for topic_name in topic_names:
                 
@@ -454,13 +458,14 @@ class Categorizer:
         self.topic_counts['entity'] = all_topic_counts
 
     
-    def remove_childless_columns(self):
+    def remove_unpopular_columns(self):
 
         all_cols = list(self.df.columns)
     
         # remove childless columns
         self.df = self.df.loc[:,self.df.any()]
     
+        # remove unpopular columns
         populated_cols = list(self.df.columns)
         
         desolate_topics = [
@@ -472,18 +477,27 @@ class Categorizer:
 
         self.topic_lists['Super Topics'] = list(set(self.topic_lists['Super Topics']) - set(desolate_topics))
 
-        print()
+        # print()
 
 
-    def sort_children(self, max_children):
+    def remove_duplicated_columns(self):
 
-        self.topic_counts = {}
+        self.df = self.df.loc[:,~self.df.columns.duplicated()]
 
-        self.all_topics = set()
+        # print()
 
-        self.make_child_columns(max_children)
 
-        self.remove_childless_columns()
+    def sort_children(self, max_children, min_occurrences):
+
+        self.topic_counts = {} # e.g. self.topic_counts[topic] = num_occurrences
+
+        self.all_topics = set() # self.all_topics = {topic1, topic2, etc}
+
+        self.make_child_columns(max_children, min_occurrences)
+
+        self.remove_duplicated_columns()
+
+        self.remove_unpopular_columns()
 
         self.make_entity_column()
 
@@ -716,8 +730,8 @@ class Predictor:
     def get_wanted_cols(self):
 
         wanted_cols = [col for col in self.data_sets[self.data_set].columns if col in self.relevant_topics]
-
         return wanted_cols 
+        # return  
         
 
     def set_x(self):
@@ -737,9 +751,17 @@ class Predictor:
 
             self.data_set = data_set
 
-            wanted_cols = sorted(self.get_wanted_cols())
+            # wanted_cols = sorted(self.get_wanted_cols())
 
-            self.y[data_set] = self.data_sets[data_set][wanted_cols]
+            # self.y[data_set] = self.data_sets[data_set][wanted_cols]
+
+            df = self.data_sets[data_set][self.relevant_topics]
+
+            df = df.loc[:,~df.columns.duplicated()]
+
+            self.y[data_set] = df
+
+        # print()
 
 
     def train_classifier(self):
@@ -819,7 +841,7 @@ class Predictor:
     
         for topic_index, pred_value in enumerate(passage_pred_list):
 
-            print(topic_index)
+            # print(topic_index)
             
             self.append_if_appropriate(topic_index, pred_value, passage_index)
 
@@ -897,7 +919,7 @@ class Predictor:
 
             self.predict()
 
-        print()
+        # print()
 
 
     def remove_duplicated_columns(self):
@@ -918,7 +940,7 @@ class Predictor:
 
             self.df = pd.concat([self.df, self.df[col].str.get_dummies(sep=' ')], axis=1)
 
-        print()
+        # print()
 
 
 class ConfusionMatrix:
@@ -1021,7 +1043,7 @@ class ConfusionMatrix:
 
         fig = plt.figure()
 
-        sns.heatmap(cm, annot=True,linewidths=.5)
+        sns.heatmap(cm, annot=True,linewidths=1.0,cmap='summer')
 
         folder = 'images/cm'
 
@@ -1343,8 +1365,11 @@ class Evaluator:
 
         for data_set in ['test','train']:
                         
-            df = pd.DataFrame.from_dict(self.overall_scores[data_set], orient='index',
-                       columns=['Topic', 'Occurrences', 'F1score'])
+            df = pd.DataFrame.from_dict(
+                self.overall_scores[data_set], 
+                orient='index',
+                columns=['Topic', 'Occurrences', 'F1score']
+                )
 
             families_df = df[df.Topic != 'entity']
 

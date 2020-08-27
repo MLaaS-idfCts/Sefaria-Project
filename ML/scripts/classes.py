@@ -7,6 +7,8 @@ import os.path
 
 from os import path
 
+from sklearn.utils.validation import column_or_1d
+
 sys.path.insert(1, '/persistent/Sefaria-Project/')
 os.environ['DJANGO_SETTINGS_MODULE'] = 'sefaria.settings'
 django.setup()
@@ -495,7 +497,11 @@ class Categorizer:
 
         self.make_child_columns(max_children, min_occurrences)
 
-        self.remove_duplicated_columns()
+        cols = list(self.df.columns)
+
+        if len(cols) != len(set(cols)):
+
+            self.remove_duplicated_columns()
 
         self.remove_unpopular_columns()
 
@@ -644,13 +650,16 @@ class Categorizer:
 
 class Predictor:    
     
-    def __init__(self, classifier, vectorizer, df, super_topics, topic_lists):
+    def __init__(self, use_rules, use_ML, classifier, true_family_given, vectorizer, df, super_topics, topic_lists):
         
         self.df = df
         self.vectorizer = vectorizer
         self.classifier = classifier
         self.topic_lists = topic_lists
+        self.use_rules = use_rules
+        self.use_ML = use_ML
         self.super_topics = sorted(super_topics)
+        self.true_family_given = true_family_given
 
 
     def copy_all_topics(self):
@@ -670,6 +679,15 @@ class Predictor:
     def calc_results(self):
 
         self.one_hot_encode()
+
+        
+        cols = list(self.df.columns)
+
+        if len(cols) != len(set(cols)):
+
+            print()
+            # self.remove_duplicated_columns()
+
             
         self.split_data()
 
@@ -685,7 +703,9 @@ class Predictor:
 
         self.data_sets = {}
 
-        self.data_sets['train'], self.data_sets['test'] = train_test_split(self.df, shuffle = False, test_size=0.30)
+        train, test = train_test_split(self.df, shuffle = False, test_size=0.30)
+
+        self.data_sets['train'], self.data_sets['test'] = train, test
 
 
     def store_text(self):
@@ -751,17 +771,11 @@ class Predictor:
 
             self.data_set = data_set
 
-            # wanted_cols = sorted(self.get_wanted_cols())
-
-            # self.y[data_set] = self.data_sets[data_set][wanted_cols]
-
             df = self.data_sets[data_set][self.relevant_topics]
 
             df = df.loc[:,~df.columns.duplicated()]
 
             self.y[data_set] = df
-
-        # print()
 
 
     def train_classifier(self):
@@ -773,9 +787,11 @@ class Predictor:
         self.classifier.fit(self.x['train'], self.y['train'])
 
 
-    def positive_result(self,pred_value):
+    def model_predicted(self,pred_value):
 
-        return pred_value != 0
+        results = {0:False, 1:True}
+
+        return results[pred_value]
 
 
     def child_of_pred(self, passage_index):
@@ -783,14 +799,15 @@ class Predictor:
         # to test if the hierarchy algorithm will be viable at all, 
         # we feed the true super topics, as if they were predicted totally correct
 
-        pred_super_topics = self.data_sets[self.data_set]['True Super Topics'][passage_index]
-        # pred_super_topics = self.data_sets[self.data_set]['Pred Super Topics'][passage_index]
+        if self.true_family_given:
+            
+            pred_super_topics = self.data_sets[self.data_set]['True Super Topics'][passage_index]
+        
+        if not self.true_family_given:
+        
+            pred_super_topics = self.data_sets[self.data_set]['Pred Super Topics'][passage_index]
 
-        topic_group_name = self.super_topic
-        
-        result = topic_group_name in pred_super_topics
-        
-        return result
+        return self.super_topic in pred_super_topics
     
     
     def is_super_topic(self):
@@ -803,11 +820,32 @@ class Predictor:
         return self.is_super_topic() or self.child_of_pred(passage_index)
  
     
+    def rule_based_predicted(self, passage_index):
+    
+        text = self.get_passage(passage_index)
+        
+        result = self.topic_name in text
+
+        return result
+
+
     def should_append(self, passage_index, pred_value):
 
-        should_append = self.positive_result(pred_value) and self.topic_acceptable(passage_index) 
+        topic_acceptable = self.topic_acceptable(passage_index)
+
+        model_predicted = False
+
+        if self.use_ML:
         
-        return should_append
+            model_predicted = self.model_predicted(pred_value)
+        
+        rule_based_predicted = False
+
+        if self.use_rules:
+
+            rule_based_predicted = self.rule_based_predicted(passage_index)
+        
+        return (rule_based_predicted or model_predicted) and topic_acceptable
 
 
     def get_passage(self, passage_index):
@@ -824,13 +862,13 @@ class Predictor:
 
         # self.get_passage(passage_index) # for expt purposes
 
-        topic_name = self.relevant_topics[topic_index]
+        self.topic_name = self.relevant_topics[topic_index]
 
         # print(topic_index)
 
         if self.should_append(passage_index, pred_value):
 
-            self.passage_labels.append(topic_name)
+            self.passage_labels.append(self.topic_name)
         
 
     def build_passage_labels(self, passage_index, pred_array):
@@ -841,9 +879,7 @@ class Predictor:
     
         for topic_index, pred_value in enumerate(passage_pred_list):
 
-            # print(topic_index)
-            
-            self.append_if_appropriate(topic_index, pred_value, passage_index)
+            self.append_if_appropriate(topic_index, int(pred_value), passage_index)
 
 
     def get_pred_labels_list(self):
@@ -902,16 +938,31 @@ class Predictor:
     
     def predict(self):
 
-        self.make_predictions()
-        
-        self.append_predictions()
+        path = f'data/pred_array_{self.topic_group}_{self.data_set}.pickle'
+
+        if not self.use_rules:
+
+            self.make_predictions()
+
+            with open(path, 'wb') as f:
+
+                pickle.dump(self.pred_arrays, f, pickle.HIGHEST_PROTOCOL)
+
+        if self.use_rules:
+
+            with open(path, 'rb') as f:
+
+                self.pred_arrays = pickle.load(f)
+
         
 
     def fit_and_pred(self):
 
         self.relevant_topics = sorted(self.topic_lists[self.topic_group])
 
-        self.train_classifier()
+        if not self.use_rules:
+
+            self.train_classifier()
 
         for data_set in ['train','test']:
 
@@ -919,7 +970,7 @@ class Predictor:
 
             self.predict()
 
-        # print()
+            self.append_predictions()
 
 
     def remove_duplicated_columns(self):
@@ -939,8 +990,6 @@ class Predictor:
             col = f'True {stage}'
 
             self.df = pd.concat([self.df, self.df[col].str.get_dummies(sep=' ')], axis=1)
-
-        # print()
 
 
 class ConfusionMatrix:
@@ -976,13 +1025,6 @@ class ConfusionMatrix:
 
         for i in range(self.num_passages):
 
-            # init, this parallel pair of lists is going to record what topics were (mis)matched
-            # e.g. if there is one passage with 
-            # true labels 'moses' and 'prayer', and 
-            # pred labels 'moses' and 'abraham', then we would obtain
-            # true_label_set = ['moses','prayer','None']
-            # pred_label_set = ['moses','None','abraham']
-            
             true_label_set = []
             pred_label_set = []
             
@@ -996,41 +1038,19 @@ class ConfusionMatrix:
             except:
                 pass
 
-            # 0) NULL CASE --> No true or pred labels 
-            # e.g. if there is one passage with no true labels and no pred labels 
-            # true_label_set = ['None']
-            # pred_label_set = ['None']
-
             if len(pred_label_set) == 0 and len(pred_label_set) == 0:
                     y_true.append('None')
                     y_pred.append('None')
         
-            # 1) MATCH --> true label == pred label 
-            # e.g. if there is one passage with 
-            # true label 'moses', and 
-            # pred label 'moses', then we would obtain
-            # true_label_set = ['moses']
-            # pred_label_set = ['moses']
             for true_label in true_label_set:
                 if true_label in pred_label_set:
                     y_true.append(true_label)
                     y_pred.append(true_label)
 
-            # 2) FALSE NEGATIVE --> true label was not predicted
-            # e.g. if there is one passage with 
-            # true label 'prayer', and no pred labels,
-            # then we would obtain
-            # true_label_set = ['prayer']
-            # pred_label_set = ['None']
                 else:
                     y_true.append(true_label)
                     y_pred.append("None")
 
-            # 3) FALSE POSITIVE --> pred label was not true
-            # e.g. if there is no true label, and the pred label is 'abraham', 
-            # then we would obtain
-            # true_label_set = ['None']
-            # pred_label_set = ['abraham']
             for pred_label in pred_label_set:
                 if pred_label not in true_label_set:
                     y_true.append("None")
@@ -1058,14 +1078,17 @@ class ConfusionMatrix:
         return cm
 
 
-    def check_worst(self,cm, labels_df):
+    def check_worst(self, cm, labels_df):
         """
-        Given confusion matrix, calculate which topic statistically performs the worst, and produce those examples.
+        Given confusion matrix, calculate which topic 
+        statistically performs the worst, 
+        and display the relevant examples.
         """
 
         cm_norm = cm.div(cm.sum(axis=1), axis=0)
 
-        if self.should_print:
+        if True:
+        # if self.should_print:
         
             print(cm_norm.round(2))
 
@@ -1080,15 +1103,16 @@ class ConfusionMatrix:
         # TP rate for each topic, ordered worst to best, as a list of tuples
         ranked_TP_rates = sorted(TP_rates.items(), key=itemgetter(1))
         
-        k = 1
+        worst_topic = ranked_TP_rates[0][0]
 
-        worst_topic = ranked_TP_rates[k][0]
-        # worst_topic = ranked_TP_rates[0][0]
+        labels_df.columns = ['passage_words', 'true_topics', 'pred_topics']
 
         # true, but not pred
         FN_df = labels_df[labels_df.true_topics.astype(str).str.contains(worst_topic) & ~labels_df.pred_topics.astype(str).str.contains(worst_topic)]
-        # usage: print(FN_passages.to_string(index=False))
+
         FN_passages = FN_df[['passage_words']]
+        # usage: 
+        # print(FN_passages.to_string(index=False))
 
         FNs_with_keyword = FN_df[FN_df['passage_words'].str.contains(worst_topic)]
 
@@ -1099,11 +1123,10 @@ class ConfusionMatrix:
         FP_passages = FP_df[['passage_words']]
         
         # easy_misses = FN_df[FN_df['passage_words'].str.contains(worst_topic)]
-
         return cm
 
-class Scorer:
 
+class Scorer:
 
     def __init__(self, 
     # data_set, 
@@ -1251,13 +1274,15 @@ class Evaluator:
         topic_lists, 
         topic_counts, 
         super_topics, 
+        true_family_given, 
         ):
 
         self.expt_num = expt_num
         self.data_sets = data_sets
         self.topic_lists = topic_lists
-        self.super_topics = sorted(super_topics)
         self.topic_counts = topic_counts
+        self.super_topics = sorted(super_topics)
+        self.true_family_given = true_family_given
 
 
     def calc_cm(self):
@@ -1286,38 +1311,53 @@ class Evaluator:
                 cm_maker.data_set = data_set
 
                 # record only columns of true vs pred
+                # pred_vs_true = self.data_sets[cm_maker.data_set][[true_col,pred_col]]
                 cm_maker.pred_vs_true[cm_maker.data_set] = self.data_sets[cm_maker.data_set][[true_col,pred_col]]
+                
+                # cm_maker.pred_vs_true[cm_maker.data_set] = pred_vs_true
 
-                self.confusion_matrices[super_topic][cm_maker.data_set] = cm_maker.get_cm_values()
+                cm = cm_maker.get_cm_values()
+                
+                self.confusion_matrices[super_topic][cm_maker.data_set] = cm
+
+                labels_df = self.data_sets[cm_maker.data_set][['passage_words', true_col, pred_col]]
+                
+                cm_maker.check_worst(cm, labels_df)
 
 
     def save_image(self, data, scoring_group, data_set):
 
-        fig = plt.figure()
+        df = data[['Topic', 'Precision', 'Recall', 'F1score']]
 
-        score_chart = sns.barplot(x="Topic", y="F1score", data=data)
+        df = pd.melt(df, id_vars="Topic", var_name="Metric", value_name="Score")
 
-        score_chart.set_title(f'{scoring_group}\n{data_set}')
+        score_chart = sns.factorplot(x='Topic', y='Score', hue='Metric', data=df, kind='bar')
 
-        plt.xticks(rotation=75, horizontalalignment='right')
+        score_chart.set_xticklabels(rotation=90)
 
-        for p in score_chart.patches:
+        # Get current axis on current figure
+        ax = plt.gca()
 
-            score_chart.annotate(
-                f"{round(p.get_height(),2)}", (p.get_x() + p.get_width() / 2., p.get_height()),
-                ha='center', va='center', fontsize=10, color='black', xytext=(0, 5), textcoords='offset points'
+        # ylim max value to be set
+        # y_max = df['Sex'].value_counts().max() 
+        # ax.set_ylim([0, roundup(y_max)])
+
+        # Iterate through the list of axes' patches
+        for p in ax.patches:
+            ax.text(
+                p.get_x() + p.get_width()/2., 
+                p.get_height(), f'{round(p.get_height(),2)}', 
+                fontsize=12, color='black', 
+                ha='center', va='bottom'
                 )
 
-        # save image
         folder = 'images/scores'
 
         file_name = f'{self.expt_num}_{scoring_group}_{data_set}.png'
 
         path = os.path.join(folder,file_name)
 
-        plt.savefig(path, bbox_inches='tight')
-
-        plt.close(fig)
+        score_chart.savefig(path, bbox_inches='tight')
         
 
     def calc_scores(self):
@@ -1354,7 +1394,9 @@ class Evaluator:
                 self.overall_scores[data_set][super_topic] = [
                     super_topic,
                     float(scorer.topic_stats_df.loc[scorer.topic_stats_df['Topic'] == 'Overall']['Occurrences']),
-                    float(scorer.topic_stats_df.loc[scorer.topic_stats_df['Topic'] == 'Overall']['F1score'])
+                    float(scorer.topic_stats_df.loc[scorer.topic_stats_df['Topic'] == 'Overall']['F1score']),
+                    float(scorer.topic_stats_df.loc[scorer.topic_stats_df['Topic'] == 'Overall']['Precision']),
+                    float(scorer.topic_stats_df.loc[scorer.topic_stats_df['Topic'] == 'Overall']['Recall']),
                     ]
 
                 self.save_image(
@@ -1368,18 +1410,22 @@ class Evaluator:
             df = pd.DataFrame.from_dict(
                 self.overall_scores[data_set], 
                 orient='index',
-                columns=['Topic', 'Occurrences', 'F1score']
+                columns=['Topic', 'Occurrences', 'F1score', 'Precision', 'Recall']
                 )
 
             families_df = df[df.Topic != 'entity']
 
-            families_df['weighted_score'] = families_df.Occurrences * families_df.F1score
+            families_df['weighted_f1score'] = families_df.Occurrences * families_df.F1score
+            families_df['weighted_precision'] = families_df.Occurrences * families_df.Precision
+            families_df['weighted_recall'] = families_df.Occurrences * families_df.Recall
 
             total_occurrences = families_df.Occurrences.sum()
 
-            avg_score = families_df.weighted_score.sum()/total_occurrences
+            avg_f1score = families_df.weighted_f1score.sum()/total_occurrences
+            avg_precision = families_df.weighted_precision.sum()/total_occurrences
+            avg_recall = families_df.weighted_recall.sum()/total_occurrences
 
-            df.loc['hierarchy'] = ['hierarchy', total_occurrences, avg_score]
+            df.loc['hierarchy'] = ['hierarchy', total_occurrences, avg_f1score, avg_precision, avg_recall]
 
             self.save_image(
                 data = df,  

@@ -3,11 +3,4 @@ scores_key
 expt_num: 1
 vectorizer: CountVectorizer()
 classifier: LabelPowerset(classifier=LinearSVC(), require_dense=[True, True])
-super_topics: ['occurent', 'specifically-dependent-continuant', 'independent-continuant', 'generically-dependent-continuant']
-time_taken: 0:18:14.453415
-
-expt_num: 2
-vectorizer: CountVectorizer()
-classifier: LabelPowerset(classifier=LinearSVC(), require_dense=[True, True])
-super_topics: ['generically-dependent-continuant', 'independent-continuant', 'occurent', 'quality', 'realizable-entity']
-time_taken: 0:38:18.856897
+super_topics: ['philosophy', 'places', 'biblical-figures', 'history', 'food', 'art', 'beliefs', 'health', 'prayer', 'nature', 'torah-portions', 'values', 'holidays', 'ritual-objects', 'lifecycle', 'stories', 'supernatural', 'social-issues', 'halachic-principles', 'human-ethics', 'family-law', 'laws-of-prayer', 'laws-of-kindness', 'property-law', 'tort-law', 'laws-of-impurity-and-purity', 'agricultural-law', 'laws-of-optional-restrictions', 'laws-of-scribes', 'laws-of-the-calendar', 'laws-of-worship-of-god', 'laws-of-government', 'laws-of-food', 'laws-of-clothing', 'noahide-(gentile)-law']

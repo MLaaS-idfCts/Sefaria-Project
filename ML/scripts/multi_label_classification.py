@@ -92,37 +92,58 @@ for i, div_laws in enumerate(div_laws_options):
         topic_groups_list[i] = pickle.load(handle)
 
 super_topics_list = [
-    topic_groups_list[0], # laws_united 
+    # ['entity'], # 
+    # topic_groups_list[0], # laws_united 
     topic_groups_list[1], # laws_divided
-    ['occurent', 'specifically-dependent-continuant','independent-continuant', 'generically-dependent-continuant'],
-    ['generically-dependent-continuant', 'independent-continuant','occurent', 'quality', 'realizable-entity']
+    # ['occurent', 'specifically-dependent-continuant','independent-continuant', 'generically-dependent-continuant'],
+    # ['generically-dependent-continuant', 'independent-continuant','occurent', 'quality', 'realizable-entity']
 ]
+
+super_topics = super_topics_list[0]
 
 lang_to_vec = 'eng' # ['eng','heb', 'both']
 
-row_lim = 500
-# row_lim = 5000
+# row_lim = 100
+# row_lim = 500
+# row_lim = 1000
+row_lim = 5000
 # row_lim = 10000
 # row_lim = 20000
 # row_lim = 40000
 # row_lim = 80000
 
+max_children = 1
 # max_children = 2
-max_children = 5
+# max_children = 5
 # max_children = 10
 # max_children = 100
 
-# min_occurrences = 1
-min_occurrences = 5
+min_occurrences = 1
+# min_occurrences = 5
 # min_occurrences = 20
 # min_occurrences = 50
 # min_occurrences = 100
+
+family_pred_options = [True, False]
+
+true_family_given = False
+
+use_rules_options = [False, True]
 
 refresh_scores()
 
 expt_num = 0
 
-for i, super_topics in enumerate(super_topics_list):
+# use_rules = True
+use_rules = False
+
+# use_ML = False
+use_ML = True
+
+if True:
+# for i, use_rules in enumerate(use_rules_options):
+# for i, true_family_given in enumerate(family_pred_options):
+# for i, super_topics in enumerate(super_topics_list):
 
     expt_num += 1
 
@@ -164,8 +185,11 @@ for i, super_topics in enumerate(super_topics_list):
     
     predictor = Predictor(
         df = categorizer.df,
+        use_rules = use_rules,
+        use_ML = use_ML,
         classifier = classifier,
         vectorizer = vectorizer,
+        true_family_given = true_family_given,
         topic_lists = categorizer.topic_lists,
         super_topics = categorizer.super_topics + ['entity'],
         )
@@ -181,17 +205,22 @@ for i, super_topics in enumerate(super_topics_list):
         data_sets = predictor.data_sets, 
         topic_lists = categorizer.topic_lists,
         super_topics = predictor.super_topics, 
+        true_family_given = true_family_given,
         topic_counts = categorizer.topic_counts,
     ) 
 
     evaluator.calc_cm()
 
     evaluator.calc_scores()
+    
+    # evaluator.check_worst()
 
     start_time = time_keeper(start_time)
 
     # with open("images/scores/scores_key.txt", "a") as file_object:
 
     #     file_object.write(f'\ntime_taken: {time_taken}')
+
+    print()
 
 print()

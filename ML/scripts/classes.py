@@ -33,6 +33,7 @@ nltk.download('stopwords')
 stemmer = SnowballStemmer('english')
 np.seterr(divide='ignore', invalid='ignore')
 
+
 class DataManager:
 
     def __init__(self, data_path, row_lim, 
@@ -344,7 +345,7 @@ class Categorizer:
 
         children_list_name = f"children_of_{super_topic}"
 
-        path = f'data/{children_list_name}.pickle'
+        path = f'/persistent/Sefaria-Project/ML/data/{children_list_name}.pickle'
 
         with open(path, 'wb') as handle:
             
@@ -360,7 +361,7 @@ class Categorizer:
 
         children_list_name = f"children_of_{super_topic}"
 
-        path = f'data/{children_list_name}.pickle'
+        path = f'/persistent/Sefaria-Project/ML/data/{children_list_name}.pickle'
 
         if os.path.exists(path):
 
@@ -938,7 +939,7 @@ class Predictor:
     
     def predict(self):
 
-        path = f'data/pred_array_{self.topic_group}_{self.data_set}.pickle'
+        path = f'/persistent/Sefaria-Project/ML/data/pred_array_{self.topic_group}_{self.data_set}.pickle'
 
         if not self.use_rules:
 
@@ -1065,7 +1066,7 @@ class ConfusionMatrix:
 
         sns.heatmap(cm, annot=True,linewidths=1.0,cmap='summer')
 
-        folder = 'images/cm'
+        folder = '/persistent/Sefaria-Project/ML/images/cm'
 
         file_name = f'{self.expt_num}_{self.super_topic}_{self.data_set}.png'
 
@@ -1331,27 +1332,27 @@ class Evaluator:
 
         df = pd.melt(df, id_vars="Topic", var_name="Metric", value_name="Score")
 
-        score_chart = sns.factorplot(x='Topic', y='Score', hue='Metric', data=df, kind='bar')
+        num_topics = df['Topic'].shape[0]/3.0
+
+        score_chart = sns.factorplot(
+            x='Topic', y='Score', 
+            hue='Metric', data=df, kind='bar',
+            height=5, aspect= max(1,num_topics/8.0),
+            )
 
         score_chart.set_xticklabels(rotation=90)
 
-        # Get current axis on current figure
         ax = plt.gca()
 
-        # ylim max value to be set
-        # y_max = df['Sex'].value_counts().max() 
-        # ax.set_ylim([0, roundup(y_max)])
-
-        # Iterate through the list of axes' patches
         for p in ax.patches:
             ax.text(
                 p.get_x() + p.get_width()/2., 
                 p.get_height(), f'{round(p.get_height(),2)}', 
-                fontsize=12, color='black', 
+                fontsize=6, color='black', 
                 ha='center', va='bottom'
                 )
 
-        folder = 'images/scores'
+        folder = '/persistent/Sefaria-Project/ML/images/scores'
 
         file_name = f'{self.expt_num}_{scoring_group}_{data_set}.png'
 

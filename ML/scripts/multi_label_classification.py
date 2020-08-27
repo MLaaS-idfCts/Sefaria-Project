@@ -44,7 +44,7 @@ def time_keeper(start_time):
 
 def refresh_scores():
 
-    folders = ['images/scores/*','images/cm/*']
+    folders = ['/persistent/Sefaria-Project/ML/images/scores/*','images/cm/*']
 
     for folder in folders:
             
@@ -54,14 +54,14 @@ def refresh_scores():
 
             os.remove(f)
 
-    with open("images/scores/scores_key.txt", "w") as file_object:
+    with open("/persistent/Sefaria-Project/ML/images/scores/scores_key.txt", "w") as file_object:
 
         file_object.write("scores_key")
     
 
 def record_expt_specs(expt_num, vectorizer, classifier):
 
-    with open("images/scores/scores_key.txt", "a") as file_object:
+    with open("/persistent/Sefaria-Project/ML/images/scores/scores_key.txt", "a") as file_object:
 
         file_object.write(f'\n')
 
@@ -75,7 +75,7 @@ def record_expt_specs(expt_num, vectorizer, classifier):
 
 # ******************************************************************************************************
 
-DATA_PATH = 'data/concat_english_prefix_hebrew.csv'
+DATA_PATH = '/persistent/Sefaria-Project/ML/data/concat_english_prefix_hebrew.csv'
 
 classifier = LabelPowerset(classifier=LinearSVC())
 
@@ -85,16 +85,18 @@ topic_groups_list = {}
 
 div_laws_options = ['laws_united','laws_divided']
 
-for i, div_laws in enumerate(div_laws_options):
+# if False:
+if True:
 
-    with open(f'data/topic_groups_{div_laws_options[i]}.pickle', 'rb') as handle:
+    for i, div_laws in enumerate(div_laws_options):
+        
+        with open(f'/persistent/Sefaria-Project/ML/data/topic_groups_{div_laws_options[i]}.pickle', 'rb') as handle:
 
-        topic_groups_list[i] = pickle.load(handle)
+            topic_groups_list[i] = pickle.load(handle)
 
 super_topics_list = [
-    # ['entity'], # 
-    # topic_groups_list[0], # laws_united 
-    topic_groups_list[1], # laws_divided
+    ['philosophy', 'places', 'biblical-figures', 'history', 'food', 'art', 'beliefs', 'health', 'prayer', 'nature', 'torah-portions', 'values', 'holidays', 'ritual-objects', 'lifecycle', 'stories', 'supernatural', 'social-issues', 'halachic-principles', 'human-ethics', 'family-law', 'laws-of-prayer', 'laws-of-kindness', 'property-law', 'tort-law', 'laws-of-impurity-and-purity', 'agricultural-law', 'laws-of-food', 'laws-of-clothing', 'noahide-(gentile)-law'],
+    # ['philosophy', 'places', 'biblical-figures', 'history', 'laws', 'food', 'art', 'beliefs', 'health', 'prayer', 'nature', 'torah-portions', 'values', 'holidays', 'ritual-objects', 'lifecycle', 'stories', 'supernatural', 'social-issues'],
     # ['occurent', 'specifically-dependent-continuant','independent-continuant', 'generically-dependent-continuant'],
     # ['generically-dependent-continuant', 'independent-continuant','occurent', 'quality', 'realizable-entity']
 ]
@@ -104,13 +106,14 @@ super_topics = super_topics_list[0]
 lang_to_vec = 'eng' # ['eng','heb', 'both']
 
 # row_lim = 100
-# row_lim = 500
+# row_lim = 500 
 # row_lim = 1000
 row_lim = 5000
 # row_lim = 10000
 # row_lim = 20000
 # row_lim = 40000
 # row_lim = 80000
+# row_lim = None
 
 max_children = 1
 # max_children = 2

@@ -1,6 +1,5 @@
 import os
 import glob
-# from scripts.table_of_contents import div_laws
 import pickle
 import pandas as pd
 import warnings
@@ -110,57 +109,23 @@ super_topics = super_topics_list[0]
 # langs_to_vec = ['eng', 'both']
 lang_to_vec = 'eng' # ['eng','heb', 'both']
 
-# row_lim = 100
-# row_lim = 500 
-# row_lim = 1000
-# row_lim = 2000
-row_lim = 5000
-# row_lim = 10000
-# row_lim = 20000
-# row_lim = 40000
-# row_lim = 80000
-# row_lim = None
+row_lim = 20000
 
-# max_children = 1
-# max_children = 2
-max_children = 5
-# max_children = 10
-# max_children = 1000000
-# max_children = 100
+max_children = 10
 
 min_occurrences = 1
-# min_occurrences = 5
-# min_occurrences = 10
-# min_occurrences = 20
-# min_occurrences = 50
-# min_occurrences = 100
 
-# family_pred_options = [True, False]
-
-# true_family_given = True # *****************************************
 true_family_given = False
-
-# use_rules_options = [False, True]
 
 refresh_scores()
 
 expt_num = 0
 
-# use_rules = True
 use_rules = False
 
-# use_ML = False
 use_ML = True
 
 if True:    
-# for lang_to_vec in langs_to_vec:
-# for vectorizer in vectorizers:
-# for row_lim in [5000]:
-# for row_lim in [None]:
-# for row_lim in [5000,40000,80000,None]:
-# for i, use_rules in enumerate(use_rules_options):
-# for i, true_family_given in enumerate(family_pred_options):
-# for i, super_topics in enumerate(super_topics_list):
 
     expt_num += 1
 

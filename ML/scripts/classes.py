@@ -941,15 +941,17 @@ class Predictor:
 
         path = f'/persistent/Sefaria-Project/ML/data/pred_array_{self.topic_group}_{self.data_set}.pickle'
 
-        if not self.use_rules:
+        self.make_predictions()
 
-            self.make_predictions()
+        if False:
+        # if not self.use_rules:
 
             with open(path, 'wb') as f:
 
                 pickle.dump(self.pred_arrays, f, pickle.HIGHEST_PROTOCOL)
 
-        if self.use_rules:
+        if False:
+        # if self.use_rules:
 
             with open(path, 'rb') as f:
 

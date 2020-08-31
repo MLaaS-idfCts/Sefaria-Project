@@ -1,4 +1,57 @@
-with open("images/scores/scores_key.txt", "w") as file_object:
-    file_object.write("blah")
-with open("images/scores/scores_key.txt", "a") as file_object:
-    file_object.write("hello")
+s = """00:'philosophy'
+01:'places'
+02:'biblical-figures'
+03:'history'
+04:'laws'
+05:'food'
+06:'art'
+07:'beliefs'
+08:'health'
+09:'prayer'
+10:'nature'
+11:'torah-portions'
+12:'values'
+13:'holidays'
+14:'ritual-objects'
+15:'lifecycle'
+16:'stories'
+17:'supernatural'
+18:'social-issues'
+"""
+
+s = """
+
+00:'philosophy'
+01:'places'
+02:'biblical-figures'
+03:'history'
+04:'food'
+05:'art'
+06:'beliefs'
+07:'health'
+08:'prayer'
+09:'nature'
+10:'torah-portions'
+11:'values'
+12:'holidays'
+13:'ritual-objects'
+14:'lifecycle'
+15:'stories'
+16:'supernatural'
+17:'social-issues'
+18:'halachic-principles'
+19:'human-ethics'
+20:'family-law'
+21:'laws-of-prayer'
+22:'laws-of-kindness'
+23:'property-law'
+24:'tort-law'
+25:'laws-of-impurity-and-purity'
+26:'agricultural-law'
+32:'laws-of-food'
+33:'laws-of-clothing'
+34:'noahide-(gentile)-law'
+"""
+
+print([item[4:-1] for item in s.split()])
+print()

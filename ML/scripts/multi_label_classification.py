@@ -77,16 +77,19 @@ def record_expt_specs(expt_num, vectorizer, classifier):
 
 DATA_PATH = '/persistent/Sefaria-Project/ML/data/concat_english_prefix_hebrew.csv'
 
+# classifier = BinaryRelevance(classifier=LinearSVC())
 classifier = LabelPowerset(classifier=LinearSVC())
+# classifier = ClassifierChain(classifier=LinearSVC())
 
+# vectorizers = [HashingVectorizer(),CountVectorizer()]
 vectorizer = CountVectorizer()
 
 topic_groups_list = {}
 
 div_laws_options = ['laws_united','laws_divided']
 
-# if False:
-if True:
+if False:
+# if True:
 
     for i, div_laws in enumerate(div_laws_options):
         
@@ -95,6 +98,7 @@ if True:
             topic_groups_list[i] = pickle.load(handle)
 
 super_topics_list = [
+    # ['history'],
     ['philosophy', 'places', 'biblical-figures', 'history', 'food', 'art', 'beliefs', 'health', 'prayer', 'nature', 'torah-portions', 'values', 'holidays', 'ritual-objects', 'lifecycle', 'stories', 'supernatural', 'social-issues', 'halachic-principles', 'human-ethics', 'family-law', 'laws-of-prayer', 'laws-of-kindness', 'property-law', 'tort-law', 'laws-of-impurity-and-purity', 'agricultural-law', 'laws-of-food', 'laws-of-clothing', 'noahide-(gentile)-law'],
     # ['philosophy', 'places', 'biblical-figures', 'history', 'laws', 'food', 'art', 'beliefs', 'health', 'prayer', 'nature', 'torah-portions', 'values', 'holidays', 'ritual-objects', 'lifecycle', 'stories', 'supernatural', 'social-issues'],
     # ['occurent', 'specifically-dependent-continuant','independent-continuant', 'generically-dependent-continuant'],
@@ -103,11 +107,13 @@ super_topics_list = [
 
 super_topics = super_topics_list[0]
 
+# langs_to_vec = ['eng', 'both']
 lang_to_vec = 'eng' # ['eng','heb', 'both']
 
 # row_lim = 100
 # row_lim = 500 
 # row_lim = 1000
+# row_lim = 2000
 row_lim = 5000
 # row_lim = 10000
 # row_lim = 20000
@@ -115,23 +121,26 @@ row_lim = 5000
 # row_lim = 80000
 # row_lim = None
 
-max_children = 1
+# max_children = 1
 # max_children = 2
-# max_children = 5
+max_children = 5
 # max_children = 10
+# max_children = 1000000
 # max_children = 100
 
 min_occurrences = 1
 # min_occurrences = 5
+# min_occurrences = 10
 # min_occurrences = 20
 # min_occurrences = 50
 # min_occurrences = 100
 
-family_pred_options = [True, False]
+# family_pred_options = [True, False]
 
+# true_family_given = True # *****************************************
 true_family_given = False
 
-use_rules_options = [False, True]
+# use_rules_options = [False, True]
 
 refresh_scores()
 
@@ -143,7 +152,12 @@ use_rules = False
 # use_ML = False
 use_ML = True
 
-if True:
+if True:    
+# for lang_to_vec in langs_to_vec:
+# for vectorizer in vectorizers:
+# for row_lim in [5000]:
+# for row_lim in [None]:
+# for row_lim in [5000,40000,80000,None]:
 # for i, use_rules in enumerate(use_rules_options):
 # for i, true_family_given in enumerate(family_pred_options):
 # for i, super_topics in enumerate(super_topics_list):

@@ -109,7 +109,8 @@ super_topics = super_topics_list[0]
 # langs_to_vec = ['eng', 'both']
 lang_to_vec = 'eng' # ['eng','heb', 'both']
 
-row_lim = 20000
+row_lim = None
+# row_lim = 20000
 
 max_children = 10
 
